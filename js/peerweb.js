@@ -3,7 +3,8 @@
  */
 (function(window){
     "use strict";
-    var peerWeb = window.peerWeb || {};
+    var peerWeb = window.peerWeb || {},
+    peer;
     
     //define functions of peerWeb
     //TODO
@@ -54,6 +55,10 @@
             number += hex[Math.round(Math.random()*15)];
         }
         return number;
+    };
+    
+    peerWeb.init = function(){
+        peer = new peerWeb.Peer();
     };
     
     window.peerWeb = peerWeb;

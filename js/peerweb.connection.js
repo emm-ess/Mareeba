@@ -5,12 +5,21 @@
 peerWeb.namespace("Connection");
 peerWeb.Connection = function(config){
     "use strict";
-    var webrtc = peerWeb.Connection.WebRTC,
-    flash = peerWeb.Connection.Flash,
-    websocket = peerWeb.Connection.WebSocket,
-    connection;
+    var Webrtc = peerWeb.Connection.WebRTC,
+    Flash = peerWeb.Connection.Flash,
+    Websocket = peerWeb.Connection.WebSocket,
+    connection, ownid, protocolVersion = 0.1,
+    sendIdentityMessage;
     
-    config = config || {};
+    if(config === null || config === undefined){
+        throw {
+            name: "Error",
+            message: "no config Element"
+        };
+    }
+    else{
+        ownid = config.ownid;
+    }
     
     if(config.onerror === undefined){
         config.onerror = function(err){peerWeb.log(err, "error");};
@@ -24,8 +33,23 @@ peerWeb.Connection = function(config){
     }
 
     if(config.onopen === undefined){
-        config.onopen = function(msg){peerWeb.log(msg, "log");};
+        config.onopen = function(msg){
+            peerWeb.log(msg, "log");
+            sendIdentityMessage();
+        };
     }
+    
+    sendIdentityMessage = function(){
+        var identityMessage = {
+            head: {
+                "protocolVersion": protocolVersion,
+                "service": "network",
+                "action": "peerIdentity"
+            },
+            body: {}
+        };
+        this.send(identityMessage);
+    };
     
     
     //private
@@ -34,7 +58,7 @@ peerWeb.Connection = function(config){
         switch(protocol){
             case "ws":
             case "wss":
-                connection = new websocket(config);
+                connection = new Websocket(config);
                 break;
             default:
                 peerWeb.log("cannot determine connection type: "+protocol, "warn");
@@ -43,5 +67,10 @@ peerWeb.Connection = function(config){
     })();
     
     //public
-    this.send = function(msg){connection.send(msg);};
+    this.send = function(msg){
+        if(typeof msg !== String){
+            msg = JSON.stringify(msg);
+        }
+        connection.send(msg);
+    };
 };

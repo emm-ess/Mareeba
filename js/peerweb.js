@@ -57,6 +57,19 @@
         return number;
     };
     
+    peerWeb.removeFromArray = function(needle, stack){
+        if(typeof stack !== Array){
+            throw{
+                name: "False Argument"
+            };
+        }
+        var idx = stack.indexOf(needle); // Find the index
+        if(idx !== -1){
+           stack.splice(idx, 1); 
+        }
+        return stack;
+    };
+    
     peerWeb.init = function(){
         peer = new peerWeb.Peer();
     };

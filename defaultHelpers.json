@@ -1,6 +1,7 @@
 {
     "superPeers": 
-        ["ws://localhost:8080"],
+        ["ws://localhost:8080",
+         "ws://192.168.15.206:8080"],
         
     "iceServers": 
         ["stun:stunserver.org:3478",

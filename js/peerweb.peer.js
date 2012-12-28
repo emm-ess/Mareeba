@@ -7,8 +7,7 @@ peerWeb.Peer = function(){
     "use strict";
     var conManager, storage, peer,
     //private Methods
-    generateID, getIDFromRandomOrg, chooseRandomID, setID,
-    continueInit;
+    generateID, getIDFromRandomOrg, chooseRandomID, setID;
     
     generateID = function(){
         //check Quota of current IP at random.org
@@ -51,10 +50,6 @@ peerWeb.Peer = function(){
         continueInit();
     };
     
-    continueInit = function(){
-        conManager = new peerWeb.ConnectionManager(storage);
-    };
-    
     //making sure initialcode is only called once, using singletonpattern
     peerWeb.Peer = function(){
         return peer;
@@ -64,16 +59,24 @@ peerWeb.Peer = function(){
     peer.constructor = peerWeb.Peer;
     
     //initialiserungscode
-    peerWeb.log("Initialisiere Peer.", "info");
-    storage = new peerWeb.Storage();
-    peer.ID = storage.getPeerID();
-    if(peer.ID === null){
-        generateID();
-    }
-    else{
-        peerWeb.log("Peer ID loaded: "+peer.ID, "info");
+    (function(){
+        var continueInit = function(){
+            if(storage.isUsable() && peer.ID !== null){
+                conManager = new peerWeb.ConnectionManager(storage);
+            }
+        };
+        
+        peerWeb.log("Initialisiere Peer.", "info");
+        storage = new peerWeb.Storage({onReady:continueInit});
+        peer.ID = storage.getPeerID();
+        if(peer.ID === null){
+            generateID();
+        }
+        else{
+            peerWeb.log("Peer ID loaded: "+peer.ID, "info");
+        }
         continueInit();
-    }
+    })();
     
     return peer;
 };

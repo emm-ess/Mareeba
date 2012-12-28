@@ -6,13 +6,20 @@ window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || 
 window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
 
 peerWeb.namespace("Storage");
-peerWeb.Storage = function(){
+peerWeb.Storage = function(config){
     "use strict";
-    var db,
-    openIndexedDB, checkRequiredContent;
+    var db, usable = false,
+    openIndexedDB, checkRequiredContent, ready;
     
     indexedDB.onerror = function(e){
         peerWeb.log("IndexedDB Error: "+e.target.errorCode, "error");
+    };
+    
+    ready = function(){
+        //check all needed dependencies
+        usable = true;
+        peerWeb.log("Storage fully initialised", "info");
+        config.onReady();
     };
     
     //request IndexedDB, alter DB if needed
@@ -48,9 +55,11 @@ peerWeb.Storage = function(){
         loadDefaultPeers, loadDefaultTurnStun, saveDefaults;
         
         loadDefaultPeers = function(event) {
-            var cursor = event.target.result;
+            var cursor = event.target.result,
+            wsAddress;
             if (cursor) {
-                defaultHelper.superPeers = peerWeb.removeFromArray(cursor.key, defaultHelper.superPeers);
+                wsAddress = cursor.value.wsAddress;
+                defaultHelper.superPeers = peerWeb.removeFromArray(wsAddress, defaultHelper.superPeers);
                 cursor.continue();  //continue marked as failure, but isn't
             }
             else {
@@ -60,9 +69,11 @@ peerWeb.Storage = function(){
         };
         
         loadDefaultTurnStun = function(event) {
-            var cursor = event.target.result;
+            var cursor = event.target.result,
+            url;
             if (cursor) {
-                defaultHelper.iceServers = peerWeb.removeFromArray(cursor.value, defaultHelper.iceServers);
+                url = cursor.value.url;
+                defaultHelper.iceServers = peerWeb.removeFromArray(url, defaultHelper.iceServers);
                 cursor.continue();  //continue marked as failure, but isn't
             }
             else {
@@ -79,7 +90,8 @@ peerWeb.Storage = function(){
                 turnStunStore = trans.objectStore("iceServers"),
                 i = 0, tempObject;
                 trans.oncomplete = function(event) {
-                    alert("All done!");
+                    peerWeb.log("DefaultHelpers saved.", "info");
+                    ready();
                 };
                 trans.onerror = db.onerror;
                 for (i = 0; i < defaultHelper.superPeers.length; i++) {
@@ -121,6 +133,10 @@ peerWeb.Storage = function(){
    openIndexedDB();
     
     //public
+    this.isUsable = function(){
+        return usable;
+    };
+    
     this.getPeerID = function(){
         return localStorage.getItem("peerID");
     };

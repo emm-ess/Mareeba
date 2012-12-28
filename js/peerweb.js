@@ -58,9 +58,10 @@
     };
     
     peerWeb.removeFromArray = function(needle, stack){
-        if(typeof stack !== Array){
+        if(!$.isArray(stack)){
             throw{
-                name: "False Argument"
+                name: "False Argument",
+                message: "stack isn't an Array"
             };
         }
         var idx = stack.indexOf(needle); // Find the index

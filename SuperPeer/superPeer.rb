@@ -3,7 +3,7 @@ require 'em-websocket'
 EventMachine.run {
   @connectedPeers = Array.new
 
-  EventMachine::WebSocket.start(:host => "192.168.15.205", :port => 8080, :debug => true) do |ws|
+  EventMachine::WebSocket.start(:host => "192.168.15.206", :port => 8080, :debug => true) do |ws|
 
     ws.onopen {
       ws.send("authorize!")

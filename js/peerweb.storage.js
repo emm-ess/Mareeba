@@ -8,7 +8,7 @@ window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.ms
 peerWeb.namespace("Storage");
 peerWeb.Storage = function(config){
     "use strict";
-    var db, usable = false,
+    var that = this, db, usable = false,
     openIndexedDB, checkRequiredContent, ready;
     
     indexedDB.onerror = function(e){
@@ -142,5 +142,44 @@ peerWeb.Storage = function(config){
     };
     this.setPeerID = function(id){
         return localStorage.setItem("peerID", id);
+    };
+    
+    this.getPeers = function(filter, callback){
+        var peerStore = db.transaction(["peers"], "readonly").objectStore("peers"),
+        peers = [];
+        peerStore.openCursor().onsuccess = function(event) {
+            var cursor = event.target.result;
+            if (cursor) {
+                filter(cursor.value, peers);
+                cursor.continue();
+            }
+            else {
+                //peerWeb.log("got all Peers in indexedDB", "log");
+                callback(peers);
+            }
+        };
+    };
+    this.getAllPeers = function(callback){
+        var peerStore = db.transaction(["peers"], "readonly").objectStore("peers"),
+        peers;
+        peerStore.openCursor().onsuccess = function(event) {
+            var cursor = event.target.result;
+            if (cursor) {
+                peers.push(cursor.value);
+                cursor.continue();
+            }
+            else {
+                //peerWeb.log("got all Peers in indexedDB", "log");
+                callback(peers);
+            }
+        };
+    };
+    this.getAllSuperPeers = function(callback){
+        var filter = function(curValue, resultSet){
+            if(curValue.wsAddress !== undefined){
+                resultSet.push(curValue);
+            }
+        };
+        that.getPeers(filter, function(result){callback(result);});
     };
 };

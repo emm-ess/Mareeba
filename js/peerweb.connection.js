@@ -8,7 +8,7 @@ peerWeb.Connection = function(config){
     var Webrtc = peerWeb.Connection.WebRTC,
     Flash = peerWeb.Connection.Flash,
     Websocket = peerWeb.Connection.WebSocket,
-    connection, ownid, protocolVersion = 0.1,
+    that = this, connection, ownid, protocolVersion = 0.1,
     sendIdentityMessage;
     
     if(config === null || config === undefined){
@@ -25,13 +25,14 @@ peerWeb.Connection = function(config){
         config.onerror = function(err){peerWeb.log(err, "error");};
     }
     if(config.onclose === undefined){
-        config.onclose = function(msg){peerWeb.log(msg, "warn");};
+        config.onclose = function(msg){
+            peerWeb.log(msg, "log");
+            config.manager.connectionClosed();
+        };
     }
-
     if(config.onmessage === undefined){
         config.onmessage = function(msg){peerWeb.log(msg, "log");};
     }
-
     if(config.onopen === undefined){
         config.onopen = function(msg){
             peerWeb.log(msg, "log");
@@ -42,17 +43,16 @@ peerWeb.Connection = function(config){
     sendIdentityMessage = function(){
         var identityMessage = {
             head: {
-                "protocolVersion": protocolVersion,
                 "service": "network",
                 "action": "peerIdentity"
             },
             body: {}
         };
-        this.send(identityMessage);
+        that.send(identityMessage);
     };
     
     
-    //private
+    //init-code
     (function(){
         var protocol = config.connectTo.split(":")[0];
         switch(protocol){
@@ -68,9 +68,16 @@ peerWeb.Connection = function(config){
     
     //public
     this.send = function(msg){
-        if(typeof msg !== String){
-            msg = JSON.stringify(msg);
+        if(typeof msg === String){
+            msg = JSON.parse(msg);
         }
+        msg.head.protocolVersion = protocolVersion;
+        msg.head.from = config.ownPeerID;
+        msg = JSON.stringify(msg);
         connection.send(msg);
+    };
+    
+    this.getReadyState = function(){
+        return connection.getReadyState();
     };
 };

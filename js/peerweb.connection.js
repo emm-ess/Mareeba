@@ -16,7 +16,7 @@ peerWeb.Connection = function(config){
             },
             body: {}
         };
-        that.send(identityMessage);
+        that.sendRequest(identityMessage);
     };
     
     
@@ -67,24 +67,35 @@ peerWeb.Connection = function(config){
     })();
     
     //public
-    this.send = function(msg){
-        var refCode;
+    this.sendRequest = function(msg){
+        var refCode = peerWeb.getRandomHexNumber(40);
         if(typeof msg === String){
             msg = JSON.parse(msg);
         }
         msg.head.protocolVersion = this.protocolVersion;
         msg.head.from = this.ownPeerID;
-        if(msg.head.code === undefined){
-            refCode = peerWeb.getRandomHexNumber(40);
-            msg.head.refCode = refCode;
-        }
+        msg.head.refCode = refCode;
         msg.head.date = new Date().getTime();
         msg = JSON.stringify(msg);
-        peerWeb.log("msg send: "+msg, "log");
+        peerWeb.log("Request send: "+msg, "log");
         connection.send(msg);
-        if(refCode !== undefined){
-            config.storeMessage(refCode, msg);
+        config.storeMessage(refCode, msg);
+    };
+    
+    //public
+    this.sendResponse = function(msg){
+        if(typeof msg === String){
+            msg = JSON.parse(msg);
         }
+        if(msg.head.from !== undefined){
+            msg.head.to = msg.head.from;
+        }
+        msg.head.protocolVersion = this.protocolVersion;
+        msg.head.from = this.ownPeerID;
+        msg.head.date = new Date().getTime();
+        msg = JSON.stringify(msg);
+        peerWeb.log("Response send send: "+msg, "log");
+        connection.send(msg);
     };
     
     this.getReadyState = function(){

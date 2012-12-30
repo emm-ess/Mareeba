@@ -7,6 +7,7 @@ peerWeb.ConnectionManager = function(storage){
     "use strict";
     var Connection = peerWeb.Connection,
     that = this, connections = {}, newConnections = [], defaultConfig = {},
+    amountConPeers = 0,
     handleNetworkRequest;
     
     //init-code
@@ -37,6 +38,7 @@ peerWeb.ConnectionManager = function(storage){
             case "peerIdentity":
                 newConnections = peerWeb.removeFromArray(con, newConnections);
                 connections[msg.head.from] = con;
+                amountConPeers += 1;
                 peerWeb.log("recieved peerIdentity Message, moved connection from newly createt to normal.", "log");
             break;
         }
@@ -45,16 +47,17 @@ peerWeb.ConnectionManager = function(storage){
     //public
     this.connectionClosed = function(){
         var i;
-        for(i = 0; i < newConnections.length; i++){
+        for(i = 0; i < newConnections.length; i += 1){
             if(newConnections[i].getReadyState() === 2 || newConnections[i].getReadyState() === 3){
                 newConnections.splice(i, 1);
-                i--;
+                i -= 1;
                 peerWeb.log("Connection removed from newly created ones, remaining: "+newConnections.length, "log");
             }
         }
         for(i in connections){
             if(typeof i.getReadyState === "function" && (i.getReadyState() === 2 || i.getReadyState() === 3)){
                 connections[i] = undefined;
+                amountConPeers -= 1;
                 peerWeb.log("Connection removed", "log");
             }
         }
@@ -72,6 +75,8 @@ peerWeb.ConnectionManager = function(storage){
             break;
         }
         msg.head.code = 200;
-        con.send(msg);
+        con.sendResponse(msg);
     };
+    
+    this.get
 };

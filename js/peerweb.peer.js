@@ -5,7 +5,7 @@
 peerWeb.namespace("Peer");
 peerWeb.Peer = function(){
     "use strict";
-    var conManager, storage, peer,
+    var conManager, storage, peer, gui,
     //private Methods
     generateID, getIDFromRandomOrg, chooseRandomID, setID;
     
@@ -63,9 +63,12 @@ peerWeb.Peer = function(){
         var continueInit = function(){
             if(storage.isUsable() && peer.ID !== null){
                 conManager = new peerWeb.ConnectionManager(storage);
+                peerWeb.log("Waiting for Connections.", "info");
+                gui.peerReady();
             }
         };
         
+        gui = new peerWeb.GUI();
         peerWeb.log("Initialisiere Peer.", "info");
         storage = new peerWeb.Storage({onReady:continueInit});
         peer.ID = storage.getPeerID();

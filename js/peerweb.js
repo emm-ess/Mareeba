@@ -4,10 +4,9 @@
 (function(window){
     "use strict";
     var peerWeb = window.peerWeb || {},
-    peer;
+    peer, logDisplay;
     
     //define functions of peerWeb
-    //TODO
     //namespace function taken from JavaScript Patterns Seite 91
     peerWeb.namespace = function(ns_string){
         var parts = ns_string.split('.'),
@@ -35,7 +34,7 @@
     
     peerWeb.log = function(msg, level){
         switch(level){
-            case "info": console.log(msg);
+            case "info": console.info(msg);
                 break;
             case "warn": console.warn(msg);
                 break;
@@ -46,6 +45,13 @@
                 console.log(msg);
                 break;
         }
+        if(typeof logDisplay === "function"){
+            logDisplay(msg);
+        }
+    };
+    
+    peerWeb.setLogDisplay = function(display){
+        
     };
     
     peerWeb.getRandomHexNumber = function(length){
@@ -77,3 +83,8 @@
     
     window.peerWeb = peerWeb;
 })( window );
+
+$(document).ready(function(){
+    "use strict";
+    peerWeb.init();
+});

@@ -38,7 +38,7 @@
                 break;
             case "warn": console.warn(msg);
                 break;
-            case "error": console.error(msg);
+            case "error": console.warn(msg);
                 break;
             case "log":
             default:

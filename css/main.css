@@ -47,18 +47,12 @@ header h1 {
 	top: 100px;
 	bottom: 0px;
 	overflow: hidden;
-	display: -webkit-box;
-	-webkit-box-orient: horizontal;
-	-webkit-box-align: stretch;
-	-webkit-box-pack: start;
-	display: -moz-box;
-	-moz-box-orient: horizontal;
-	-moz-box-align: stretch;
-	-moz-box-pack: start;
-	display: box;
-	box-orient: horizontal;
-	box-align: stretch;
-	box-pack: start;
+	display: -webkit-inline-flex;
+	-webkit-flex-direction: row;
+	display: -moz-inline-flex;
+	-moz-flex-direction: row;
+	display: inline-flex;
+	flex-direction: row;
 	
 }
 
@@ -67,9 +61,9 @@ nav {
 	background: rgba(235,235,235,0.3);
 	width: 210px;
 	z-index: 100;
-	-webkit-box-flex: 0;
-	-moz-box-flex: 0;
-	box-flex: 0;
+	-webkit-flex: 0;
+	-moz-flex: 0;
+	flex: 0;
 }
 
 nav ul {
@@ -113,9 +107,9 @@ nav ul li.active a{
 	-webkit-box-shadow: inset 0 1px 1px rgb(112,112,112);
 	-moz-box-shadow: inset 0 1px 1px rgb(112,112,112);
 	box-shadow: inset 0 1px 1px rgb(112,112,112);
-	-webkit-box-flex: 1;
-	-moz-box-flex: 1;
-	box-flex: 1;
+	-webkit-flex: 1;
+	-moz-flex: 1;
+	flex: 1;
 }
 
 section {

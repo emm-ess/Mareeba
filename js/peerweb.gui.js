@@ -17,5 +17,8 @@ peerWeb.GUI= function(config){
         peerWeb.setLogDisplay(function(msg){
             $('#startlogarea').append("<p>"+msg+"</p>");
         });
+        $('a').click(function(e){
+            e.preventDefault();
+        });
     })();
 };

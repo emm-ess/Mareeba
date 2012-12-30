@@ -41,10 +41,10 @@ peerWeb.Connection = function(config){
             msg = JSON.parse(msg.data);
             if(msg.head.code !== undefined){
                 //response
-                config.conManager.handleResponse(msg);
+                config.conManager.handleResponse(msg, that);
             }
             else {
-                config.conManager.handleRequest(msg);
+                config.conManager.handleRequest(msg, that);
             }
         };
         

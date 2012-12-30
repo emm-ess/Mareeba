@@ -144,6 +144,16 @@ peerWeb.Storage = function(config){
         return localStorage.setItem("peerID", id);
     };
     
+    this.storeMessage = function(key, value){
+        return sessionStorage.setItem("msg-"+key, value);
+    };
+    this.getMessage = function(key){
+        return sessionStorage.getItem("msg-"+key);
+    };
+    this.deleteMessage = function(key){
+        return sessionStorage.removeItem("msg-"+key);
+    };
+    
     this.getPeers = function(filter, callback){
         var peerStore = db.transaction(["peers"], "readonly").objectStore("peers"),
         peers = [];

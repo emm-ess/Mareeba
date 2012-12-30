@@ -17,10 +17,10 @@ peerWeb.Connection.WebSocket = function(config){
         connection.onopen = config.onopen;
     })();
     
+    //public
     this.send = function(msg){
         connection.send(msg);
     };
-    
     this.getReadyState = function(){
         return connection.readyState;
     };

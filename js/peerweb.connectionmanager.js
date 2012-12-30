@@ -23,11 +23,13 @@ peerWeb.ConnectionManager = function(storage){
         };
         peerWeb.log("request all saved SuperPeers", "info");
         defaultConfig.ownPeerID = storage.getPeerID();
-        defaultConfig.manager = that;
+        defaultConfig.conManager = that;
+        defaultConfig.storeMessage = function(refCode, msg){
+            storage.storeMessage(refCode, msg);
+        };
         storage.getAllSuperPeers(initSuperPeersConnections);
     })();
     
-    //public
     this.connectionClosed = function(){
         var i;
         for(i = 0; i < connections.length; i++){
@@ -37,5 +39,13 @@ peerWeb.ConnectionManager = function(storage){
             }
         }
         peerWeb.log("Connection removed, remaining Connections: "+connections.length, "log");
-    }
+    };
+    
+    this.handleResponse = function(msg){
+        
+    };
+    
+    this.handleRequest = function(msg){
+        
+    };
 };

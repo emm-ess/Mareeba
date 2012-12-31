@@ -23,12 +23,18 @@ peerWeb.ConnectionManager = function(storage){
             }
             peerWeb.log("allready started trying to connect to to all saved SuperPeers", "info");
         };
-        peerWeb.log("request all saved SuperPeers", "info");
-        defaultConfig.ownPeerID = storage.getPeerID();
+        peerDescr = {
+            "ID" : storage.getPeerID()
+        };
+        if(peerWeb.supportFor.webrtc){
+            peerDescr.webrtc = true;
+        }
+        defaultConfig.ownPeerDescr = peerDescr;
         defaultConfig.conManager = that;
         defaultConfig.storeMessage = function(refCode, msg){
             storage.storeMessage(refCode, msg);
         };
+        peerWeb.log("request all saved SuperPeers", "info");
         storage.getAllSuperPeers(initSuperPeersConnections);
     })();
     

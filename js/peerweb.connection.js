@@ -14,7 +14,9 @@ peerWeb.Connection = function(config){
                 "service": "network",
                 "action": "peerIdentity"
             },
-            body: {}
+            body: {
+                "peerDescr": that.ownPeerDescr
+            }
         };
         that.sendRequest(identityMessage);
     };
@@ -53,7 +55,7 @@ peerWeb.Connection = function(config){
             sendIdentityMessage();
         };
         
-        peerWeb.Connection.prototype.ownPeerID = config.ownPeerID;
+        peerWeb.Connection.prototype.ownPeerDescr = config.ownPeerDescr;
         protocol = config.connectTo.split(":")[0];
         switch(protocol){
             case "ws":
@@ -73,7 +75,7 @@ peerWeb.Connection = function(config){
             msg = JSON.parse(msg);
         }
         msg.head.protocolVersion = this.protocolVersion;
-        msg.head.from = this.ownPeerID;
+        msg.head.from = this.ownPeerDescr.ID;
         msg.head.refCode = refCode;
         msg.head.date = new Date().getTime();
         msg = JSON.stringify(msg);
@@ -91,7 +93,7 @@ peerWeb.Connection = function(config){
             msg.head.to = msg.head.from;
         }
         msg.head.protocolVersion = this.protocolVersion;
-        msg.head.from = this.ownPeerID;
+        msg.head.from = this.ownPeerDescr.ID;
         msg.head.date = new Date().getTime();
         msg = JSON.stringify(msg);
         peerWeb.log("Response send send: "+msg, "log");

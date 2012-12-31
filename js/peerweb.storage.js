@@ -5,6 +5,9 @@ window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndex
 window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
 window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
 
+peerWeb.supportFor.indexeddb = window.indexedDB !== undefined;
+peerWeb.supportFor.webstorage = window.indexedDB !== undefined;
+
 peerWeb.namespace("Storage");
 peerWeb.Storage = function(config){
     "use strict";

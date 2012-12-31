@@ -2,6 +2,8 @@
  * @author Marten Schälicke
  */
 
+peerWeb.supportFor.websocket = window.WebSocket !== undefined;
+
 peerWeb.namespace("Connection.WebSocket");
 peerWeb.Connection.WebSocket = function(config){
     "use strict";
@@ -23,5 +25,11 @@ peerWeb.Connection.WebSocket = function(config){
     };
     this.getReadyState = function(){
         return connection.readyState;
+    };
+    
+    this.getDescription = function(){
+        return {
+            "websocket": connection.url
+        };
     };
 };

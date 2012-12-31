@@ -26,11 +26,7 @@
     };
     
     //define needed BrowserFeatures here
-    peerWeb.supportFor = {
-        "webrtc" : !(window.RTCPeerConnection === undefined) || !(window.webkitRTCPeerConnection === undefined),
-        "flash" : !!swfobject && swfobject.getFlashPlayerVersion().major > 10,
-        "websocket" : !(window.WebSocket === undefined)
-    };
+    peerWeb.supportFor = {};
     
     peerWeb.log = function(msg, level){
         switch(level){
@@ -51,7 +47,7 @@
     };
     
     peerWeb.setLogDisplay = function(display){
-        
+        logDisplay = display;
     };
     
     peerWeb.getRandomHexNumber = function(length){

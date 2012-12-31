@@ -33,6 +33,10 @@ EventMachine.run {
           msg = JSON.generate msg
           ws.send msg
           puts "response to peerIdentity send"
+          msg = {"head" => {"service" => "network", "action" => "nodeLookup", "from" => @id}, "body" => {}}
+      msg = JSON.generate msg
+      puts "new peer connected, send identity-msg: "+msg
+      ws.send(msg)
         end
       end
       puts ""

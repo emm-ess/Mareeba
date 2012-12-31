@@ -66,19 +66,34 @@ peerWeb.Peer = function(){
                 peerWeb.log("Waiting for Connections.", "info");
                 gui.peerReady();
             }
-        };
+        },
+        usable, supportFor = peerWeb.supportFor;
         
         gui = new peerWeb.GUI();
         peerWeb.log("Initialisiere Peer.", "info");
-        storage = new peerWeb.Storage({onReady:continueInit});
-        peer.ID = storage.getPeerID();
-        if(peer.ID === null){
-            generateID();
+        peerWeb.log("Check requirements", "info");
+        usable = supportFor.indexeddb && supportFor.webstorage && supportFor.websocket;
+        if(usable){
+            peerWeb.log("WebStorage: "+supportFor.webstorage, "info");
+            peerWeb.log("indexedDB: "+supportFor.indexeddb, "info");
+            peerWeb.log("WebSockets: "+supportFor.websocket, "info");
+            peerWeb.log("WebRTC (with DataChannel): "+supportFor.webrtc, "info");
+            storage = new peerWeb.Storage({onReady:continueInit});
+            peer.ID = storage.getPeerID();
+            if(peer.ID === null){
+                generateID();
+            }
+            else{
+                peerWeb.log("Peer ID loaded: "+peer.ID, "info");
+            }
+            continueInit();
         }
         else{
-            peerWeb.log("Peer ID loaded: "+peer.ID, "info");
+            peerWeb.log("Minimum requirements are not met:", "info");
+            peerWeb.log("WebStorage: "+supportFor.webstorage, "info");
+            peerWeb.log("indexedDB: "+supportFor.indexeddb, "info");
+            peerWeb.log("WebSockets: "+supportFor.websocket, "info");
         }
-        continueInit();
     })();
     
     return peer;

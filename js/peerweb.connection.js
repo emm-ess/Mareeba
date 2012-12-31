@@ -98,8 +98,25 @@ peerWeb.Connection = function(config){
         connection.send(msg);
     };
     
+    this.sendNodeLookup = function(lookupID){
+        var lookupMessage = {
+            head: {
+                "service": "network",
+                "action": "nodeLookup"
+            },
+            body: {
+                "id": lookupID
+            }
+        };
+        that.sendRequest(lookupMessage);
+    };
+    
     this.getReadyState = function(){
         return connection.getReadyState();
+    };
+    
+    this.getDescription = function(){
+        return connection.getDescription();
     };
 };
 peerWeb.Connection.prototype.protocolVersion = "0.1";

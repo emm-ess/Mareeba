@@ -1,21 +1,64 @@
+#!/usr/bin/env ruby
+require 'optparse'
 require 'em-websocket'
 require 'json'
 
+options = {}
+
+optparse = OptionParser.new do |opts|
+  opts.banner = "Usage: superPeer.rb --host HOSTIP --port PORT"
+  
+  opts.on('-i', '--host HOSTIP', 'IP of host') do |host|
+    options[:host] = host
+  end
+
+  opts.on('-p', '--port PORT', Integer, 'port which will be used') do |port|
+    options[:port] = port
+  end
+
+  options[:debug] = false
+  opts.on('-d', '--debug', 'show all messages of em-websockets') do
+    options[:debug] = true
+  end
+
+  opts.on('-h', '--help', 'Display this screen') do
+    puts opts
+    exit
+  end
+end
+
+# check mandatory parameter
+# taken from http://stackoverflow.com/questions/1541294/how-do-you-specify-a-required-switch-not-argument-with-ruby-optionparser
+begin
+  optparse.parse!
+  mandatory = [:host, :port]
+  missing = mandatory.select{ |param| options[param].nil? }
+  if not missing.empty?
+    puts "Missing options: #{missing.join(', ')}"
+    puts optparse
+    exit
+  end
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument
+  puts $!.to_s
+  puts optparse
+  exit
+end
+
+@id = SecureRandom.hex 20
+
+
 EventMachine.run {
-  @id = SecureRandom.hex 20
-  host = "192.168.15.205"
-  port = 8080
   @peerDescr = {
     :ID => @id,
-    :ws => "ws://"+host+port.to_s
+    :ws => "ws://"+options[:host]+":"+options[:port].to_s
   }
   @connectedPeers = {}
   @newlyConnectedPeers = Array.new
 
-  EventMachine::WebSocket.start(:host => host, :port => port, :debug => false) do |ws|
+  EventMachine::WebSocket.start(:host => options[:host], :port => options[:port], :debug => options[:debug]) do |ws|
 
     ws.onopen {
-      msg = {:head => {:service => "network", :action => "peerDescription", :from => @id}, :body => {:peerDescr => @peerDescr}}
+      msg = {:head => {:service => "network", :action => "peerDescription", :from => @id}, :body => {:peerDescription => @peerDescr}}
       msg = JSON.generate msg
       puts "new peer connected, send identity-msg: "+msg
       ws.send(msg)
@@ -32,10 +75,10 @@ EventMachine.run {
         #response
       else 
         #request
-        if msg[:head][:action] == "peerDescription"
+        if msg["head"]["action"] == "peerDescription"
           @newlyConnectedPeers.delete ws
-          @connectedPeers[msg[:head][:from]] = ws
-          msg[:head][:code] = 200
+          @connectedPeers[msg["head"]["from"]] = ws
+          msg["head"]["code"] = 200
           msg = JSON.generate msg
           ws.send msg
           puts "response to peerDescription send"
@@ -63,4 +106,6 @@ EventMachine.run {
   end
 
   puts "SuperPeer started with ID: "+@id
+  puts "on Host: "+options[:host]
+  puts "on Port: "+options[:port].to_s
 }

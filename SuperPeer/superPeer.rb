@@ -15,7 +15,7 @@ EventMachine.run {
   EventMachine::WebSocket.start(:host => host, :port => port, :debug => false) do |ws|
 
     ws.onopen {
-      msg = {:head => {:service => "network", :action => "peerIdentity", :from => @id}, :body => {:peerDescr => @peerDescr}}
+      msg = {:head => {:service => "network", :action => "peerDescription", :from => @id}, :body => {:peerDescr => @peerDescr}}
       msg = JSON.generate msg
       puts "new peer connected, send identity-msg: "+msg
       ws.send(msg)
@@ -32,13 +32,13 @@ EventMachine.run {
         #response
       else 
         #request
-        if msg[:head][:action] == "peerIdentity"
+        if msg[:head][:action] == "peerDescription"
           @newlyConnectedPeers.delete ws
           @connectedPeers[msg[:head][:from]] = ws
           msg[:head][:code] = 200
           msg = JSON.generate msg
           ws.send msg
-          puts "response to peerIdentity send"
+          puts "response to peerDescription send"
         end
       end
       puts ""

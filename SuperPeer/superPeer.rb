@@ -44,57 +44,145 @@ rescue OptionParser::InvalidOption, OptionParser::MissingArgument
   exit
 end
 
-@id = SecureRandom.hex 20
 
+class Peer
+  attr_accessor :description, :connection
+  def initialize con
+    @connection = con
+  end
+  
+  def send msg
+    @connection.send msg
+  end
+end
 
-EventMachine.run {
-  @peerDescr = {
-    :ID => @id,
-    :ws => "ws://"+options[:host]+":"+options[:port].to_s
-  }
-  @connectedPeers = {}
-  @newlyConnectedPeers = Array.new
+class SuperPeer
+  
+  def initialize(host, port)
+    @id = SecureRandom.hex 20
+    @numID = Integer(@id, 16)
+    @peerDescr = {
+      :ID => @id,
+      :ws => "ws://"+host+":"+port.to_s
+    }
+    @connectedPeers = {}
+    @newlyConnectedPeers = Array.new
+  end
+  
+  def description
+    @peerDescr
+  end
+  
+  def id
+    @id
+  end
+  
+  def newConnection peer
+    @newlyConnectedPeers.push peer
+  end
+  
+  def connectionClosed peer
+    key = @connectedPeers.key peer
+    if key != nil
+      @connectedPeers.delete key
+    else
+      @newlyConnectedPeers.delete peer
+    end
+  end
+  
+  def handleMessage(msg, peer)
+    if msg["head"].has_key? "to" and not msg["head"]["to"].eql? @id
+      routeMessage msg
+    elsif msg["head"].has_key? "code"
+      #response
+    else 
+      #request
+      handleRequest(msg, peer)
+    end
+  end
+  
+  def handleRequest(msg, peer)
+    case msg["head"]["service"] 
+    when "network"
+      handleNetworkRequest(msg, peer)
+    else
+      puts "recieved request for unknown service: "+msg["head"]["service"]
+    end
+  end
+  
+  def handleNetworkRequest(msg, peer)
+    puts "handle Network Request"
+    case msg["head"]["action"]
+    when "peerDescription"
+      puts "peerDescription"
+      @newlyConnectedPeers.delete peer
+      @connectedPeers[Integer(msg["head"]["from"], 16)] = peer
+      peer.description = msg["body"]["peerDescription"]
+      msg["head"]["code"] = 200
+      msg = JSON.generate msg
+      peer.send msg
+      puts "response to peerDescription send"
+    when "nodeLookup"
+      puts "nodeLookup"
+      targetID = Integer(msg["body"]["id"], 16)
+      @connectedPeers.sort_by{|peerID, tPeer| (targetID - peerID).abs}
+    else
+      puts "recieved request for unknown action in network service: "+msg["head"]["action"]
+    end
+  end
 
+  def routeMessage(msg)
+    puts "route Message"
+    targetID = Integer(msg["head"]["to"], 16)
+    closestPeer = nil
+    closestDistance = (targetID - @numID).abs
+    @connectedPeers.each do |peerID, peer|
+      distance = (targetID - peerID).abs
+      if(distance < closestDistance)
+        closestPeer = peer
+      end
+    end
+    if(closestPeer != nil)
+      puts "forward message to peer "+closestPeer.id
+      closestPeer.send msg 
+    else
+      puts "I'm the closest one"
+      handleRequest msg
+    end
+  end
+end
+
+#start server
+EventMachine.run do
+  @superPeer = SuperPeer.new(options[:host], options[:port])
+  
   EventMachine::WebSocket.start(:host => options[:host], :port => options[:port], :debug => options[:debug]) do |ws|
 
+    peer = Peer.new ws
+    
     ws.onopen {
-      msg = {:head => {:service => "network", :action => "peerDescription", :from => @id}, :body => {:peerDescription => @peerDescr}}
-      msg = JSON.generate msg
-      puts "new peer connected, send identity-msg: "+msg
-      ws.send(msg)
-      @newlyConnectedPeers.push ws
+      msg = ({:head => {:service => "network", :action => "peerDescription", :from => @superPeer.id}, :body => {:peerDescription => @superPeer.description}}).to_json
+      # msg = JSON.generate msg
+      puts "new peer connected, send peerDescription "
+      ws.send msg
+      @superPeer.newConnection peer
       puts ""
       puts ""
     }
 
     ws.onmessage { |msg|
-      
       puts "msg recieved: "+msg
       msg = JSON.parse! msg
-      if msg["head"].has_key?("code")
-        #response
-      else 
-        #request
-        if msg["head"]["action"] == "peerDescription"
-          @newlyConnectedPeers.delete ws
-          @connectedPeers[msg["head"]["from"]] = ws
-          msg["head"]["code"] = 200
-          msg = JSON.generate msg
-          ws.send msg
-          puts "response to peerDescription send"
-        end
-      end
+      @superPeer.handleMessage(msg, peer)
       puts ""
       puts ""
     }
 
     ws.onclose {
       puts "connection closed"
-      key = @connectedPeers.key ws
-      if key != nil
-        @connectedPeers.delete key
-      end
-      @newlyConnectedPeers.delete ws
+      @superPeer.connectionClosed peer
+      ws = nil
+      peer = nil
       puts ""
       puts ""
     }
@@ -105,7 +193,7 @@ EventMachine.run {
 
   end
 
-  puts "SuperPeer started with ID: "+@id
+  puts "SuperPeer started with ID: "+@superPeer.id
   puts "on Host: "+options[:host]
   puts "on Port: "+options[:port].to_s
-}
+end

@@ -73,6 +73,8 @@
         return stack;
     };
     
+    peerWeb.BIGGESTID = BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16);
+    
     peerWeb.init = function(){
         peer = new peerWeb.Peer();
     };

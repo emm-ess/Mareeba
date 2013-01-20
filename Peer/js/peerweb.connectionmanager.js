@@ -8,9 +8,10 @@ peerWeb.ConnectionManager = function(peer, storage){
     var Connection = peerWeb.Connection,
     that = this, defaultConfig = {}, l = 6,
     leafSet = {left: [], right: []}, rConnections = [], superPeers = [], friends = [], newConnections = [], 
-    amountConPeers = 0, amountConSuperPeers = 0, peerDescr,
+    amountConPeers = 0, amountConSuperPeers = 0,
     handleRequest, handleResponse,
-    handleNetworkRequest, handleNetworkResponse;
+    handleNetworkRequest, handleNetworkResponse,
+    checkMinimumConnections, routeMessage;
     
     //init-code
     (function(){
@@ -20,34 +21,62 @@ peerWeb.ConnectionManager = function(peer, storage){
             for(i = 0; i < superPeers.length; i += 1){
                 tempConfig = defaultConfig;
                 tempConfig.connectTo = superPeers[i].wsAddress;
-                tempConnection = new Connection(tempConfig);
+                tempConnection = new Connection(that, tempConfig);
                 newConnections.push(tempConnection);
             }
             peerWeb.log("allready started trying to connect to to all saved SuperPeers", "info");
         };
-        peerDescr = {
+        
+        that.peerDescription = {
             "ID" : peer.ID
         };
         if(peerWeb.supportFor.webrtc){
-            peerDescr.webrtc = true;
+            that.peerDescription.webrtc = true;
         }
-        defaultConfig.ownPeerDescr = peerDescr;
-        defaultConfig.conManager = that;
         defaultConfig.storeMessage = function(refCode, msg){
             storage.storeMessage(refCode, msg);
         };
         leafSet.longDistLeft = (BigInteger.ZERO).subtract(peer.numID); 
-        leafSet.longDistRight = (BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16)).subtract(peer.numID);
+        leafSet.longDistRight = (peerWeb.BIGGESTID).subtract(peer.numID);
         peerWeb.log("request all saved SuperPeers", "info");
         storage.getAllSuperPeers(initSuperPeersConnections);
     })();
     
     //private
+    checkMinimumConnections = function(){
+        if(leafSet.left.length < l/2){
+            
+        }
+        if(leafSet.right.length < l/2){
+            
+        }
+    };
+    
+    routeMessage = function(msg, con){
+        var tempDist, closestCon, closestDist, targetID, allCon;
+        targetID = BigInteger.parse(msg.head.to, 16);
+        closestDist = targetID.subtract(peer.numID).abs();
+        allCon = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
+        allCon.forEach(function(element){
+            tempDist = targetID.subtract(element.getNumID()).abs();
+            if(tempDist < closestDist){
+                closestDist = tempDist;
+                closestCon = element;
+            }
+        });
+        if(closestCon !== "undefined"){
+            closestCon.send(msg);
+        }
+        else{
+            handleRequest(msg, con);
+        }
+    };
+    
     handleNetworkRequest = function(msg, con){
         var peerDescription = function(msg, con){
-            var peerDesc = msg.body.peerDescription, dist, removedCon;
-            peerDesc.numID = BigInteger.parse(peerDesc.ID, 16);
-            con.setDescription(peerDesc);
+            var peerDesc = msg.body.peerDescription, dist, removedCon,
+            numID = BigInteger.parse(peerDesc.ID, 16);
+            con.setDescription(peerDesc, numID);
             //check if superpeer
             if(peerDesc.ws !== "undefined" || peerDesc.ajax !== "undefined"){
                 superPeers.push(con);
@@ -56,17 +85,17 @@ peerWeb.ConnectionManager = function(peer, storage){
             }
             else {
                 //check if connection belongs to leafset, is a friend or just a connection of part R
-                dist =  peerDesc.numID.subtract(peer.numID);
+                dist =  numID.subtract(peer.numID);
                 //check left leafset
                 if(dist > leafSet.longDistleft && dist < 0){
                     leafSet.left.push(con);
                     if(leafSet.left.length > l/2){
                         leafSet.left.sort(function(a, b){
-                            return a.getDescription().numID.compare(b.getDescription().numID) * -1;
+                            return a.getNumID().compare(b.getNumID()) * -1;
                         });
                         removedCon = leafSet.left.splice(l/2, 1)[0];
                         rConnections.push(removedCon);
-                        leafSet.longDistLeft = peerDesc.numID.subtract(leafSet.left[l/2].getDescription().numID);
+                        leafSet.longDistLeft = leafSet.left[l/2].getNumID().substract(peer.numID);
                     }
                     peerWeb.log("recieved peerDescription Message, moved connection to left leafSet.", "log");
                 }
@@ -74,11 +103,11 @@ peerWeb.ConnectionManager = function(peer, storage){
                     leafSet.right.push(con);
                     if(leafSet.right.length > l/2){
                         leafSet.right.sort(function(a, b){
-                            return a.getDescription().numID.compare(b.getDescription().numID);
+                            return a.getNumID().compare(b.getNumID());
                         });
                         removedCon = leafSet.right.splice(l/2, 1)[0];
                         rConnections.push(removedCon);
-                        leafSet.longDistRight = peerDesc.numID.subtract(leafSet.right[l/2].getDescription().numID);
+                        leafSet.longDistRight = leafSet.right[l/2].getNumID().subtract(peer.numID);
                     }
                     peerWeb.log("recieved peerDescription Message, moved connection to right leafSet.", "log");
                 }
@@ -89,22 +118,34 @@ peerWeb.ConnectionManager = function(peer, storage){
                 amountConPeers += 1;
             }
             newConnections = peerWeb.removeFromArray(con, newConnections);
-            con.sendNodeLookup(peerDescr.ID);
+            checkMinimumConnections();
         },
         nodeLookup = function(msg, con){
-            var result = [], i, tempDescr;
-            for(i in connections){
-                if(typeof connections[i].getDescription === "function"){ //to make sure it's a connection
-                    tempDescr = {
-                        "ID": i,
-                        "descr": connections[i].getDescription()
-                    };
-                    result.push(tempDescr);
-                }
-                }
-            msg.body = result;
-            con.sendResponse(msg);
-            peerWeb.log("recieved nodeLookup Message", "log");
+            peerWeb.log("recieved nodeLookup Message for: "+msg.body.id, "log");
+            var temp, result, i, tempDist, targetID = BigInteger.parse(msg.body.id, 16), resultList = msg.body.resultList;
+            temp = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
+            for(i = 0; i < temp.length; i += 1){
+                tempDist = targetID.subtract(temp[i].getNumID()).abs();
+                result.push( [tempDist, temp[i].getDescription()] );
+            }
+            for(i = 0; i < resultList.length; i += 1){
+                temp = BigInteger.parse(resultList[i].ID, 16);
+                tempDist = targetID.subtract(temp).abs();
+                result.push( [tempDist, resultList[i]] );
+            }
+            result.sort(function(a, b){
+                return a[0].compare(b[0]);
+            });
+            if(result.length > l){
+                result = result.splice(0, l);
+            }
+            msg.body.resultList = result;
+            if(result[0] === peerDescription){
+                con.sendResponse(msg);
+            }
+            else{
+                routeMessage(msg);
+            }
         };
         
         switch(msg.head.action){
@@ -137,21 +178,27 @@ peerWeb.ConnectionManager = function(peer, storage){
     
     //public
     this.connectionClosed = function(){
-        var i;
-        for(i = 0; i < newConnections.length; i += 1){
-            if(newConnections[i].getReadyState() === 2 || newConnections[i].getReadyState() === 3){
-                newConnections.splice(i, 1);
-                i -= 1;
-                peerWeb.log("Connection removed from newly created ones, remaining: "+newConnections.length, "log");
+        var i, 
+        checkConnections = function(part, partname){
+            var i, removed = 0;
+            for(i = 0; i < part.length; i += 1){
+                if(part[i].getReadyState() === 2 || part[i].getReadyState() === 3){
+                    part.splice(i, 1);
+                    i -= 1;
+                    removed += 1;
+                    peerWeb.log("Connection removed from "+partname+", remaining: "+part.length, "log");
+                }
             }
-        }
-        for(i in connections){
-            if(typeof connections[i].getReadyState === "function" && (connections[i].getReadyState() === 2 || connections[i].getReadyState() === 3)){
-                connections[i] = undefined;
-                amountConPeers -= 1;
-                peerWeb.log("Connection removed", "log");
-            }
-        }
+            return removed;
+        };
+        
+        checkConnections(newConnections, "new connections");
+        amountConPeers += checkConnections(leafSet.left, "left LeafSet");
+        amountConPeers += checkConnections(leafSet.right, "right LeafSet");
+        amountConSuperPeers -= checkConnections(superPeers, "SuperPeers");
+        amountConPeers += checkConnections(rConnections, "part two (R)");
+        peerWeb.log("Remainig Connections to Peers: "+amountConPeers+", remaining Connections to SuperPeers: "+amountConSuperPeers, "log");
+        checkMinimumConnections();
     };
     
     handleResponse = function(msg, con){
@@ -189,5 +236,5 @@ peerWeb.ConnectionManager = function(peer, storage){
         else {
             handleRequest(msg, con);
         }
-    }
+    };
 };

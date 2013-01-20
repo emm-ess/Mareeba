@@ -5,8 +5,7 @@
 peerWeb.namespace("Peer");
 peerWeb.Peer = function(){
     "use strict";
-    var that = this,
-    conManager, storage, peer, gui,
+    var conManager, storage, peer, gui,
     //private Methods
     generateID, getIDFromRandomOrg, chooseRandomID, setID;
     
@@ -64,7 +63,7 @@ peerWeb.Peer = function(){
         var continueInit = function(){
             if(storage.isUsable() && peer.ID !== null){
                 peer.numID = BigInteger.parse(peer.ID, 16);
-                conManager = new peerWeb.ConnectionManager(that, storage);
+                conManager = new peerWeb.ConnectionManager(peer, storage);
                 peerWeb.log("Waiting for Connections.", "info");
                 gui.peerReady();
             }

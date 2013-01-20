@@ -3,9 +3,9 @@
  */
 
 peerWeb.namespace("Connection");
-peerWeb.Connection = function(config){
+peerWeb.Connection = function(conManager, config){
     "use strict";
-    var that = this, connection, description,
+    var that = this, connection, description, numID,
     sendDescription;  
     
     sendDescription = function(){
@@ -15,7 +15,7 @@ peerWeb.Connection = function(config){
                 "action": "peerDescription"
             },
             body: {
-                "peerDescription": that.ownPeerDescr
+                "peerDescription": conManager.peerDescription
             }
         };
         that.sendRequest(descriptionMsg);
@@ -35,13 +35,13 @@ peerWeb.Connection = function(config){
         
         config.onclose = function(msg){
             peerWeb.log(msg, "log");
-            config.conManager.connectionClosed();
+            conManager.connectionClosed();
         };
         
         config.onmessage = function(msg){
             peerWeb.log("Message recieved: "+msg.data, "log");
             msg = JSON.parse(msg.data);
-            config.conManager.handleMessage(msg, that);
+            conManager.handleMessage(msg, that);
         };
         
         config.onopen = function(msg){
@@ -49,7 +49,6 @@ peerWeb.Connection = function(config){
             sendDescription();
         };
         
-        peerWeb.Connection.prototype.ownPeerDescr = config.ownPeerDescr;
         protocol = config.connectTo.split(":")[0];
         switch(protocol){
             case "ws":
@@ -69,7 +68,7 @@ peerWeb.Connection = function(config){
             msg = JSON.parse(msg);
         }
         msg.head.protocolVersion = this.protocolVersion;
-        msg.head.from = this.ownPeerDescr.ID;
+        msg.head.from = conManager.peerDescription.ID;
         msg.head.refCode = refCode;
         msg.head.date = new Date().getTime();
         msg = JSON.stringify(msg);
@@ -87,7 +86,7 @@ peerWeb.Connection = function(config){
             msg.head.to = msg.head.from;
         }
         msg.head.protocolVersion = this.protocolVersion;
-        msg.head.from = this.ownPeerDescr.ID;
+        msg.head.from = conManager.peerDescription.ID;
         msg.head.date = new Date().getTime();
         msg = JSON.stringify(msg);
         peerWeb.log("Response send send: "+msg, "log");
@@ -111,11 +110,17 @@ peerWeb.Connection = function(config){
         return connection.getReadyState();
     };
     
-    this.setDescription = function(desc){
+    this.setDescription = function(desc, numID){
         description = desc;
+        if(numID === "undefined"){
+            numID = BigInteger.parse(desc.ID, 16);
+        }
     };
     this.getDescription = function(){
         return description;
+    };
+    this.getNumID = function(){
+        return numID;
     };
 };
 peerWeb.Connection.prototype.protocolVersion = "0.1";

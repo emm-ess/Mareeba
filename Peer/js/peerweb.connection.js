@@ -5,7 +5,7 @@
 peerWeb.namespace("Connection");
 peerWeb.Connection = function(config){
     "use strict";
-    var that = this, connection,
+    var that = this, connection, description,
     sendDescription;  
     
     sendDescription = function(){
@@ -15,7 +15,7 @@ peerWeb.Connection = function(config){
                 "action": "peerDescription"
             },
             body: {
-                "peerDescr": that.ownPeerDescr
+                "peerDescription": that.ownPeerDescr
             }
         };
         that.sendRequest(descriptionMsg);
@@ -41,13 +41,7 @@ peerWeb.Connection = function(config){
         config.onmessage = function(msg){
             peerWeb.log("Message recieved: "+msg.data, "log");
             msg = JSON.parse(msg.data);
-            if(msg.head.code !== undefined){
-                //response
-                config.conManager.handleResponse(msg, that);
-            }
-            else {
-                config.conManager.handleRequest(msg, that);
-            }
+            config.conManager.handleMessage(msg, that);
         };
         
         config.onopen = function(msg){
@@ -117,8 +111,11 @@ peerWeb.Connection = function(config){
         return connection.getReadyState();
     };
     
+    this.setDescription = function(desc){
+        description = desc;
+    };
     this.getDescription = function(){
-        return connection.getDescription();
+        return description;
     };
 };
 peerWeb.Connection.prototype.protocolVersion = "0.1";

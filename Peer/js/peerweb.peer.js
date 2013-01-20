@@ -5,11 +5,12 @@
 peerWeb.namespace("Peer");
 peerWeb.Peer = function(){
     "use strict";
-    var conManager, storage, peer, gui,
+    var that = this,
+    conManager, storage, peer, gui,
     //private Methods
     generateID, getIDFromRandomOrg, chooseRandomID, setID;
     
-    generateID = function(){
+    generateID = function(callback){
         //check Quota of current IP at random.org
         $.ajax({
             "url": "http://www.random.org/quota/?format=plain",
@@ -17,37 +18,37 @@ peerWeb.Peer = function(){
                 var quota = parseInt(data);
                 peerWeb.log("Random.org Quota is: "+quota, "info");
                 if(quota >= 0){
-                    getIDFromRandomOrg();
+                    getIDFromRandomOrg(callback);
                 }
                 else{
-                    chooseRandomID();
+                    chooseRandomID(callback);
                 }
             },
-            "error": chooseRandomID
+            "error": chooseRandomID(callback)
         });
     };
     
-    getIDFromRandomOrg = function(){
+    getIDFromRandomOrg = function(callback){
         $.ajax({
             "url": "http://www.random.org/integers/?num=20&min=0&max=255&col=1&base=16&format=plain&rnd=new",
             "success": function(data){
                 var id = data.replace(/\s/g, "");
-                setID(id);
+                setID(id, callback);
             },
             "error": chooseRandomID
         });
     };
     
-    chooseRandomID = function(){
+    chooseRandomID = function(callback){
         var id = peerWeb.getRandomHexNumber(40);
-        setID(id);
+        setID(id, callback);
     };
     
-    setID = function(id){
+    setID = function(id, callback){
         peerWeb.log("Peer ID is set to: "+id, "info");
         peer.ID = id;
         storage.setPeerID(id);
-        continueInit();
+        callback();
     };
     
     //making sure initialcode is only called once, using singletonpattern
@@ -62,7 +63,8 @@ peerWeb.Peer = function(){
     (function(){
         var continueInit = function(){
             if(storage.isUsable() && peer.ID !== null){
-                conManager = new peerWeb.ConnectionManager(storage);
+                peer.numID = BigInteger.parse(peer.ID, 16);
+                conManager = new peerWeb.ConnectionManager(that, storage);
                 peerWeb.log("Waiting for Connections.", "info");
                 gui.peerReady();
             }
@@ -81,7 +83,7 @@ peerWeb.Peer = function(){
             storage = new peerWeb.Storage({onReady:continueInit});
             peer.ID = storage.getPeerID();
             if(peer.ID === null){
-                generateID();
+                generateID(continueInit);
             }
             else{
                 peerWeb.log("Peer ID loaded: "+peer.ID, "info");

@@ -3,11 +3,13 @@
  */
 
 peerWeb.namespace("ConnectionManager");
-peerWeb.ConnectionManager = function(storage){
+peerWeb.ConnectionManager = function(peer, storage){
     "use strict";
     var Connection = peerWeb.Connection,
-    that = this, connections = {}, newConnections = [], defaultConfig = {},
-    amountConPeers = 0, peerDescr,
+    that = this, defaultConfig = {}, l = 6,
+    leafSet = {left: [], right: []}, rConnections = [], superPeers = [], friends = [], newConnections = [], 
+    amountConPeers = 0, amountConSuperPeers = 0, peerDescr,
+    handleRequest, handleResponse,
     handleNetworkRequest, handleNetworkResponse;
     
     //init-code
@@ -24,7 +26,7 @@ peerWeb.ConnectionManager = function(storage){
             peerWeb.log("allready started trying to connect to to all saved SuperPeers", "info");
         };
         peerDescr = {
-            "ID" : storage.getPeerID()
+            "ID" : peer.ID
         };
         if(peerWeb.supportFor.webrtc){
             peerDescr.webrtc = true;
@@ -34,33 +36,82 @@ peerWeb.ConnectionManager = function(storage){
         defaultConfig.storeMessage = function(refCode, msg){
             storage.storeMessage(refCode, msg);
         };
+        leafSet.longDistLeft = (BigInteger.ZERO).substract(peer.numID); 
+        leafSet.longDistRight = (BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16)).substract(peer.numID);
         peerWeb.log("request all saved SuperPeers", "info");
         storage.getAllSuperPeers(initSuperPeersConnections);
     })();
     
     //private
     handleNetworkRequest = function(msg, con){
+        var peerDescription = function(msg, con){
+            var peerDesc = msg.body.peerDescription, dist, removedCon;
+            peerDesc.numID = BigInteger.parse(peerDesc, 16);
+            con.setDescription(peerDesc);
+            //check if superpeer
+            if(peerDesc.ws !== "undefined" || peerDesc.ajax !== "undefined"){
+                superPeers.push(con);
+                amountConSuperPeers += 1;
+            }
+            else {
+                //check if connection belongs to leafset, is a friend or just a connection of part R
+                dist =  peerDesc.numID.substract(peer.numID);
+                //check left leafset
+                if(dist > leafSet.longDistleft && dist < 0){
+                    leafSet.left.push(con);
+                    if(leafSet.left.length > l/2){
+                        leafSet.left.sort(function(a, b){
+                            return a.getDescription().numID.compare(b.getDescription().numID) * -1;
+                        });
+                        removedCon = leafSet.left.splice(l/2, 1)[0];
+                        rConnections.push(removedCon);
+                        leafSet.longDistLeft = peerDesc.numID.substract(leafSet.left[l/2].getDescription().numID);
+                    }
+                    peerWeb.log("recieved peerDescription Message, moved connection to left leafSet.", "log");
+                }
+                else if(dist > 0 && dist < leafSet.longDistRight ){
+                    leafSet.right.push(con);
+                    if(leafSet.right.length > l/2){
+                        leafSet.right.sort(function(a, b){
+                            return a.getDescription().numID.compare(b.getDescription().numID);
+                        });
+                        removedCon = leafSet.right.splice(l/2, 1)[0];
+                        rConnections.push(removedCon);
+                        leafSet.longDistRight = peerDesc.numID.substract(leafSet.right[l/2].getDescription().numID);
+                    }
+                    peerWeb.log("recieved peerDescription Message, moved connection to right leafSet.", "log");
+                }
+                else {
+                    rConnections.push(con);
+                    peerWeb.log("recieved peerDescription Message, moved connection to normal.", "log");
+                }
+                amountConPeers += 1;
+            }
+            newConnections = peerWeb.removeFromArray(con, newConnections);
+            con.sendNodeLookup(peerDescr.ID);
+        },
+        nodeLookup = function(msg, con){
+            var result = [], i, tempDescr;
+            for(i in connections){
+                if(typeof connections[i].getDescription === "function"){ //to make sure it's a connection
+                    tempDescr = {
+                        "ID": i,
+                        "descr": connections[i].getDescription()
+                    };
+                    result.push(tempDescr);
+                }
+                }
+            msg.body = result;
+            con.sendResponse(msg);
+            peerWeb.log("recieved nodeLookup Message", "log");
+        };
+        
         switch(msg.head.action){
             case "peerDescription":
-                newConnections = peerWeb.removeFromArray(con, newConnections);
-                connections[msg.head.from] = con;
-                amountConPeers += 1;
-                peerWeb.log("recieved peerDescription Message, moved connection from newly createt to normal.", "log");
+                peerDescription(msg, con);
             break;
             case "nodeLookup":
-                var result = [], i, tempDescr;
-                for(i in connections){
-                    if(typeof connections[i].getDescription === "function"){ //to make sure it's a connection
-                        tempDescr = {
-                            "ID": i,
-                            "descr": connections[i].getDescription()
-                        };
-                        result.push(tempDescr);
-                    }
-                }
-                msg.body = result;
-                con.sendResponse(msg);
-                peerWeb.log("recieved nodeLookup Message", "log");
+                nodeLookup(msg, con);
             break;
             default:
                 //unknown or unimplemented message. log those to determine if it is an attack
@@ -102,7 +153,7 @@ peerWeb.ConnectionManager = function(storage){
         }
     };
     
-    this.handleResponse = function(msg, con){
+    handleResponse = function(msg, con){
         if(msg.head.code === 200){
             storage.deleteMessage(msg.head.refCode);
         }
@@ -111,21 +162,31 @@ peerWeb.ConnectionManager = function(storage){
             break;
             default:
                 //unknown or unimplemented message. log those to determine if it is an attack
-                peerWeb.log("recieved Message for unknown service: "+msg.head.service, "warn");
+                peerWeb.log("recieved response for unknown service: "+msg.head.service, "warn");
             break;
         }
     };
     
-    this.handleRequest = function(msg, con){
+    handleRequest = function(msg, con){
         switch(msg.head.service){
             case "network": handleNetworkRequest(msg, con);
             break;
             default:
                 //unknown or unimplemented message. log those to determine if it is an attack
-                peerWeb.log("recieved response for unknown service: "+msg.head.service, "warn");
+                peerWeb.log("recieved request for unknown service: "+msg.head.service, "warn");
             break;
         }
         msg.head.code = 200;
         con.sendResponse(msg);
     };
+    
+    this.handleMessage = function(msg, con){
+        if(msg.head.code !== undefined){
+            //response
+            handleResponse(msg, con);
+        }
+        else {
+            handleRequest(msg, con);
+        }
+    }
 };

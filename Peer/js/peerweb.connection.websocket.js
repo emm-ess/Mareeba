@@ -26,10 +26,4 @@ peerWeb.Connection.WebSocket = function(config){
     this.getReadyState = function(){
         return connection.readyState;
     };
-    
-    this.getDescription = function(){
-        return {
-            "websocket": connection.url
-        };
-    };
 };

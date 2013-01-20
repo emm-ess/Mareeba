@@ -52,6 +52,9 @@ class Peer
   end
   
   def send msg
+    if not msg.is_a? String
+      msg = msg.to_json
+    end 
     @connection.send msg
   end
 end
@@ -114,49 +117,59 @@ class SuperPeer
     puts "handle Network Request"
     case msg["head"]["action"]
     when "peerDescription"
-      puts "peerDescription"
-      @newlyConnectedPeers.delete peer
-      @connectedPeers[Integer(msg["head"]["from"], 16)] = peer
-      peer.description = msg["body"]["peerDescription"]
-      msg["head"]["code"] = 200
-      msg = JSON.generate msg
-      peer.send msg
-      puts "response to peerDescription send"
+      handlePeerDescription(msg, peer)
     when "nodeLookup"
-      puts "nodeLookup"
-      targetID = Integer(msg["body"]["id"], 16)
-      result = Array.new
-      result.push({:distance => (targetID - numID).abs, :peerDescription => @peerDescr})
-      @connectedPeers.each do |peerID, tPeer|
-        result.push({:distance => (targetID - peerID).abs, :peerDescription => tPeer.description})
-      end
-      if msg["body"].has_key? "resultList"
-        msg["body"]["resultList"].each do |peerDesc|
-          peerID = Integer(peerDesc[:ID], 16)
-          result.push({:distance => (targetID - peerID).abs, :peerDescription => peerDesc})
-        end
-      end
-      result.sort_by { |tPeer| tPeer[:distance] }
-      result = result.slice(0,6)
-      msg["body"]["resultList"] = result
-      if result[0].eql? @peerDescr
-        peer.send msg
-      else
-        routeMessage msg
-      end
+      handleNodeLookup(msg, peer)
     else
       puts "recieved request for unknown action in network service: "+msg["head"]["action"]
     end
   end
+  
+  def handlePeerDescription(msg, peer)
+    puts "peerDescription"
+    @newlyConnectedPeers.delete peer
+    peer.description = msg["body"]["peerDescription"]
+    @connectedPeers[Integer(msg["head"]["from"], 16)] = peer
+    msg["head"]["code"] = 200
+    msg = JSON.generate msg
+    peer.send msg
+    puts "response to peerDescription send"
+  end
+  
+  def handleNodeLookup(msg, peer)
+    puts "nodeLookup"
+    targetID = Integer(msg["body"]["id"], 16)
+    result = Array.new
+    @connectedPeers.each do |peerID, tPeer|
+      result.push({:distance => (targetID - peerID).abs, :peerDescription => tPeer.description})
+    end
+    if msg["body"].has_key? "resultList"
+      msg["body"]["resultList"].each do |peerDesc|
+        peerID = Integer(peerDesc[:ID], 16)
+        result.push({:distance => (targetID - peerID).abs, :peerDescription => peerDesc})
+      end
+    end
+    result.sort_by { |tPeer| tPeer[:distance] }
+    result = result.slice(0,6)
+    msg["body"]["resultList"] = result
+    puts "result of nodeLookup"
+    puts result
+    if result[0].eql? @peerDescr
+      peer.send msg
+    else
+      routeMessage msg
+    end
+  end
 
-  def routeMessage(msg)
+  def routeMessage(msg, peer)
     puts "route Message"
     targetID = Integer(msg["head"]["to"], 16)
     closestPeer = nil
     closestDistance = (targetID - @numID).abs
-    @connectedPeers.each do |peerID, peer|
+    @connectedPeers.each do |peerID, tPeer|
       distance = (targetID - peerID).abs
       if(distance < closestDistance)
+        clostestDistance = distance
         closestPeer = peer
       end
     end
@@ -165,7 +178,7 @@ class SuperPeer
       closestPeer.send msg 
     else
       puts "I'm the closest one"
-      handleRequest msg
+      handleRequest(msg, peer)
     end
   end
 end

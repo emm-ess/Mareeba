@@ -91,7 +91,7 @@ class SuperPeer
   end
   
   def handleMessage(msg, peer)
-    if msg["head"].has_key? "to" and not msg["head"]["to"].eql? @id
+    if msg["head"].has_key? "to" and not (msg["head"]["to"].eql? @id or msg["head"]["action"].eql? "nodeLookup")
       routeMessage msg
     elsif msg["head"].has_key? "code"
       #response
@@ -125,7 +125,25 @@ class SuperPeer
     when "nodeLookup"
       puts "nodeLookup"
       targetID = Integer(msg["body"]["id"], 16)
-      @connectedPeers.sort_by{|peerID, tPeer| (targetID - peerID).abs}
+      result = Array.new
+      result.push({:distance => (targetID - numID).abs, :peerDescription => @peerDescr})
+      @connectedPeers.each do |peerID, tPeer|
+        result.push({:distance => (targetID - peerID).abs, :peerDescription => tPeer.description})
+      end
+      if msg["body"].has_key? "resultList"
+        msg["body"]["resultList"].each do |peerDesc|
+          peerID = Integer(peerDesc[:ID], 16)
+          result.push({:distance => (targetID - peerID).abs, :peerDescription => peerDesc})
+        end
+      end
+      result.sort_by { |tPeer| tPeer[:distance] }
+      result = result.slice(0,6)
+      msg["body"]["resultList"] = result
+      if result[0].eql? @peerDescr
+        peer.send msg
+      else
+        routeMessage msg
+      end
     else
       puts "recieved request for unknown action in network service: "+msg["head"]["action"]
     end

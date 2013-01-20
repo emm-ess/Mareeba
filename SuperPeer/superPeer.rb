@@ -139,25 +139,30 @@ class SuperPeer
   def handleNodeLookup(msg, peer)
     puts "nodeLookup"
     targetID = Integer(msg["body"]["id"], 16)
-    result = Array.new
+    tempResult = Array.new
     @connectedPeers.each do |peerID, tPeer|
-      result.push({:distance => (targetID - peerID).abs, :peerDescription => tPeer.description})
+      tempResult.push({:distance => (targetID - peerID).abs, :peerDescription => tPeer.description})
     end
     if msg["body"].has_key? "resultList"
       msg["body"]["resultList"].each do |peerDesc|
-        peerID = Integer(peerDesc[:ID], 16)
-        result.push({:distance => (targetID - peerID).abs, :peerDescription => peerDesc})
+        peerID = Integer(peerDesc["ID"], 16)
+        tempResult.push({:distance => (targetID - peerID).abs, :peerDescription => peerDesc})
       end
     end
-    result.sort_by { |tPeer| tPeer[:distance] }
-    result = result.slice(0,6)
+    tempResult.uniq_by! { |tPeer| tPeer[:distance] }
+    tempResult.sort_by { |tPeer| tPeer[:distance] }
+    tempResult = tempResult.slice(0,6)
+    result = Array.new
+    tempResult.each do |tPeer|
+      result.push tPeer[:peerDescription]
+    end
     msg["body"]["resultList"] = result
     puts "result of nodeLookup"
     puts result
     if result[0].eql? @peerDescr
       peer.send msg
     else
-      routeMessage msg
+      routeMessage(msg, nil)
     end
   end
 
@@ -170,11 +175,11 @@ class SuperPeer
       distance = (targetID - peerID).abs
       if(distance < closestDistance)
         clostestDistance = distance
-        closestPeer = peer
+        closestPeer = tPeer
       end
     end
     if(closestPeer != nil)
-      puts "forward message to peer "+closestPeer.id
+      puts "forward message to peer "
       closestPeer.send msg 
     else
       puts "I'm the closest one"

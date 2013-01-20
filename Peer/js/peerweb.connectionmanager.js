@@ -11,6 +11,7 @@ peerWeb.ConnectionManager = function(peer, storage){
     amountConPeers = 0, amountConSuperPeers = 0,
     handleRequest, handleResponse,
     handleNetworkRequest, handleNetworkResponse,
+    nodeLookup,
     checkMinimumConnections, routeMessage;
     
     //init-code
@@ -42,20 +43,16 @@ peerWeb.ConnectionManager = function(peer, storage){
         storage.getAllSuperPeers(initSuperPeersConnections);
     })();
     
-    //private
-    checkMinimumConnections = function(){
-        if(leafSet.left.length < l/2){
-            
-        }
-        if(leafSet.right.length < l/2){
-            
-        }
-    };
-    
+    //private    
     routeMessage = function(msg, con){
         var tempDist, closestCon, closestDist, targetID, allCon;
         targetID = BigInteger.parse(msg.head.to, 16);
-        closestDist = targetID.subtract(peer.numID).abs();
+        if(msg.head.from === peer.ID){
+            closestDist = peerWeb.BIGGESTID;
+        }
+        else{
+            closestDist = targetID.subtract(peer.numID).abs();
+        }
         allCon = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
         allCon.forEach(function(element){
             tempDist = targetID.subtract(element.getNumID()).abs();
@@ -64,11 +61,50 @@ peerWeb.ConnectionManager = function(peer, storage){
                 closestCon = element;
             }
         });
-        if(closestCon !== "undefined"){
+        if(closestCon !== undefined){
             closestCon.send(msg);
         }
         else{
             handleRequest(msg, con);
+        }
+    };
+    
+    nodeLookup = function(msg, con){
+        peerWeb.log("recieved nodeLookup Message for: "+msg.body.id, "log");
+        var temp, tempResult = [], result = [], i, tempDist, targetID = BigInteger.parse(msg.body.id, 16), resultList = msg.body.resultList;
+        temp = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
+        for(i = 0; i < temp.length; i += 1){
+            tempDist = targetID.subtract(temp[i].getNumID()).abs();
+            tempResult.push( [tempDist, temp[i].getDescription()] );
+        }
+        for(i = 0; i < resultList.length; i += 1){
+            temp = BigInteger.parse(resultList[i].ID, 16);
+            tempDist = targetID.subtract(temp).abs();
+            tempResult.push( [tempDist, resultList[i]] );
+        }
+        tempResult.sort(function(a, b){
+            return a[0].compare(b[0]);
+        });
+        if(tempResult.length > l){
+            tempResult = tempResult.splice(0, l);
+        }
+        tempResult.forEach(function(element){
+            result.push(element[1]);
+        });
+        msg.body.resultList = result;
+        if(result[0] === that.peerDescription){
+            con.sendResponse(msg);
+        }
+        else{
+            if(msg.head === undefined){
+                msg.head = {
+                    to: msg.body.id,
+                    from: peer.ID,
+                    service: "network",
+                    action: "nodeLookup"
+                };
+            }
+            routeMessage(msg);
         }
     };
     
@@ -78,7 +114,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             numID = BigInteger.parse(peerDesc.ID, 16);
             con.setDescription(peerDesc, numID);
             //check if superpeer
-            if(peerDesc.ws !== "undefined" || peerDesc.ajax !== "undefined"){
+            if(peerDesc.ws !== undefined || peerDesc.ajax !== undefined){
                 superPeers.push(con);
                 amountConSuperPeers += 1;
                 peerWeb.log("recieved peerDescription Message, moved connection to SuperPeers.", "log");
@@ -119,33 +155,6 @@ peerWeb.ConnectionManager = function(peer, storage){
             }
             newConnections = peerWeb.removeFromArray(con, newConnections);
             checkMinimumConnections();
-        },
-        nodeLookup = function(msg, con){
-            peerWeb.log("recieved nodeLookup Message for: "+msg.body.id, "log");
-            var temp, result, i, tempDist, targetID = BigInteger.parse(msg.body.id, 16), resultList = msg.body.resultList;
-            temp = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
-            for(i = 0; i < temp.length; i += 1){
-                tempDist = targetID.subtract(temp[i].getNumID()).abs();
-                result.push( [tempDist, temp[i].getDescription()] );
-            }
-            for(i = 0; i < resultList.length; i += 1){
-                temp = BigInteger.parse(resultList[i].ID, 16);
-                tempDist = targetID.subtract(temp).abs();
-                result.push( [tempDist, resultList[i]] );
-            }
-            result.sort(function(a, b){
-                return a[0].compare(b[0]);
-            });
-            if(result.length > l){
-                result = result.splice(0, l);
-            }
-            msg.body.resultList = result;
-            if(result[0] === peerDescription){
-                con.sendResponse(msg);
-            }
-            else{
-                routeMessage(msg);
-            }
         };
         
         switch(msg.head.action){
@@ -173,6 +182,26 @@ peerWeb.ConnectionManager = function(peer, storage){
                 //unknown or unimplemented message. log those to determine if it is an attack
                 peerWeb.log("recieved response for unknown action of network service: "+msg.head.action, "warn");
             break;
+        }
+    };
+    
+    checkMinimumConnections = function(){
+        var msg = {};
+        if(amountConPeers === 0 && amountConSuperPeers === 0){
+            return;
+        }
+        if(leafSet.left.length === 0 && leafSet.right.length === 0){
+            msg.body = {
+                id: peer.ID,
+                resultList: []
+            };
+            nodeLookup(msg);
+        }
+        else if(leafSet.left.length < l/2){
+            
+        }
+        else if(leafSet.right.length < l/2){
+            
         }
     };
     
@@ -229,7 +258,7 @@ peerWeb.ConnectionManager = function(peer, storage){
     };
     
     this.handleMessage = function(msg, con){
-        if(msg.head.code !== undefined){
+        if(msg.head.code !== undefined || msg.head.from === peer.ID){
             //response
             handleResponse(msg, con);
         }

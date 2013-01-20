@@ -62,48 +62,39 @@ peerWeb.Connection = function(conManager, config){
     })();
     
     //public
-    this.sendRequest = function(msg){
-        var refCode = peerWeb.getRandomHexNumber(40);
+    this.send = function(msg){
+        var refCode;
         if(typeof msg === String){
             msg = JSON.parse(msg);
         }
-        msg.head.protocolVersion = this.protocolVersion;
-        msg.head.from = conManager.peerDescription.ID;
-        msg.head.refCode = refCode;
-        msg.head.date = new Date().getTime();
+        if(msg.head.protocolVersion === undefined){
+            msg.head.protocolVersion = this.protocolVersion;
+        }
+        if(msg.head.from === undefined){
+            msg.head.from = conManager.peerDescription.ID;
+        }
+        if(msg.head.refCode === undefined){
+            refCode = peerWeb.getRandomHexNumber(40);
+            msg.head.refCode = refCode;
+        }
+        if(msg.head.date === undefined){
+            msg.head.date = new Date().getTime();
+        }
         msg = JSON.stringify(msg);
-        peerWeb.log("Request send: "+msg, "log");
+        peerWeb.log("Message send: "+msg, "log");
         connection.send(msg);
-        config.storeMessage(refCode, msg);
+        if(refCode === undefined){
+            config.storeMessage(refCode, msg);
+        }
+    };
+    
+    this.sendRequest = function(msg){
+        that.send(msg);
     };
     
     //public
     this.sendResponse = function(msg){
-        if(typeof msg === String){
-            msg = JSON.parse(msg);
-        }
-        if(msg.head.from !== undefined){
-            msg.head.to = msg.head.from;
-        }
-        msg.head.protocolVersion = this.protocolVersion;
-        msg.head.from = conManager.peerDescription.ID;
-        msg.head.date = new Date().getTime();
-        msg = JSON.stringify(msg);
-        peerWeb.log("Response send send: "+msg, "log");
-        connection.send(msg);
-    };
-    
-    this.sendNodeLookup = function(lookupID){
-        var lookupMessage = {
-            head: {
-                "service": "network",
-                "action": "nodeLookup"
-            },
-            body: {
-                "id": lookupID
-            }
-        };
-        that.sendRequest(lookupMessage);
+        that.send(msg);
     };
     
     this.getReadyState = function(){

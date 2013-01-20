@@ -36,8 +36,8 @@ peerWeb.ConnectionManager = function(peer, storage){
         defaultConfig.storeMessage = function(refCode, msg){
             storage.storeMessage(refCode, msg);
         };
-        leafSet.longDistLeft = (BigInteger.ZERO).substract(peer.numID); 
-        leafSet.longDistRight = (BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16)).substract(peer.numID);
+        leafSet.longDistLeft = (BigInteger.ZERO).subtract(peer.numID); 
+        leafSet.longDistRight = (BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16)).subtract(peer.numID);
         peerWeb.log("request all saved SuperPeers", "info");
         storage.getAllSuperPeers(initSuperPeersConnections);
     })();
@@ -46,16 +46,17 @@ peerWeb.ConnectionManager = function(peer, storage){
     handleNetworkRequest = function(msg, con){
         var peerDescription = function(msg, con){
             var peerDesc = msg.body.peerDescription, dist, removedCon;
-            peerDesc.numID = BigInteger.parse(peerDesc, 16);
+            peerDesc.numID = BigInteger.parse(peerDesc.ID, 16);
             con.setDescription(peerDesc);
             //check if superpeer
             if(peerDesc.ws !== "undefined" || peerDesc.ajax !== "undefined"){
                 superPeers.push(con);
                 amountConSuperPeers += 1;
+                peerWeb.log("recieved peerDescription Message, moved connection to SuperPeers.", "log");
             }
             else {
                 //check if connection belongs to leafset, is a friend or just a connection of part R
-                dist =  peerDesc.numID.substract(peer.numID);
+                dist =  peerDesc.numID.subtract(peer.numID);
                 //check left leafset
                 if(dist > leafSet.longDistleft && dist < 0){
                     leafSet.left.push(con);
@@ -65,7 +66,7 @@ peerWeb.ConnectionManager = function(peer, storage){
                         });
                         removedCon = leafSet.left.splice(l/2, 1)[0];
                         rConnections.push(removedCon);
-                        leafSet.longDistLeft = peerDesc.numID.substract(leafSet.left[l/2].getDescription().numID);
+                        leafSet.longDistLeft = peerDesc.numID.subtract(leafSet.left[l/2].getDescription().numID);
                     }
                     peerWeb.log("recieved peerDescription Message, moved connection to left leafSet.", "log");
                 }
@@ -77,7 +78,7 @@ peerWeb.ConnectionManager = function(peer, storage){
                         });
                         removedCon = leafSet.right.splice(l/2, 1)[0];
                         rConnections.push(removedCon);
-                        leafSet.longDistRight = peerDesc.numID.substract(leafSet.right[l/2].getDescription().numID);
+                        leafSet.longDistRight = peerDesc.numID.subtract(leafSet.right[l/2].getDescription().numID);
                     }
                     peerWeb.log("recieved peerDescription Message, moved connection to right leafSet.", "log");
                 }

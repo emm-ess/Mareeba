@@ -149,8 +149,8 @@ class SuperPeer
         tempResult.push({:distance => (targetID - peerID).abs, :peerDescription => peerDesc})
       end
     end
-    tempResult.uniq_by! { |tPeer| tPeer[:distance] }
-    tempResult.sort_by { |tPeer| tPeer[:distance] }
+    tempResult = tempResult.uniq { |tPeer| tPeer[:distance] }
+    tempResult = tempResult.sort_by { |tPeer| tPeer[:distance] }
     tempResult = tempResult.slice(0,6)
     result = Array.new
     tempResult.each do |tPeer|

@@ -1,3 +1,7 @@
+/**
+ * Angaben von SuperPeers und STUN/TURN-Server welche für die Benutzung des Netzwerkes nötig sind. Die Liste kann nach eigenen Wünschen angepasst werden. 
+ * Sie ist nur einmalig notwendig, da ihre Einträge in die IndexedDB gespeichert werden, wo sie mit zusätzlichen Informationen ausgestattet werden können.
+ */
 {
     "superPeers": 
         ["ws://localhost:8080",

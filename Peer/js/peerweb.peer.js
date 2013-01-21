@@ -1,15 +1,58 @@
-/**
- * @author Marten Schälicke
- */
-
 peerWeb.namespace("Peer");
+/**
+ * Hauptklasse von peerWeb.
+ * Diese implementiert den lokalen Peer und steuert übergreifende Logik.
+ * Als Singleton implementiert, so dass sich nur ein Peer pro BrowserTab erzeugen lässt.
+ * @author Marten Schälicke
+ * @constructor
+ */
 peerWeb.Peer = function(){
     "use strict";
     var conManager, storage, peer, gui,
     //private Methods
-    generateID, getIDFromRandomOrg, chooseRandomID, setID;
+    generateID;
     
+    /**
+     * Dient der Erzeugung und Speicherung der PeerID.
+     * Versucht die ID über random.org zu Erzeugen, andernfalls wird die Methode "getRandomHexNumber" der peerWeb Bibliothek verwendet.
+     * @param {Function} callback die zum Ende des Vorgangs aufzurufende Methode
+     */
     generateID = function(callback){
+        var getIDFromRandomOrg, chooseRandomID, setID;
+    
+        /**
+         * Fragt 20 Bytes von dem Dienst random.org per AJAX ab und nutzt diese als PeerID
+         */
+        getIDFromRandomOrg = function(){
+            $.ajax({
+                "url": "http://www.random.org/integers/?num=20&min=0&max=255&col=1&base=16&format=plain&rnd=new",
+                "success": function(data){
+                    var id = data.replace(/\s/g, "");
+                    setID(id);
+                },
+                "error": chooseRandomID
+            });
+        };
+        
+        /**
+         * Erzeugt die ID mittels der peerWeb-Bibliothek.
+         */
+        chooseRandomID = function(){
+            var id = peerWeb.getRandomHexNumber(40);
+            setID(id);
+        };
+        
+        /**
+         * Speichert die erzeugte PeerID und ruft den Callback auf.
+         * @param {String} id die erzeugte PeerID
+         */
+        setID = function(id){
+            peerWeb.log("Peer ID is set to: "+id, "info");
+            peer.ID = id;
+            storage.setPeerID(id);
+            callback();
+        };
+        
         //check Quota of current IP at random.org
         $.ajax({
             "url": "http://www.random.org/quota/?format=plain",
@@ -17,37 +60,14 @@ peerWeb.Peer = function(){
                 var quota = parseInt(data);
                 peerWeb.log("Random.org Quota is: "+quota, "info");
                 if(quota >= 0){
-                    getIDFromRandomOrg(callback);
+                    getIDFromRandomOrg();
                 }
                 else{
-                    chooseRandomID(callback);
+                    chooseRandomID();
                 }
-            },
-            "error": chooseRandomID(callback)
-        });
-    };
-    
-    getIDFromRandomOrg = function(callback){
-        $.ajax({
-            "url": "http://www.random.org/integers/?num=20&min=0&max=255&col=1&base=16&format=plain&rnd=new",
-            "success": function(data){
-                var id = data.replace(/\s/g, "");
-                setID(id, callback);
             },
             "error": chooseRandomID
         });
-    };
-    
-    chooseRandomID = function(callback){
-        var id = peerWeb.getRandomHexNumber(40);
-        setID(id, callback);
-    };
-    
-    setID = function(id, callback){
-        peerWeb.log("Peer ID is set to: "+id, "info");
-        peer.ID = id;
-        storage.setPeerID(id);
-        callback();
     };
     
     //making sure initialcode is only called once, using singletonpattern
@@ -58,7 +78,11 @@ peerWeb.Peer = function(){
     peer = new peerWeb.Peer();
     peer.constructor = peerWeb.Peer;
     
-    //initialiserungscode
+    /**
+     * Initierungscode
+     * 
+     * prüft die Mindestanforderungen an den Browser und erzeugt alle nötigen Objekte.
+     */
     (function(){
         var continueInit = function(){
             if(storage.isUsable() && peer.ID !== null){

@@ -1,8 +1,11 @@
-/**
- * @author Marten Schälicke
- */
-
 peerWeb.namespace("ConnectionManager");
+/**
+ * Verwaltet Verbindungen und behandelt Anfragen
+ * @author Marten Schälicke
+ * @constructor
+ * @param {Object} peer Referenz auf den lokalen Peer
+ * @param {Object} storage Speichermodul von peerWeb
+ */
 peerWeb.ConnectionManager = function(peer, storage){
     "use strict";
     var Connection = peerWeb.Connection,
@@ -11,10 +14,12 @@ peerWeb.ConnectionManager = function(peer, storage){
     amountConPeers = 0, amountConSuperPeers = 0,
     handleRequest, handleResponse,
     handleNetworkRequest, handleNetworkResponse,
-    nodeLookup,
+    nodeLookup, peerDescription,
     checkMinimumConnections, routeMessage;
     
-    //init-code
+    /**
+     * Initierungscode
+     */
     (function(){
         var initSuperPeersConnections = function(superPeers){
             peerWeb.log("got all saved SuperPeers ("+superPeers.length+")", "info");
@@ -43,7 +48,12 @@ peerWeb.ConnectionManager = function(peer, storage){
         storage.getAllSuperPeers(initSuperPeersConnections);
     })();
     
-    //private    
+    /**
+     * Routing-Algorithmus.
+     * Wählt den nächsten passenden Peer aus und schickt die Nachricht an diesen.
+     * @param {Object} msg weiterzuleitende Nachricht
+     * @param {Object} con Verbindung über die die Nachricht geschickt wurde
+     */ 
     routeMessage = function(msg, con){
         var tempDist, closestCon, closestDist, targetID, allCon;
         targetID = BigInteger.parse(msg.head.to, 16);
@@ -69,6 +79,13 @@ peerWeb.ConnectionManager = function(peer, storage){
         }
     };
     
+    /**
+     * Suche nach nächsten Peers zur gesuchten ID (wird im Body der Nachricht übergeben)
+     * ordnet alle Peers und die in der Nachricht übergebenen nach Entfernung zum Datum und schreibt die nächsten 6 Peers in die Liste im Body der Nachricht.
+     * Ist der lokale Peer der nähste Peer wird die Nachricht an den Absender zurück geschickt, andernfalls wird sie weitergeroutet @see routeMessage
+     * @param {Object} msg nodeLookup-Nachricht, welche behandelt wird
+     * @param {Object} con Verbindung über die die Nachricht geschickt wurde
+     */
     nodeLookup = function(msg, con){
         peerWeb.log("recieved nodeLookup Message for: "+msg.body.id, "log");
         var temp, tempResult = [], result = [], i, tempDist, targetID = BigInteger.parse(msg.body.id, 16), resultList = msg.body.resultList;
@@ -93,7 +110,7 @@ peerWeb.ConnectionManager = function(peer, storage){
         });
         msg.body.resultList = result;
         if(result[0] === that.peerDescription){
-            con.sendResponse(msg);
+            con.send(msg);
         }
         else{
             if(msg.head === undefined){
@@ -108,55 +125,67 @@ peerWeb.ConnectionManager = function(peer, storage){
         }
     };
     
-    handleNetworkRequest = function(msg, con){
-        var peerDescription = function(msg, con){
-            var peerDesc = msg.body.peerDescription, dist, removedCon,
-            numID = BigInteger.parse(peerDesc.ID, 16);
-            con.setDescription(peerDesc, numID);
-            //check if superpeer
-            if(peerDesc.ws !== undefined || peerDesc.ajax !== undefined){
-                superPeers.push(con);
-                amountConSuperPeers += 1;
-                peerWeb.log("recieved peerDescription Message, moved connection to SuperPeers.", "log");
+    /**
+     * verarbeitet peerDesciption-Nachrichten verbundener Knoten.
+     * ordnet den Sender entsprechend seiner Entfernung bzw. ob er ein SuperPeer oder Freund ist, in den entsprechenden Teil der Routing-Tabelle ein.
+     * @param {Object} msg peerDescription-Nachricht, welche behandelt wird
+     * @param {Object} con Verbindung über die die Nachricht geschickt wurde
+     */
+    peerDescription = function(msg, con){
+        var peerDesc = msg.body.peerDescription, dist, removedCon,
+        numID = BigInteger.parse(peerDesc.ID, 16);
+        con.setDescription(peerDesc, numID);
+        //check if superpeer
+        if(peerDesc.ws !== undefined || peerDesc.ajax !== undefined){
+            superPeers.push(con);
+            amountConSuperPeers += 1;
+            peerWeb.log("recieved peerDescription Message, moved connection to SuperPeers.", "log");
+        }
+        else {
+            //check if connection belongs to leafset, is a friend or just a connection of part R
+            dist =  numID.subtract(peer.numID);
+            //check left leafset
+            if(dist > leafSet.longDistleft && dist < 0){
+                leafSet.left.push(con);
+                if(leafSet.left.length > l/2){
+                    leafSet.left.sort(function(a, b){
+                        return a.getNumID().compare(b.getNumID()) * -1;
+                    });
+                    removedCon = leafSet.left.splice(l/2, 1)[0];
+                    rConnections.push(removedCon);
+                    leafSet.longDistLeft = leafSet.left[l/2].getNumID().substract(peer.numID);
+                }
+                peerWeb.log("recieved peerDescription Message, moved connection to left leafSet.", "log");
+            }
+            else if(dist > 0 && dist < leafSet.longDistRight ){
+                leafSet.right.push(con);
+                if(leafSet.right.length > l/2){
+                    leafSet.right.sort(function(a, b){
+                        return a.getNumID().compare(b.getNumID());
+                    });
+                    removedCon = leafSet.right.splice(l/2, 1)[0];
+                    rConnections.push(removedCon);
+                    leafSet.longDistRight = leafSet.right[l/2].getNumID().subtract(peer.numID);
+                }
+                peerWeb.log("recieved peerDescription Message, moved connection to right leafSet.", "log");
             }
             else {
-                //check if connection belongs to leafset, is a friend or just a connection of part R
-                dist =  numID.subtract(peer.numID);
-                //check left leafset
-                if(dist > leafSet.longDistleft && dist < 0){
-                    leafSet.left.push(con);
-                    if(leafSet.left.length > l/2){
-                        leafSet.left.sort(function(a, b){
-                            return a.getNumID().compare(b.getNumID()) * -1;
-                        });
-                        removedCon = leafSet.left.splice(l/2, 1)[0];
-                        rConnections.push(removedCon);
-                        leafSet.longDistLeft = leafSet.left[l/2].getNumID().substract(peer.numID);
-                    }
-                    peerWeb.log("recieved peerDescription Message, moved connection to left leafSet.", "log");
-                }
-                else if(dist > 0 && dist < leafSet.longDistRight ){
-                    leafSet.right.push(con);
-                    if(leafSet.right.length > l/2){
-                        leafSet.right.sort(function(a, b){
-                            return a.getNumID().compare(b.getNumID());
-                        });
-                        removedCon = leafSet.right.splice(l/2, 1)[0];
-                        rConnections.push(removedCon);
-                        leafSet.longDistRight = leafSet.right[l/2].getNumID().subtract(peer.numID);
-                    }
-                    peerWeb.log("recieved peerDescription Message, moved connection to right leafSet.", "log");
-                }
-                else {
-                    rConnections.push(con);
-                    peerWeb.log("recieved peerDescription Message, moved connection to normal.", "log");
-                }
-                amountConPeers += 1;
+                rConnections.push(con);
+                peerWeb.log("recieved peerDescription Message, moved connection to normal.", "log");
             }
-            newConnections = peerWeb.removeFromArray(con, newConnections);
-            checkMinimumConnections();
-        };
-        
+            amountConPeers += 1;
+        }
+        newConnections = peerWeb.removeFromArray(con, newConnections);
+        checkMinimumConnections();
+    };
+    
+    /**
+     * leitet die Nachricht an die entsprechende Methode weiter.
+     * verwendet dafür das "action"-Feld im Header der Nachricht
+     * @param {Object} msg eingegangene Nachricht
+     * @param {Object} con Verbindung über die diese geschickt wurde
+     */
+    handleNetworkRequest = function(msg, con){
         switch(msg.head.action){
             case "peerDescription":
                 peerDescription(msg, con);
@@ -171,6 +200,12 @@ peerWeb.ConnectionManager = function(peer, storage){
         }
     };
     
+    /**
+     * leitet die Antwort an die entsprechende Methode weiter.
+     * verwendet dafür das "action"-Feld im Header der Nachricht
+     * @param {Object} msg eingegangene Nachricht
+     * @param {Object} con Verbindung über die diese geschickt wurde
+     */
     handleNetworkResponse = function(msg, con){
         switch(msg.head.action){
             case "peerDescription":
@@ -185,6 +220,11 @@ peerWeb.ConnectionManager = function(peer, storage){
         }
     };
     
+    /**
+     * prüft, wie viele freie Verbindungen verfügbar sind und versucht gegebenenfalls entsprechende Knoten zu finden.
+     * führt daher u.U. zu einem nodeLookup
+     * @see nodeLookup 
+     */
     checkMinimumConnections = function(){
         var msg = {};
         if(amountConPeers === 0 && amountConSuperPeers === 0){
@@ -206,6 +246,11 @@ peerWeb.ConnectionManager = function(peer, storage){
     };
     
     //public
+    /**
+     * entfernt geschlossene oder sich in dem Prozess der Schließung befindene Verbindungen aus der Routing-Tabelle.
+     * Anschließend wird checkMinimumConnections aufgerufen, um ein entsprechendes Defizit auszugeleichen.
+     * @see checkMinimumConnections
+     */
     this.connectionClosed = function(){
         var i, 
         checkConnections = function(part, partname){
@@ -230,6 +275,12 @@ peerWeb.ConnectionManager = function(peer, storage){
         checkMinimumConnections();
     };
     
+    /**
+     * Leitet eine eingegangene Antwort an den entsprechenden Dienst weiter.
+     * verwendet hierzu das "service"-Feld im Header der Nachricht
+     * @param {Object} msg eingegangene Nachricht
+     * @param {Object} con Verbindung über die diese geschickt wurde
+     */
     handleResponse = function(msg, con){
         if(msg.head.code === 200){
             storage.deleteMessage(msg.head.refCode);
@@ -244,6 +295,12 @@ peerWeb.ConnectionManager = function(peer, storage){
         }
     };
     
+    /**
+     * Leitet eine eingegangene Anfrage an den entsprechenden Dienst weiter.
+     * verwendet hierzu das "service"-Feld im Header der Nachricht
+     * @param {Object} msg eingegangene Nachricht
+     * @param {Object} con Verbindung über die diese geschickt wurde
+     */
     handleRequest = function(msg, con){
         switch(msg.head.service){
             case "network": handleNetworkRequest(msg, con);
@@ -254,9 +311,14 @@ peerWeb.ConnectionManager = function(peer, storage){
             break;
         }
         msg.head.code = 200;
-        con.sendResponse(msg);
+        con.send(msg);
     };
     
+    /**
+     * Prüft, ob es sich bei einer eingegangenen Nachricht um eine Antwort oder eine Anfrage handelt.
+     * @param {Object} msg eingegangene Nachricht
+     * @param {Object} con Verbindung über die diese geschickt wurde
+     */
     this.handleMessage = function(msg, con){
         if(msg.head.code !== undefined || msg.head.from === peer.ID){
             //response

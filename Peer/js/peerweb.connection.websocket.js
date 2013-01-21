@@ -1,15 +1,19 @@
-/**
- * @author Marten Schälicke
- */
-
 peerWeb.supportFor.websocket = window.WebSocket !== undefined;
 
 peerWeb.namespace("Connection.WebSocket");
+/**
+ * Implementierung der Connection für WebSocket-Verbindungen
+ * @author Marten Schälicke
+ * @constructor
+ * @param {Object} config Konfigurationsobjekt enthält Eventhandler
+ */
 peerWeb.Connection.WebSocket = function(config){
     "use strict";
     var connection;
     
-    //init-code
+    /**
+     * Initierungscode
+     */
     (function(){
         peerWeb.log("Trying to connect to: "+config.connectTo, "info");
         connection = new WebSocket(config.connectTo);
@@ -19,10 +23,17 @@ peerWeb.Connection.WebSocket = function(config){
         connection.onopen = config.onopen;
     })();
     
-    //public
+    /**
+     * verschickt Nachrichten an den Verbindungspartner
+     * @param {String} msg zu verschickende Nachricht als JSON-String
+     */
     this.send = function(msg){
         connection.send(msg);
     };
+    /**
+     * gibt den aktuellen Status der zu grundeliegenden Verbindung wieder
+     * @return {int} readyState Status der Verbindung
+     */
     this.getReadyState = function(){
         return connection.readyState;
     };

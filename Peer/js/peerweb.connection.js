@@ -1,13 +1,19 @@
-/**
- * @author Marten Schälicke
- */
-
 peerWeb.namespace("Connection");
+/**
+ * Verwaltet Verbindungen und behandelt Anfragen
+ * @author Marten Schälicke
+ * @constructor
+ * @param {Object} conManager Referenz auf den ConnectionManager um Nachrichten weitergeben zu können
+ * @param {Object} config Konfigurationsobjekt, welches u.A. den Verbindungspartner enthält
+ */
 peerWeb.Connection = function(conManager, config){
     "use strict";
     var that = this, connection, description, numID,
     sendDescription;  
     
+    /**
+     * sendet die Beschreibung des lokalen Knotens an den Verbindungspartner
+     */
     sendDescription = function(){
         var descriptionMsg = {
             head: {
@@ -20,9 +26,10 @@ peerWeb.Connection = function(conManager, config){
         };
         that.sendRequest(descriptionMsg);
     };
-    
-    
-    //init-code
+
+    /**
+     * Initierungscode
+     */
     (function(){
         var protocol;
         if(config === null || config === undefined){
@@ -62,6 +69,10 @@ peerWeb.Connection = function(conManager, config){
     })();
     
     //public
+    /**
+     * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
+     * @param {Object} msg zu verschickende Nachricht
+     */
     this.send = function(msg){
         var refCode;
         if(typeof msg === String){
@@ -88,30 +99,43 @@ peerWeb.Connection = function(conManager, config){
         }
     };
     
-    this.sendRequest = function(msg){
-        that.send(msg);
-    };
-    
-    //public
-    this.sendResponse = function(msg){
-        that.send(msg);
-    };
-    
+    /**
+     * liefert den aktuellen Status der Verbindung zurück.
+     * die Verbindungsstati entsprechen denen von WebSockets 
+     * @return {int} readyState Verbindungsstatus
+     */
     this.getReadyState = function(){
         return connection.getReadyState();
     };
     
+    /**
+     * setzt die Beschreibung des Verbindungspartners.
+     * Aus Performanzgründen kann auch die nummerische Version der ID angegeben werden, bei Nichtangabe wird diese sonst generiert.
+     * @param {Object} desc peerDescription des Verbindungspartners
+     * @param {BigInteger} numID nummerische Variante der ID des Verbindungspartners (optional)
+     */
     this.setDescription = function(desc, numID){
         description = desc;
         if(numID === "undefined"){
             numID = BigInteger.parse(desc.ID, 16);
         }
     };
+    /**
+     * gibt die peerDescription des Verbindungspartners zurück
+     * @return {Object} description peerDescription des Verbindungspartners
+     */
     this.getDescription = function(){
         return description;
     };
+    /**
+     * gibt die nummerische Version der ID des Verbindungspartners zurück
+     * @return {BigInteger} numID nummerische Variante der ID des Verbindungspartners
+     */
     this.getNumID = function(){
         return numID;
     };
 };
+/**
+ * implementierte Protokoll Version von peerWeb
+ */
 peerWeb.Connection.prototype.protocolVersion = "0.1";

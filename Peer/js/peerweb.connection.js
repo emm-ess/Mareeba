@@ -24,7 +24,7 @@ peerWeb.Connection = function(conManager, config){
                 "peerDescription": conManager.peerDescription
             }
         };
-        that.sendRequest(descriptionMsg);
+        that.send(descriptionMsg);
     };
 
     /**
@@ -72,8 +72,9 @@ peerWeb.Connection = function(conManager, config){
     /**
      * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
      * @param {Object} msg zu verschickende Nachricht
+     * @param {Function} callback Funktion, die bei Antwort aufgerufen werden soll
      */
-    this.send = function(msg){
+    this.send = function(msg, callback){
         var refCode;
         if(typeof msg === String){
             msg = JSON.parse(msg);
@@ -94,8 +95,8 @@ peerWeb.Connection = function(conManager, config){
         msg = JSON.stringify(msg);
         peerWeb.log("Message send: "+msg, "log");
         connection.send(msg);
-        if(refCode === undefined){
-            config.storeMessage(refCode, msg);
+        if(refCode !== undefined){
+            config.storeMessage(refCode, msg, callback);
         }
     };
     

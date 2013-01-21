@@ -3,8 +3,8 @@ peerWeb.namespace("ConnectionManager");
  * Verwaltet Verbindungen und behandelt Anfragen
  * @author Marten Schälicke
  * @constructor
- * @param {Object} peer Referenz auf den lokalen Peer
- * @param {Object} storage Speichermodul von peerWeb
+ * @param {peerWeb.Peer} peer Referenz auf den lokalen Peer
+ * @param {peerWeb.Storage} storage Speichermodul von peerWeb
  */
 peerWeb.ConnectionManager = function(peer, storage){
     "use strict";
@@ -12,10 +12,13 @@ peerWeb.ConnectionManager = function(peer, storage){
     that = this, defaultConfig = {}, l = 6,
     leafSet = {left: [], right: []}, rConnections = [], superPeers = [], friends = [], newConnections = [], 
     amountConPeers = 0, amountConSuperPeers = 0,
+    responseCallbacks = {},
     handleRequest, handleResponse,
     handleNetworkRequest, handleNetworkResponse,
     nodeLookup, peerDescription,
-    checkMinimumConnections, routeMessage;
+    handlePublicRequest, handlePublicResponse,
+    valueStore, valueLookup,
+    checkMinimumConnections, routeMessage, sendMessage;
     
     /**
      * Initierungscode
@@ -39,8 +42,11 @@ peerWeb.ConnectionManager = function(peer, storage){
         if(peerWeb.supportFor.webrtc){
             that.peerDescription.webrtc = true;
         }
-        defaultConfig.storeMessage = function(refCode, msg){
+        defaultConfig.storeMessage = function(refCode, msg, callback){
             storage.storeMessage(refCode, msg);
+            if(callback !== undefined){
+                responseCallbacks[refCode] = callback;
+            }
         };
         leafSet.longDistLeft = (BigInteger.ZERO).subtract(peer.numID); 
         leafSet.longDistRight = (peerWeb.BIGGESTID).subtract(peer.numID);
@@ -52,9 +58,10 @@ peerWeb.ConnectionManager = function(peer, storage){
      * Routing-Algorithmus.
      * Wählt den nächsten passenden Peer aus und schickt die Nachricht an diesen.
      * @param {Object} msg weiterzuleitende Nachricht
-     * @param {Object} con Verbindung über die die Nachricht geschickt wurde
+     * @param {peerWeb.Connection} con Verbindung über die die Nachricht geschickt wurde
+     * @param {Function} callback Funktion die im Falle einer Antwort aufgerufen werden soll
      */ 
-    routeMessage = function(msg, con){
+    routeMessage = function(msg, con, callback){
         var tempDist, closestCon, closestDist, targetID, allCon;
         targetID = BigInteger.parse(msg.head.to, 16);
         if(msg.head.from === peer.ID){
@@ -72,10 +79,36 @@ peerWeb.ConnectionManager = function(peer, storage){
             }
         });
         if(closestCon !== undefined){
-            closestCon.send(msg);
+            closestCon.send(msg, callback);
         }
         else{
             handleRequest(msg, con);
+        }
+    };
+    
+    /**
+     * erster Schritt des Routings wenn der lokale Peer der Sender ist.
+     * schickt die Nachricht an den nächsten SuperPeer
+     * @param {Object} msg weiterzuleitende Nachricht
+     * @param {Function} callback Funktion die im Falle einer Antwort aufgerufen werden soll
+     */
+    sendMessage = function(msg, callback){
+        var tempDist, closestCon, closestDist, targetID;
+        targetID = BigInteger.parse(msg.head.to, 16);
+        closestDist = peerWeb.BIGGESTID;
+        msg.head.from = peer.ID;
+        superPeers.forEach(function(element){
+            tempDist = targetID.subtract(element.getNumID()).abs();
+            if(tempDist < closestDist){
+                closestDist = tempDist;
+                closestCon = element;
+            }
+        });
+        if(closestCon !== undefined){
+            closestCon.send(msg, callback);
+        }
+        else{
+            routeMessage(msg, undefined, callback);
         }
     };
     
@@ -84,9 +117,10 @@ peerWeb.ConnectionManager = function(peer, storage){
      * ordnet alle Peers und die in der Nachricht übergebenen nach Entfernung zum Datum und schreibt die nächsten 6 Peers in die Liste im Body der Nachricht.
      * Ist der lokale Peer der nähste Peer wird die Nachricht an den Absender zurück geschickt, andernfalls wird sie weitergeroutet @see routeMessage
      * @param {Object} msg nodeLookup-Nachricht, welche behandelt wird
-     * @param {Object} con Verbindung über die die Nachricht geschickt wurde
+     * @param {peerWeb.Connection} con Verbindung über die die Nachricht geschickt wurde
+     * @parm {Function} callback Funktion die bei einer Antwort auf den nodeLookup aufgerufen werden soll
      */
-    nodeLookup = function(msg, con){
+    nodeLookup = function(msg, con, callback){
         peerWeb.log("recieved nodeLookup Message for: "+msg.body.id, "log");
         var temp, tempResult = [], result = [], i, tempDist, targetID = BigInteger.parse(msg.body.id, 16), resultList = msg.body.resultList;
         temp = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
@@ -110,18 +144,18 @@ peerWeb.ConnectionManager = function(peer, storage){
         });
         msg.body.resultList = result;
         if(result[0] === that.peerDescription){
+            msg.head.code = "200";
             con.send(msg);
         }
         else{
             if(msg.head === undefined){
                 msg.head = {
                     to: msg.body.id,
-                    from: peer.ID,
                     service: "network",
                     action: "nodeLookup"
                 };
             }
-            routeMessage(msg);
+            sendMessage(msg, callback);
         }
     };
     
@@ -129,12 +163,15 @@ peerWeb.ConnectionManager = function(peer, storage){
      * verarbeitet peerDesciption-Nachrichten verbundener Knoten.
      * ordnet den Sender entsprechend seiner Entfernung bzw. ob er ein SuperPeer oder Freund ist, in den entsprechenden Teil der Routing-Tabelle ein.
      * @param {Object} msg peerDescription-Nachricht, welche behandelt wird
-     * @param {Object} con Verbindung über die die Nachricht geschickt wurde
+     * @param {peerWeb.Connection} con Verbindung über die die Nachricht geschickt wurde
      */
     peerDescription = function(msg, con){
         var peerDesc = msg.body.peerDescription, dist, removedCon,
         numID = BigInteger.parse(peerDesc.ID, 16);
         con.setDescription(peerDesc, numID);
+        //sende response
+        msg.head.code = 200;
+        con.send(msg);
         //check if superpeer
         if(peerDesc.ws !== undefined || peerDesc.ajax !== undefined){
             superPeers.push(con);
@@ -183,7 +220,7 @@ peerWeb.ConnectionManager = function(peer, storage){
      * leitet die Nachricht an die entsprechende Methode weiter.
      * verwendet dafür das "action"-Feld im Header der Nachricht
      * @param {Object} msg eingegangene Nachricht
-     * @param {Object} con Verbindung über die diese geschickt wurde
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
      */
     handleNetworkRequest = function(msg, con){
         switch(msg.head.action){
@@ -204,18 +241,75 @@ peerWeb.ConnectionManager = function(peer, storage){
      * leitet die Antwort an die entsprechende Methode weiter.
      * verwendet dafür das "action"-Feld im Header der Nachricht
      * @param {Object} msg eingegangene Nachricht
-     * @param {Object} con Verbindung über die diese geschickt wurde
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
      */
     handleNetworkResponse = function(msg, con){
         switch(msg.head.action){
             case "peerDescription":
+                peerWeb.log("recieved response for peerDescription", "log");
             break;
             case "nodeLookup":
-                peerWeb.log("recieved response for Node Lookup", "log");
+                peerWeb.log("recieved response for nodeLookup", "log");
             break;
             default:
                 //unknown or unimplemented message. log those to determine if it is an attack
                 peerWeb.log("recieved response for unknown action of network service: "+msg.head.action, "warn");
+            break;
+        }
+    };
+    
+    /**
+     * verarbeitet valueStore-Nachrichten,
+     * speichet deren Body in der Datenbank
+     * @param {Object} msg eingegangene Nachricht
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
+     */
+    valueStore = function(msg, con){
+        storage.saveDocument(msg.body);
+    };
+    
+    valueLookup = function(msg, con){
+        
+    };
+    
+    /**
+     * leitet die Nachricht an die entsprechende Methode weiter.
+     * verwendet dafür das "action"-Feld im Header der Nachricht
+     * @param {Object} msg eingegangene Nachricht
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
+     */
+    handlePublicRequest = function(msg, con){
+        switch(msg.head.action){
+            case "valueStore":
+                valueStore(msg, con);
+            break;
+            case "valueLookup":
+                valueLookup(msg, con);
+            break;
+            default:
+                //unknown or unimplemented message. log those to determine if it is an attack
+                peerWeb.log("recieved request for unknown action of public service: "+msg.head.action, "warn");
+            break;
+        }
+    };
+
+    /**
+     * leitet die Antwort an die entsprechende Methode weiter.
+     * verwendet dafür das "action"-Feld im Header der Nachricht
+     * @param {Object} msg eingegangene Nachricht
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
+     */
+    handlePublicResponse = function(msg, con){
+        switch(msg.head.action){
+            case "valueStore":
+                peerWeb.log("recieved response for valueStore", "log");
+            break;
+            case "valueLookup":
+                peerWeb.log("recieved response for valueLookup", "log");
+            break;
+            default:
+                //unknown or unimplemented message. log those to determine if it is an attack
+                peerWeb.log("recieved response for unknown action of public service: "+msg.head.action, "warn");
             break;
         }
     };
@@ -245,7 +339,98 @@ peerWeb.ConnectionManager = function(peer, storage){
         }
     };
     
-    //public
+    /**
+     * Leitet eine eingegangene Antwort an den entsprechenden Dienst weiter.
+     * verwendet hierzu das "service"-Feld im Header der Nachricht
+     * 
+     * Ruft einen optionalen Callback auf
+     * @param {Object} msg eingegangene Nachricht
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
+     */
+    handleResponse = function(msg, con){
+        var refCode = msg.head.refCode;
+        if(msg.head.code === 200){
+            storage.deleteMessage(refCode);
+        }
+        switch(msg.head.service){
+            case "network": handleNetworkResponse(msg, con);
+            break;
+            case "public": handlePublicResponse(msg, con);
+            break;
+            default:
+                //unknown or unimplemented message. log those to determine if it is an attack
+                peerWeb.log("recieved response for unknown service: "+msg.head.service, "warn");
+            break;
+        }
+        if(typeof(responseCallbacks[refCode]) ===  "function"){
+            responseCallbacks[refCode](msg, con);
+            responseCallbacks[refCode] = undefined;
+        }
+    };
+    
+    /**
+     * Leitet eine eingegangene Anfrage an den entsprechenden Dienst weiter.
+     * verwendet hierzu das "service"-Feld im Header der Nachricht
+     * @param {Object} msg eingegangene Nachricht
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
+     */
+    handleRequest = function(msg, con){
+        switch(msg.head.service){
+            case "network": handleNetworkRequest(msg, con);
+            break;
+            case "public": handlePublicRequest(msg, con);
+            break;
+            default:
+                //unknown or unimplemented message. log those to determine if it is an attack
+                peerWeb.log("recieved request for unknown service: "+msg.head.service, "warn");
+            break;
+        }
+    };
+    
+    /**
+     * Prüft, ob es sich bei einer eingegangenen Nachricht um eine Antwort oder eine Anfrage handelt.
+     * @param {Object} msg eingegangene Nachricht
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
+     */
+    this.handleMessage = function(msg, con){
+        if(msg.head.code !== undefined || msg.head.from === peer.ID){
+            //response
+            handleResponse(msg, con);
+        }
+        else {
+            handleRequest(msg, con);
+        }
+    };
+    
+    /**
+     * löst einen nodeLookupvorgang aus, dem sich ein valueStore anschließt.
+     * Speichert somit ein Datum im Netzwerk.
+     * @param {Object} doc das zu speichernde Dokument
+     */
+    this.storeInNetwork = function(doc){
+        var nodeLookupCallback = function(msg){
+            var storeMsg = {
+                "head" : {
+                    "service": "public",
+                    "action": "valueStore"
+                },
+                "body": doc
+            };
+            peerWeb.log("Store Document with titleID: "+doc.titleID+" on "+msg.body.resultList.length+" peers", "log");
+            msg.body.resultList.forEach(function(element){
+                storeMsg.head.to = element.ID;
+                sendMessage(storeMsg);
+            });
+        }, 
+        msg = {
+            body : {
+                id: doc.titleID,
+                resultList: []
+            }
+        };
+        nodeLookup(msg, undefined, nodeLookupCallback);
+    };
+    
     /**
      * entfernt geschlossene oder sich in dem Prozess der Schließung befindene Verbindungen aus der Routing-Tabelle.
      * Anschließend wird checkMinimumConnections aufgerufen, um ein entsprechendes Defizit auszugeleichen.
@@ -273,59 +458,5 @@ peerWeb.ConnectionManager = function(peer, storage){
         amountConPeers += checkConnections(rConnections, "part two (R)");
         peerWeb.log("Remainig Connections to Peers: "+amountConPeers+", remaining Connections to SuperPeers: "+amountConSuperPeers, "log");
         checkMinimumConnections();
-    };
-    
-    /**
-     * Leitet eine eingegangene Antwort an den entsprechenden Dienst weiter.
-     * verwendet hierzu das "service"-Feld im Header der Nachricht
-     * @param {Object} msg eingegangene Nachricht
-     * @param {Object} con Verbindung über die diese geschickt wurde
-     */
-    handleResponse = function(msg, con){
-        if(msg.head.code === 200){
-            storage.deleteMessage(msg.head.refCode);
-        }
-        switch(msg.head.service){
-            case "network": handleNetworkResponse(msg, con);
-            break;
-            default:
-                //unknown or unimplemented message. log those to determine if it is an attack
-                peerWeb.log("recieved response for unknown service: "+msg.head.service, "warn");
-            break;
-        }
-    };
-    
-    /**
-     * Leitet eine eingegangene Anfrage an den entsprechenden Dienst weiter.
-     * verwendet hierzu das "service"-Feld im Header der Nachricht
-     * @param {Object} msg eingegangene Nachricht
-     * @param {Object} con Verbindung über die diese geschickt wurde
-     */
-    handleRequest = function(msg, con){
-        switch(msg.head.service){
-            case "network": handleNetworkRequest(msg, con);
-            break;
-            default:
-                //unknown or unimplemented message. log those to determine if it is an attack
-                peerWeb.log("recieved request for unknown service: "+msg.head.service, "warn");
-            break;
-        }
-        msg.head.code = 200;
-        con.send(msg);
-    };
-    
-    /**
-     * Prüft, ob es sich bei einer eingegangenen Nachricht um eine Antwort oder eine Anfrage handelt.
-     * @param {Object} msg eingegangene Nachricht
-     * @param {Object} con Verbindung über die diese geschickt wurde
-     */
-    this.handleMessage = function(msg, con){
-        if(msg.head.code !== undefined || msg.head.from === peer.ID){
-            //response
-            handleResponse(msg, con);
-        }
-        else {
-            handleRequest(msg, con);
-        }
     };
 };

@@ -8,7 +8,7 @@ peerWeb.namespace("Peer");
  */
 peerWeb.Peer = function(){
     "use strict";
-    var conManager, storage, peer, gui,
+    var conManager, docManager, storage, peer, gui,
     //private Methods
     generateID;
     
@@ -84,15 +84,28 @@ peerWeb.Peer = function(){
      * prüft die Mindestanforderungen an den Browser und erzeugt alle nötigen Objekte.
      */
     (function(){
-        var continueInit = function(){
+        var continueInit, setGUICallbacks,
+        usable, supportFor = peerWeb.supportFor;
+        
+        setGUICallbacks = function(){
+            var config = {};
+            config.newArticle = function(articleData){
+                var document = new peerWeb.Document(articleData);
+                docManager.registerOwnDocument(document);
+            };
+            gui.setConfig(config);
+        };
+        
+        continueInit = function(){
             if(storage.isUsable() && peer.ID !== null){
                 peer.numID = BigInteger.parse(peer.ID, 16);
                 conManager = new peerWeb.ConnectionManager(peer, storage);
+                docManager = new peerWeb.DocumentManager(peer, storage);
                 peerWeb.log("Waiting for Connections.", "info");
+                setGUICallbacks();
                 gui.peerReady();
             }
-        },
-        usable, supportFor = peerWeb.supportFor;
+        };
         
         gui = new peerWeb.GUI();
         peerWeb.log("Initialisiere Peer.", "info");
@@ -120,6 +133,14 @@ peerWeb.Peer = function(){
             peerWeb.log("WebSockets: "+supportFor.websocket, "info");
         }
     })();
+    
+    /**
+     * reicht das gegebende Objekt an den ConnectionManager weiter, welcher dies im Netzwerk ablegt.
+     * @param {Object} data Data-Objekt des zu speichernden Dokuments
+     */
+    peer.storeInNetwork = function(data){
+        conManager.storeInNetwork(data);
+    };
     
     return peer;
 };

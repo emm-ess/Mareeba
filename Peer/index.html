@@ -15,6 +15,7 @@
 		<script src="js/lib/jquery-1.8.2.js"></script>
 		<script src="js/lib/jquery-ui-1.8.21.custom.min.js"></script>
 		<script src="js/lib/biginteger.js"></script>
+		<script src="js/lib/cryptojs/rollups/sha1.js"></script>
 		<script src="js/lib/swfobject.js"></script>
 		
 		<script src="js/peerweb.js"></script>
@@ -25,6 +26,9 @@
 		<script src="js/peerweb.connection.flash.js"></script>
 		<script src="js/peerweb.connection.websocket.js"></script>
 		<script src="js/peerweb.connectionmanager.js"></script>
+		
+		<script src="js/peerweb.document.js"></script>
+		<script src="js/peerweb.documentmanager.js"></script>
 		
 		<script src="js/peerweb.storage.js"></script>
 		
@@ -40,48 +44,60 @@
 			<nav>
 				<ul>
 					<li class="active">
-						<a href="home-screen">Startseite</a>
+						<a href="home" title="Startseite">Startseite</a>
 					</li>
 					<li>
-						<a href="friends">Freunde</a>
+						<a href="friends" title="Freunde">Freunde</a>
 					</li>
 					<li>
-						<a href="search">Suche</a>
+						<a href="search" title="Suche">Suche</a>
 					</li>
 					<li>
-						<a href="a-z">A-Z</a>
+						<a href="a-z" title="A-Z">A-Z</a>
 					</li>
 					<li>
-						<a href="articel/new">neuer Artikel</a>
+						<a href="new-article" title="neuer Artikel">neuer Artikel</a>
 					</li>
 					<li>
-						<a href="settings">Einstellungen</a>
+						<a href="settings" title="Einstellungen">Einstellungen</a>
 					</li>
 				</ul>
 			</nav>
 		
 			<div id="main">
 				<section id="home-screen">
-					<h2>Home</h2>
+					<h2>Willkommen bei PeerWeb</h2>
 					<p>
-						Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc,
+						Zur Zeit befindet sich PeerWeb noch in der Entwicklung und wurde vor kurzem als Bachelorarbeit an der HTW eingereicht. Daher stehen im Moment nur die Möglichkeiten neue Artikel anzulegen und wieder zu suchen zur Verfügung.
+						Im Hintergrund wird dafür jedoch bereits ein Peer-to-Peer-Netzwerk verwendet.
 					</p>
 				</section>
 	
 				<section id="settings-screen">
-					<h2>Settings</h2>
+					<h2>Einstellungen</h2>
 				</section>
 	
 				<section id="search-screen">
 					<h2>Suche</h2>
+					<form id="article-search">
+						<input type="text" name="search-article-title" id="search-article-title" /><br />
+						<button id="article-search-button">suchen &amp; anzeigen</button>
+					</form>
 				</section>
 	
 				<section id="a-z-screen">
 					<h2>A-Z</h2>
 				</section>
 	
-				<section id="article-screen">
+				<section id="new-article-screen">
 					<h2>neuer Artikel</h2>
+					<form id="new-article">
+						<label for="new-article-title">Titel</label>
+						<input type="text" name="new-article-title" id="new-article-title" /><br />
+						<label for="new-article-content">Inhalt</label>
+						<textarea name="new-article-content" id="new-article-content"> </textarea><br />
+						<button id="new-article-button">speichern</button>
+					</form>
 				</section>
 			</div>
 		</div>

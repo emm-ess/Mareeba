@@ -65,11 +65,12 @@ class SuperPeer
     @id = SecureRandom.hex 20
     @numID = Integer(@id, 16)
     @peerDescr = {
-      :ID => @id,
-      :ws => "ws://"+host+":"+port.to_s
+      "ID" => @id,
+      "ws" => "ws://"+host+":"+port.to_s
     }
     @connectedPeers = {}
     @newlyConnectedPeers = Array.new
+    @documents = {}
   end
   
   def description
@@ -95,9 +96,10 @@ class SuperPeer
   
   def handleMessage(msg, peer)
     if msg["head"].has_key? "to" and not (msg["head"]["to"].eql? @id or msg["head"]["action"].eql? "nodeLookup")
-      routeMessage msg
+      routeMessage(msg, peer)
     elsif msg["head"].has_key? "code"
       #response
+      puts "response recieved"
     else 
       #request
       handleRequest(msg, peer)
@@ -108,6 +110,8 @@ class SuperPeer
     case msg["head"]["service"] 
     when "network"
       handleNetworkRequest(msg, peer)
+    when "public"
+      handlePublicRequest(msg, peer)
     else
       puts "recieved request for unknown service: "+msg["head"]["service"]
     end
@@ -131,7 +135,6 @@ class SuperPeer
     peer.description = msg["body"]["peerDescription"]
     @connectedPeers[Integer(msg["head"]["from"], 16)] = peer
     msg["head"]["code"] = 200
-    msg = JSON.generate msg
     peer.send msg
     puts "response to peerDescription send"
   end
@@ -159,12 +162,45 @@ class SuperPeer
     msg["body"]["resultList"] = result
     puts "result of nodeLookup"
     puts result
-    if result[0].eql? @peerDescr
+    if result[0]["ID"].eql? @peerDescr["ID"]
+      msg["head"]["code"] = 200
       peer.send msg
     else
       routeMessage(msg, nil)
     end
   end
+  
+  
+  
+  def handlePublicRequest(msg, peer)
+    puts "handle Public Request"
+    case msg["head"]["action"]
+    when "valueStore"
+      handleValueStore(msg, peer)
+    when "valueLookup"
+      handleValueLookup(msg, peer)
+    else
+      puts "recieved request for unknown action in network service: "+msg["head"]["action"]
+    end
+  end
+  
+  def handleValueStore(msg, peer)
+    @documents[ msg["body"]["titleID"] ] = msg.body
+    msg["body"] = ""
+    msg["head"]["code"] = 200
+    peer.send msg
+  end
+  
+  def handleValueLookup(msg, peer)
+    if(@documents.has_key? msg["body"]["id"])
+      msg["body"] = @documents[ msg["body"]["id"] ]
+      msg["head"]["code"] = 200
+      peer.send msg
+    else
+      routeMessage(msg, peer)
+    end
+  end
+  
 
   def routeMessage(msg, peer)
     puts "route Message"

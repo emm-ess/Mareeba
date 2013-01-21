@@ -149,7 +149,21 @@ footer {
 	color: rgb(235,235,235);
 }
 
+form label {
+	width: 150px;
+	display: inline-block;
+}
+
+form input {
+	width: 400px;
+}
+
+form textarea {
+	width: 650px;
+	height: 400px;
+}
+
 /* initial appearance */
-#settings-screen, #search-screen, #a-z-screen, #article-screen {
+#settings-screen, #search-screen, #a-z-screen, #new-article-screen {
 	display: none;
 }

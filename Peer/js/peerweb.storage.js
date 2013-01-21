@@ -55,10 +55,18 @@ peerWeb.Storage = function(config){
                 db = e.target.result;
                 peerWeb.log("IndexedDB opened. - Upgrade needed.", "info");
                 
-                db.createObjectStore("peers", { keyPath: "id", autoIncrement: true });
-                db.createObjectStore("iceServers", { keyPath: "url" });
-                db.createObjectStore("index", { keyPath: "titleID" });
-                db.createObjectStore("pubDocuments", { keyPath: "titleID" });
+                if(!db.objectStoreNames.contains("employee")){
+                    db.createObjectStore("peers", { keyPath: "id", autoIncrement: true });
+                }
+                if(!db.objectStoreNames.contains("iceServers")){
+                    db.createObjectStore("iceServers", { keyPath: "url" });
+                }
+                if(!db.objectStoreNames.contains("index")){
+                    db.createObjectStore("index", { keyPath: "titleID" });
+                }
+                if(!db.objectStoreNames.contains("pubDocuments")){
+                    db.createObjectStore("pubDocuments", { keyPath: "titleID" });
+                }
                 //checkRequiredContent();
             };
         };
@@ -267,5 +275,19 @@ peerWeb.Storage = function(config){
         trans.onerror = db.onerror;
         pubDocStore.add(doc);
         indexStore.add(indexEntry);
+    };
+    
+    /**
+     * lädt das Dokument mit der gegebenen ID aus der IndexedDB.
+     * übergibt undefined wenn Dokument nicht gefunden wurde.
+     * @param {String} id
+     * @param {Function} callback Funktion, welche anschließend aufgerufen wird.
+     */
+    this.getDocument = function(id, callback){
+        var request = db.transaction("pubDocuments").objectStore("pubDocuments").get(id);
+        request.onsuccess = function(event){
+            var result = request.result;
+            callback(result);
+        };
     };
 };

@@ -95,7 +95,7 @@ class SuperPeer
   end
   
   def handleMessage(msg, peer)
-    if msg["head"].has_key? "to" and not (msg["head"]["to"].eql? @id or msg["head"]["action"].eql? "nodeLookup")
+    if msg["head"].has_key? "to" and not (msg["head"]["to"].eql? @id or (msg["head"]["action"].eql? "nodeLookup" and not msg["head"].has_key? "code"))
       routeMessage(msg, peer)
     elsif msg["head"].has_key? "code"
       #response
@@ -152,7 +152,7 @@ class SuperPeer
         tempResult.push({:distance => (targetID - peerID).abs, :peerDescription => peerDesc})
       end
     end
-    tempResult = tempResult.uniq { |tPeer| tPeer[:distance] }
+    tempResult = tempResult.uniq { |tPeer| tPeer[:peerDescription]["ID"] }
     tempResult = tempResult.sort_by { |tPeer| tPeer[:distance] }
     tempResult = tempResult.slice(0,6)
     result = Array.new
@@ -180,12 +180,12 @@ class SuperPeer
     when "valueLookup"
       handleValueLookup(msg, peer)
     else
-      puts "recieved request for unknown action in network service: "+msg["head"]["action"]
+      puts "recieved request for unknown action in public service: "+msg["head"]["action"]
     end
   end
   
   def handleValueStore(msg, peer)
-    @documents[ msg["body"]["titleID"] ] = msg.body
+    @documents[ msg["body"]["titleID"] ] = msg["body"]
     msg["body"] = ""
     msg["head"]["code"] = 200
     peer.send msg
@@ -197,7 +197,10 @@ class SuperPeer
       msg["head"]["code"] = 200
       peer.send msg
     else
-      routeMessage(msg, peer)
+      msg["body"] = ""
+      msg["head"]["code"] = 404
+      peer.send msg
+      # routeMessage(msg, peer)
     end
   end
   
@@ -209,9 +212,10 @@ class SuperPeer
     closestDistance = (targetID - @numID).abs
     @connectedPeers.each do |peerID, tPeer|
       distance = (targetID - peerID).abs
-      if(distance < closestDistance)
+      if((distance <=> closestDistance) < 0)
         clostestDistance = distance
         closestPeer = tPeer
+        puts "closest Peer has ID: "+tPeer.description["ID"]+" with distance: "+distance.to_s
       end
     end
     if(closestPeer != nil)

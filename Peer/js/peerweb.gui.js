@@ -7,7 +7,7 @@ peerWeb.namespace("GUI");
 peerWeb.GUI= function(){
     "use strict";
     var config, baseURL, 
-    onLocationChange, newArticleButtonClick;
+    onLocationChange, articleSearchButtonClick, newArticleButtonClick;
     
     /**
      * passt die GUI entsprechend der URL im Browser an
@@ -29,6 +29,25 @@ peerWeb.GUI= function(){
     };
     
     /**
+     * nimmt den Suchbegriff entgegen und leitet ihn weiter
+     */
+    articleSearchButtonClick = function(event){
+        event.preventDefault();
+        $('#inner-overlay').html('<h2>suche</h2>');
+        $('#overlay').fadeIn('slow');
+        config.articleSearch( $('#search-article-title').val().trim(), function(doc){
+            if(doc !== undefined){
+                $('#article-search-result').html(doc.toHTML());
+                $('#overlay').fadeOut('slow');
+            }
+            else{
+                $('#article-search-result').html('<h2>Es wurde kein entsprechender Artikel gefunden.');
+                $('#overlay').fadeOut('slow');
+            }
+        });
+    };
+    
+    /**
      * nimmt die Eingaben zu einem neuen Artikel auf und leitet sie weiter.
      */
     newArticleButtonClick = function(event){
@@ -39,6 +58,7 @@ peerWeb.GUI= function(){
         };
         if(article.title !== "" && article.content !== ""){
             config.newArticle(article);
+            alert("Der Artikel wurde gespeichert und ist nun im Netzwerk verfügbar.");
         }
         else {
             alert("Der Titel oder der Inhalt wurde nicht angegeben.");
@@ -79,5 +99,6 @@ peerWeb.GUI= function(){
             onLocationChange(event.state);
         });
         $('button#new-article-button').click(newArticleButtonClick);
+        $('button#article-search-button').click(articleSearchButtonClick);
     })();
 };

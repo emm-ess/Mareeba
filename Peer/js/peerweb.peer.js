@@ -93,6 +93,7 @@ peerWeb.Peer = function(){
                 var document = new peerWeb.Document(articleData);
                 docManager.registerOwnDocument(document);
             };
+            config.articleSearch = docManager.searchArticle;
             gui.setConfig(config);
         };
         
@@ -140,6 +141,14 @@ peerWeb.Peer = function(){
      */
     peer.storeInNetwork = function(data){
         conManager.storeInNetwork(data);
+    };
+    
+    /**
+     * reicht die Anfrage an den ConnectionManager weiter
+     * @param {String} id des gesuchten Dokuments
+     */
+    peer.searchInNetwork = function(id, callback){
+        conManager.searchInNetwork(id, callback);
     };
     
     return peer;

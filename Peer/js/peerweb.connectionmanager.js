@@ -122,29 +122,44 @@ peerWeb.ConnectionManager = function(peer, storage){
      */
     nodeLookup = function(msg, con, callback){
         peerWeb.log("recieved nodeLookup Message for: "+msg.body.id, "log");
-        var temp, tempResult = [], result = [], i, tempDist, targetID = BigInteger.parse(msg.body.id, 16), resultList = msg.body.resultList;
+        var temp, tempResult = new Array(), result = [], i, l, tempDist, targetID = BigInteger.parse(msg.body.id, 16), resultList = msg.body.resultList;
         temp = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
-        for(i = 0; i < temp.length; i += 1){
-            tempDist = targetID.subtract(temp[i].getNumID()).abs();
-            tempResult.push( [tempDist, temp[i].getDescription()] );
+        for(i = 0, l = temp.length; i < l; i += 1){
+            tempDist = targetID.subtract(temp[i].getNumID());
+            result.push( [tempDist, temp[i].getDescription()] );
         }
-        for(i = 0; i < resultList.length; i += 1){
+        for(i = 0, l = resultList.length; i < l; i += 1){
             temp = BigInteger.parse(resultList[i].ID, 16);
             tempDist = targetID.subtract(temp).abs();
-            tempResult.push( [tempDist, resultList[i]] );
+            result.push( [tempDist, resultList[i]] );
         }
+        
+        //let's have only unique values
+        temp = {};
+        for(i = 0, l = result.length; i < l; i += 1){
+            if(temp.hasOwnProperty(result[i][1].ID)) {
+                continue;
+            }
+            tempResult.push(result[i]);
+            temp[result[i][1].ID] = 1;
+        }
+        
         tempResult.sort(function(a, b){
-            return a[0].compare(b[0]);
+           return a[0].compareAbs(b[0]);
         });
         if(tempResult.length > l){
             tempResult = tempResult.splice(0, l);
         }
+        //use result again
+        result = [];
         tempResult.forEach(function(element){
             result.push(element[1]);
         });
         msg.body.resultList = result;
-        if(result[0] === that.peerDescription){
+        if(result[0].ID === that.peerDescription.ID){
             msg.head.code = "200";
+            msg.head.to = msg.head.from;
+            msg.head.from = that.peerDescription.ID;
             con.send(msg);
         }
         else{
@@ -260,16 +275,39 @@ peerWeb.ConnectionManager = function(peer, storage){
     
     /**
      * verarbeitet valueStore-Nachrichten,
-     * speichet deren Body in der Datenbank
+     * speichert deren Body in der Datenbank
      * @param {Object} msg eingegangene Nachricht
      * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
      */
     valueStore = function(msg, con){
         storage.saveDocument(msg.body);
+        msg.body = "";
+        msg.head.code = 200;
+        msg.head.to = msg.head.from;
+        msg.head.from = that.peerDescription.ID;
+        con.send(msg);
     };
     
+    /**
+     * verarbeitet valueLookup-Nachrichten
+     * antwortet mit 200 und dem dokument im body, falls dies vorhanden ist; sonst mit 404
+     * @param {Object} msg eingegangene Nachricht
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
+     */
     valueLookup = function(msg, con){
-        
+        var storageResult = function(doc){
+            if(doc === undefined){
+                msg.head.code = 404;
+            }
+            else {
+                msg.head.code = 200;
+                msg.body = doc;
+            }
+            msg.head.to = msg.head.from;
+            msg.head.from = that.peerDescription.ID;
+            con.send(msg);
+        };
+        storage.getDocument(msg.body, storageResult);
     };
     
     /**
@@ -429,6 +467,32 @@ peerWeb.ConnectionManager = function(peer, storage){
             }
         };
         nodeLookup(msg, undefined, nodeLookupCallback);
+    };
+    
+    /**
+     * sucht die übergebene ID im Netzwerk, ruft den callback auf, wenn gefunden (mit document) oder nicht (mit undefined).
+     * @param {String} id
+     * @param {Function} callback
+     */
+    this.searchInNetwork = function(id, callback){
+        var valueLookupCallback = function(msg){
+            if(msg.head.code !== 200){
+                callback(undefined);
+            }
+            else{
+                callback(msg.body);
+            }
+        },
+        msg = {
+            head: {
+                "to": id,
+                "service": "public",
+                "action": "valueLookup"
+            },
+            body: id
+        };
+        peerWeb.log("Search Document with ID: "+id+" in Network.", "log");
+        sendMessage(msg, valueLookupCallback);
     };
     
     /**

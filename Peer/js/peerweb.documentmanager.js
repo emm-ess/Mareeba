@@ -19,4 +19,30 @@ peerWeb.DocumentManager = function(peer, storage){
         peerWeb.log("should manage new users document with titleID: "+data.titleID, "log");
         peer.storeInNetwork(data);
     };
+    
+    /**
+     * initiert die Suche nach einem Dokument mit bestimmten Titel. 
+     * bildet die potentielle ID des Artikels, schaut, ob eine lokale Kopie vorhanden ist und schickt andernfalls eine valueLookup-Nachricht
+     * @param {String} title Titel nach dem gesucht wird.
+     * @param {Function} callback Methode die bei Fund oder Nichtfund aufgerufen wird.
+     */
+    this.searchArticle = function(title, callback){
+        var potID = CryptoJS.SHA1(title).toString(CryptoJS.enc.Hex),
+        networkResult = function(doc){
+            if(doc !== undefined){
+                doc = new peerWeb.Document(doc);
+            }
+            callback(doc);
+        },
+        storageResult = function(doc){
+            if(doc !== undefined){
+                doc = new peerWeb.Document(doc);
+                callback(doc);
+            }
+            else {
+                peer.searchInNetwork(potID, networkResult);
+            }
+        };
+        storage.getDocument(potID, storageResult);
+    };
 };

@@ -115,10 +115,13 @@ peerWeb.Connection = function(conManager, config){
      * @param {Object} desc peerDescription des Verbindungspartners
      * @param {BigInteger} numID nummerische Variante der ID des Verbindungspartners (optional)
      */
-    this.setDescription = function(desc, numID){
+    this.setDescription = function(desc, tNumID){
         description = desc;
-        if(numID === "undefined"){
+        if(tNumID === "undefined"){
             numID = BigInteger.parse(desc.ID, 16);
+        }
+        else{
+            numID = tNumID;
         }
     };
     /**

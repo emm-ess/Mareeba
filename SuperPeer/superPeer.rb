@@ -185,8 +185,10 @@ class SuperPeer
   end
   
   def handleValueStore(msg, peer)
+    puts "store Document: "+msg["body"]
     @documents[ msg["body"]["titleID"] ] = msg["body"]
     msg["body"] = ""
+    msg["head"]["to"] = msg["head"]["from"]
     msg["head"]["code"] = 200
     peer.send msg
   end
@@ -194,10 +196,13 @@ class SuperPeer
   def handleValueLookup(msg, peer)
     if(@documents.has_key? msg["body"]["id"])
       msg["body"] = @documents[ msg["body"]["id"] ]
+      msg["head"]["to"] = msg["head"]["from"]
       msg["head"]["code"] = 200
+      puts "send Document: "+msg["body"]
       peer.send msg
     else
       msg["body"] = ""
+      msg["head"]["to"] = msg["head"]["from"]
       msg["head"]["code"] = 404
       peer.send msg
       # routeMessage(msg, peer)

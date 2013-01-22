@@ -212,10 +212,13 @@ class SuperPeer
     closestDistance = (targetID - @numID).abs
     @connectedPeers.each do |peerID, tPeer|
       distance = (targetID - peerID).abs
-      if((distance.to_s <=> closestDistance.to_s) < 0)
-        clostestDistance = distance
+      if(distance < closestDistance)
+        closestDistance = distance
         closestPeer = tPeer
         puts "closest Peer has ID: "+tPeer.description["ID"]+" with distance: "+distance.to_s
+        if(closestDistance == 0)
+          break
+        end
       end
     end
     if(closestPeer != nil)

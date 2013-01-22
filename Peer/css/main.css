@@ -118,6 +118,12 @@ section {
 	z-index: 50;
 }
 
+h2 {
+	font-size: 16pt;
+	height: 30px;
+	padding-top: 10px;
+}
+
 div#overlay {
 	position: absolute;
 	top: 0px;

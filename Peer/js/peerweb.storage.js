@@ -173,7 +173,7 @@ peerWeb.Storage = function(config){
     /**
      * schreibt den gegebenen String als lokale PeerID in die Datenbank
      * @param {String} peerID lokale PeerID
-     * @return
+     * @return {bool} couldSave
      */
     this.setPeerID = function(id){
         return localStorage.setItem("peerID", id);

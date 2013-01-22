@@ -67,18 +67,24 @@
 			<div id="main">
 				<section id="home-screen">
 					<h2>Willkommen bei PeerWeb</h2>
-					<p>
-						Zur Zeit befindet sich PeerWeb noch in der Entwicklung und wurde vor kurzem als Bachelorarbeit an der HTW eingereicht. Daher stehen im Moment nur die Möglichkeiten neue Artikel anzulegen und wieder zu suchen zur Verfügung.
-						Im Hintergrund wird dafür jedoch bereits ein Peer-to-Peer-Netzwerk verwendet.
+					<p class="description">
+						Zur Zeit befindet sich PeerWeb noch in der Entwicklung und wurde vor kurzem als Bachelorarbeit an der HTW eingereicht. Daher stehen im Moment nur die 
+						Möglichkeiten neue Artikel anzulegen und wieder zu suchen zur Verfügung.
 					</p>
+					<p>Für eine optimale Benutzung von peerWeb empfehle ich die Verwendung der aktuellen Version von Chrome. Firefox wird auch unterstützt, hier muss jedoch
+						- wie Sie wahrscheinlich sehen - ein Flag in den Einstellungen gesetzt werden. Dazu wird in "about:config" der Wert für "layout.css.flexbox.enabled"
+						auf true gesetzt.</p>
 				</section>
 	
 				<section id="settings-screen">
 					<h2>Einstellungen</h2>
+					<p class="description">Noch können die Einstellungen des Knotens nicht verändert werden.</p>
 				</section>
 	
 				<section id="search-screen">
 					<h2>Suche</h2>
+					<p class="description">Es kann nach Artikeln gesucht werden, die nicht in Ihrem Index vermerkt sind. Hierfür wird jedoch der Titel benötigt, wie er in dem
+						Dokument angegeben ist.</p>
 					<form id="article-search">
 						<input type="text" name="search-article-title" id="search-article-title" /><br />
 						<button id="article-search-button">suchen &amp; anzeigen</button>
@@ -88,10 +94,24 @@
 	
 				<section id="a-z-screen">
 					<h2>A-Z</h2>
+					<p class="description">Hier finden sich die Einträge im Index Ihres Knotens. Die hier aufgeführten Artikel müssen dabei nicht in diesem gespeichert sein,
+						außerdem handelt es sich hierbei um keine vollständige Liste der in peerWeb verfügbaren Dokumente. Falls die Liste leer ist, legen Sie doch einfach
+						einen Artikel an.</p>
+					<div id="a-z-result">lade Indexeinträge</div>
+				</section>
+				
+				<section id="article-screen">
+					
+				</section>
+				
+				<section id="friends-screen">
+					<p class="description">peerWeb unterstützt der Zeit noch keine Freundschaftsverbindungen.</p>
 				</section>
 	
 				<section id="new-article-screen">
 					<h2>neuer Artikel</h2>
+					<p class="description">An dieser Stelle können neue Dokumente angelegt werden. Da zur Zeit noch keine Versionierung stattfindet, werden bei Angabe gleicher
+						Titel der ältere überschrieben.</p>
 					<form id="new-article">
 						<label for="new-article-title">Titel</label>
 						<input type="text" name="new-article-title" id="new-article-title" /><br />

@@ -94,6 +94,8 @@ peerWeb.Peer = function(){
                 docManager.registerOwnDocument(document);
             };
             config.articleSearch = docManager.searchArticle;
+            config.articleSearchByID = docManager.searchArticleByID;
+            config.getAllIndexEntries = storage.getAllIndexEntries;
             gui.setConfig(config);
         };
         

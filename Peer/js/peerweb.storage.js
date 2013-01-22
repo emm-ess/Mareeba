@@ -211,7 +211,7 @@ peerWeb.Storage = function(config){
      * @param {Function} callback die aufzurufende Funktion
      */
     this.getPeers = function(filter, callback){
-        var peerStore = db.transaction(["peers"], "readonly").objectStore("peers"),
+        var peerStore = db.transaction("peers").objectStore("peers"),
         peers = [];
         peerStore.openCursor().onsuccess = function(event) {
             var cursor = event.target.result;
@@ -230,7 +230,7 @@ peerWeb.Storage = function(config){
      * @param {Function} callback die aufzurufende Funktion
      */
     this.getAllPeers = function(callback){
-        var peerStore = db.transaction(["peers"], "readonly").objectStore("peers"),
+        var peerStore = db.transaction("peers").objectStore("peers"),
         peers;
         peerStore.openCursor().onsuccess = function(event) {
             var cursor = event.target.result;
@@ -288,6 +288,26 @@ peerWeb.Storage = function(config){
         request.onsuccess = function(event){
             var result = request.result;
             callback(result);
+        };
+    };
+    
+    /**
+     * lädt alle lokalen Indexeinträge und übergibt diese dem callback
+     * @param {Function} callback
+     */
+    this.getAllIndexEntries = function(callback){
+        var indexStore = db.transaction("index").objectStore("index"),
+        indecies = [];
+        indexStore.openCursor().onsuccess = function(event) {
+            var cursor = event.target.result;
+            if (cursor) {
+                indecies.push(cursor.value);
+                cursor.continue();
+            }
+            else {
+                //peerWeb.log("got all Peers in indexedDB", "log");
+                callback(indecies);
+            }
         };
     };
 };

@@ -1,19 +1,29 @@
 #!/usr/bin/env ruby
 require 'optparse'
+require 'logger'
 require 'em-websocket'
 require 'json'
 
 options = {}
 
 optparse = OptionParser.new do |opts|
-  opts.banner = "Usage: superPeer.rb --host HOSTIP --port PORT"
+  opts.banner = "Usage: superPeer.rb --ip IP --port PORT"
   
-  opts.on('-i', '--host HOSTIP', 'IP of host') do |host|
+  opts.on('-i', '--ip IP', 'IP of host') do |ip|
+    options[:ip] = ip
+  end
+  
+  opts.on('-n', '--host HOSTNAME', 'name of host') do |host|
     options[:host] = host
   end
 
   opts.on('-p', '--port PORT', Integer, 'port which will be used') do |port|
     options[:port] = port
+  end
+
+  options[:logfile] = 'SuperPeer.log'
+  opts.on('-l', '--logfile LOGFILE', String, 'name for logfile') do |logfile|
+    options[:logfile] = logfile
   end
 
   options[:debug] = false
@@ -22,7 +32,7 @@ optparse = OptionParser.new do |opts|
   end
 
   opts.on('-h', '--help', 'Display this screen') do
-    puts opts
+    logger.info opts
     exit
   end
 end
@@ -31,7 +41,7 @@ end
 # taken from http://stackoverflow.com/questions/1541294/how-do-you-specify-a-required-switch-not-argument-with-ruby-optionparser
 begin
   optparse.parse!
-  mandatory = [:host, :port]
+  mandatory = [:ip, :port]
   missing = mandatory.select{ |param| options[param].nil? }
   if not missing.empty?
     puts "Missing options: #{missing.join(', ')}"
@@ -42,6 +52,23 @@ rescue OptionParser::InvalidOption, OptionParser::MissingArgument
   puts $!.to_s
   puts optparse
   exit
+end
+
+if(!options[:host])
+  options[:host] = options[:ip]
+end
+
+
+#Logging
+logger = Logger.new(options[:logfile], 10, 1024000)
+if(options[:debug])
+  logger.sev_threshold = Logger::DEBUG
+else
+  logger.sev_threshold = Logger::INFO
+end
+logger.datetime_format = "%Y-%m-%d %H:%M:%S"
+logger.formatter = proc do |severity, datetime, progname, msg|
+  "#{datetime}: #{msg}\n"
 end
 
 
@@ -61,7 +88,7 @@ end
 
 class SuperPeer
   
-  def initialize(host, port)
+  def initialize(id, host, port)
     @id = SecureRandom.hex 20
     @numID = Integer(@id, 16)
     @peerDescr = {
@@ -99,7 +126,7 @@ class SuperPeer
       routeMessage(msg, peer)
     elsif msg["head"].has_key? "code"
       #response
-      puts "response recieved"
+      logger.info "response recieved"
     else 
       #request
       handleRequest(msg, peer)
@@ -113,34 +140,34 @@ class SuperPeer
     when "public"
       handlePublicRequest(msg, peer)
     else
-      puts "recieved request for unknown service: "+msg["head"]["service"]
+      logger.info "recieved request for unknown service: "+msg["head"]["service"]
     end
   end
   
   def handleNetworkRequest(msg, peer)
-    puts "handle Network Request"
+    logger.info "handle Network Request"
     case msg["head"]["action"]
     when "peerDescription"
       handlePeerDescription(msg, peer)
     when "nodeLookup"
       handleNodeLookup(msg, peer)
     else
-      puts "recieved request for unknown action in network service: "+msg["head"]["action"]
+      logger.info "recieved request for unknown action in network service: "+msg["head"]["action"]
     end
   end
   
   def handlePeerDescription(msg, peer)
-    puts "peerDescription"
+    logger.info "peerDescription"
     @newlyConnectedPeers.delete peer
     peer.description = msg["body"]["peerDescription"]
     @connectedPeers[Integer(msg["head"]["from"], 16)] = peer
     msg["head"]["code"] = 200
     peer.send msg
-    puts "response to peerDescription send"
+    logger.info "response to peerDescription send"
   end
   
   def handleNodeLookup(msg, peer)
-    puts "nodeLookup"
+    logger.info "nodeLookup"
     targetID = Integer(msg["body"]["id"], 16)
     tempResult = Array.new
     @connectedPeers.each do |peerID, tPeer|
@@ -160,8 +187,8 @@ class SuperPeer
       result.push tPeer[:peerDescription]
     end
     msg["body"]["resultList"] = result
-    puts "result of nodeLookup"
-    puts result
+    logger.debug "result of nodeLookup"
+    logger.debug result
     if result[0]["ID"].eql? @peerDescr["ID"]
       msg["head"]["code"] = 200
       peer.send msg
@@ -173,19 +200,19 @@ class SuperPeer
   
   
   def handlePublicRequest(msg, peer)
-    puts "handle Public Request"
+    logger.info "handle Public Request"
     case msg["head"]["action"]
     when "valueStore"
       handleValueStore(msg, peer)
     when "valueLookup"
       handleValueLookup(msg, peer)
     else
-      puts "recieved request for unknown action in public service: "+msg["head"]["action"]
+      logger.info "recieved request for unknown action in public service: "+msg["head"]["action"]
     end
   end
   
   def handleValueStore(msg, peer)
-    puts "store Document: "+msg["body"]
+    logger.info "store Document: "+msg["body"]
     @documents[ msg["body"]["titleID"] ] = msg["body"]
     msg["body"] = ""
     msg["head"]["to"] = msg["head"]["from"]
@@ -198,7 +225,7 @@ class SuperPeer
       msg["body"] = @documents[ msg["body"]["id"] ]
       msg["head"]["to"] = msg["head"]["from"]
       msg["head"]["code"] = 200
-      puts "send Document: "+msg["body"]
+      logger.info "send Document: "+msg["body"]
       peer.send msg
     else
       msg["body"] = ""
@@ -211,7 +238,7 @@ class SuperPeer
   
 
   def routeMessage(msg, peer)
-    puts "route Message"
+    logger.info "route Message"
     targetID = Integer(msg["head"]["to"], 16)
     closestPeer = nil
     closestDistance = (targetID - @numID).abs
@@ -220,17 +247,17 @@ class SuperPeer
       if(distance < closestDistance)
         closestDistance = distance
         closestPeer = tPeer
-        puts "closest Peer has ID: "+tPeer.description["ID"]+" with distance: "+distance.to_s
+        logger.info "closest Peer has ID: "+tPeer.description["ID"]+" with distance: "+distance.to_s
         if(closestDistance == 0)
           break
         end
       end
     end
     if(closestPeer != nil)
-      puts "forward message to peer "
+      logger.info "forward message to peer "
       closestPeer.send msg 
     else
-      puts "I'm the closest one"
+      logger.info "I'm the closest one"
       handleRequest(msg, peer)
     end
   end
@@ -238,46 +265,40 @@ end
 
 #start server
 EventMachine.run do
-  @superPeer = SuperPeer.new(options[:host], options[:port])
+  @superPeer = SuperPeer.new(options[:ip], options[:host], options[:port])
   
-  EventMachine::WebSocket.start(:host => options[:host], :port => options[:port], :debug => options[:debug]) do |ws|
+  EventMachine::WebSocket.start(:host => options[:ip], :port => options[:port], :debug => options[:debug]) do |ws|
 
     peer = Peer.new ws
     
     ws.onopen {
       msg = ({:head => {:service => "network", :action => "peerDescription", :from => @superPeer.id}, :body => {:peerDescription => @superPeer.description}}).to_json
       # msg = JSON.generate msg
-      puts "new peer connected, send peerDescription "
+      logger.info "new peer connected"
       ws.send msg
       @superPeer.newConnection peer
-      puts ""
-      puts ""
     }
 
     ws.onmessage { |msg|
-      puts "msg recieved: "+msg
+      logger.info "msg recieved: "+msg
       msg = JSON.parse! msg
       @superPeer.handleMessage(msg, peer)
-      puts ""
-      puts ""
     }
 
     ws.onclose {
-      puts "connection closed"
+      logger.info "connection closed"
       @superPeer.connectionClosed peer
       ws = nil
       peer = nil
-      puts ""
-      puts ""
     }
     
     ws.onerror { |error|
-      puts error
+      logger.error error
     }
 
   end
 
-  puts "SuperPeer started with ID: "+@superPeer.id
-  puts "on Host: "+options[:host]
-  puts "on Port: "+options[:port].to_s
+  logger.info "SuperPeer started with ID: "+@superPeer.id+"\r\n"+
+   "on Host: "+options[:host]+"\r\n"+
+   "on Port: "+options[:port].to_s
 end

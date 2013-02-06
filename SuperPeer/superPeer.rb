@@ -3,6 +3,7 @@ require 'optparse'
 require 'logger'
 require 'em-websocket'
 require 'json'
+require_relative 'documentManager'
 
 options = {}
 
@@ -21,7 +22,7 @@ optparse = OptionParser.new do |opts|
     options[:port] = port
   end
 
-  options[:logfile] = 'SuperPeer.log'
+  options[:logfile] = 'logs/SuperPeer.log'
   opts.on('-l', '--logfile LOGFILE', String, 'name for logfile') do |logfile|
     options[:logfile] = logfile
   end
@@ -32,7 +33,7 @@ optparse = OptionParser.new do |opts|
   end
 
   opts.on('-h', '--help', 'Display this screen') do
-    logger.info opts
+    puts opts
     exit
   end
 end
@@ -60,14 +61,17 @@ end
 
 
 #Logging
-logger = Logger.new(options[:logfile], 10, 1024000)
-if(options[:debug])
-  logger.sev_threshold = Logger::DEBUG
-else
-  logger.sev_threshold = Logger::INFO
+if !File.directory? "logs"
+  Dir.mkdir "logs"
 end
-logger.datetime_format = "%Y-%m-%d %H:%M:%S"
-logger.formatter = proc do |severity, datetime, progname, msg|
+@logger = Logger.new(options[:logfile], 10, 1024000)
+if(options[:debug])
+  @logger.sev_threshold = Logger::DEBUG
+else
+  @logger.sev_threshold = Logger::INFO
+end
+@logger.datetime_format = "%Y-%m-%d %H:%M:%S"
+@logger.formatter = proc do |severity, datetime, progname, msg|
   "#{datetime}: #{msg}\n"
 end
 
@@ -86,9 +90,11 @@ class Peer
   end
 end
 
+
 class SuperPeer
   
-  def initialize(id, host, port)
+  def initialize(id, host, port, logger)
+    @logger = logger
     @id = SecureRandom.hex 20
     @numID = Integer(@id, 16)
     @peerDescr = {
@@ -97,7 +103,7 @@ class SuperPeer
     }
     @connectedPeers = {}
     @newlyConnectedPeers = Array.new
-    @documents = {}
+    @documentManager = DocumentManager.new @logger
   end
   
   def description
@@ -126,7 +132,7 @@ class SuperPeer
       routeMessage(msg, peer)
     elsif msg["head"].has_key? "code"
       #response
-      logger.info "response recieved"
+      @logger.info "response recieved"
     else 
       #request
       handleRequest(msg, peer)
@@ -140,34 +146,34 @@ class SuperPeer
     when "public"
       handlePublicRequest(msg, peer)
     else
-      logger.info "recieved request for unknown service: "+msg["head"]["service"]
+      @logger.info "recieved request for unknown service: "+msg["head"]["service"]
     end
   end
   
   def handleNetworkRequest(msg, peer)
-    logger.info "handle Network Request"
+    @logger.info "handle Network Request"
     case msg["head"]["action"]
     when "peerDescription"
       handlePeerDescription(msg, peer)
     when "nodeLookup"
       handleNodeLookup(msg, peer)
     else
-      logger.info "recieved request for unknown action in network service: "+msg["head"]["action"]
+      @logger.info "recieved request for unknown action in network service: "+msg["head"]["action"]
     end
   end
   
   def handlePeerDescription(msg, peer)
-    logger.info "peerDescription"
+    @logger.info "peerDescription"
     @newlyConnectedPeers.delete peer
     peer.description = msg["body"]["peerDescription"]
     @connectedPeers[Integer(msg["head"]["from"], 16)] = peer
     msg["head"]["code"] = 200
     peer.send msg
-    logger.info "response to peerDescription send"
+    @logger.info "response to peerDescription send"
   end
   
   def handleNodeLookup(msg, peer)
-    logger.info "nodeLookup"
+    @logger.info "nodeLookup"
     targetID = Integer(msg["body"]["id"], 16)
     tempResult = Array.new
     @connectedPeers.each do |peerID, tPeer|
@@ -187,8 +193,8 @@ class SuperPeer
       result.push tPeer[:peerDescription]
     end
     msg["body"]["resultList"] = result
-    logger.debug "result of nodeLookup"
-    logger.debug result
+    @logger.debug "result of nodeLookup"
+    @logger.debug result
     if result[0]["ID"].eql? @peerDescr["ID"]
       msg["head"]["code"] = 200
       peer.send msg
@@ -200,20 +206,20 @@ class SuperPeer
   
   
   def handlePublicRequest(msg, peer)
-    logger.info "handle Public Request"
+    @logger.info "handle Public Request"
     case msg["head"]["action"]
     when "valueStore"
       handleValueStore(msg, peer)
     when "valueLookup"
       handleValueLookup(msg, peer)
     else
-      logger.info "recieved request for unknown action in public service: "+msg["head"]["action"]
+      @logger.info "recieved request for unknown action in public service: "+msg["head"]["action"]
     end
   end
   
   def handleValueStore(msg, peer)
-    logger.info "store Document: "+msg["body"]
-    @documents[ msg["body"]["titleID"] ] = msg["body"]
+    @logger.info "store Document: "+msg["body"].to_s
+    @documentManager.saveFile(msg["body"]["titleID"], msg["body"])
     msg["body"] = ""
     msg["head"]["to"] = msg["head"]["from"]
     msg["head"]["code"] = 200
@@ -221,11 +227,11 @@ class SuperPeer
   end
   
   def handleValueLookup(msg, peer)
-    if(@documents.has_key? msg["body"]["id"])
-      msg["body"] = @documents[ msg["body"]["id"] ]
+    if(@documentManager.hasFile? msg["body"]["id"])
+      msg["body"] = @documentManager.getFile msg["body"]["id"] 
       msg["head"]["to"] = msg["head"]["from"]
       msg["head"]["code"] = 200
-      logger.info "send Document: "+msg["body"]
+      @logger.info "send Document: "+msg["body"]
       peer.send msg
     else
       msg["body"] = ""
@@ -238,7 +244,7 @@ class SuperPeer
   
 
   def routeMessage(msg, peer)
-    logger.info "route Message"
+    @logger.info "route Message"
     targetID = Integer(msg["head"]["to"], 16)
     closestPeer = nil
     closestDistance = (targetID - @numID).abs
@@ -247,17 +253,17 @@ class SuperPeer
       if(distance < closestDistance)
         closestDistance = distance
         closestPeer = tPeer
-        logger.info "closest Peer has ID: "+tPeer.description["ID"]+" with distance: "+distance.to_s
+        @logger.info "closest Peer has ID: "+tPeer.description["ID"]+" with distance: "+distance.to_s
         if(closestDistance == 0)
           break
         end
       end
     end
     if(closestPeer != nil)
-      logger.info "forward message to peer "
+      @logger.info "forward message to peer "
       closestPeer.send msg 
     else
-      logger.info "I'm the closest one"
+      @logger.info "I'm the closest one"
       handleRequest(msg, peer)
     end
   end
@@ -265,7 +271,7 @@ end
 
 #start server
 EventMachine.run do
-  @superPeer = SuperPeer.new(options[:ip], options[:host], options[:port])
+  @superPeer = SuperPeer.new(options[:ip], options[:host], options[:port], @logger)
   
   EventMachine::WebSocket.start(:host => options[:ip], :port => options[:port], :debug => options[:debug]) do |ws|
 
@@ -274,31 +280,31 @@ EventMachine.run do
     ws.onopen {
       msg = ({:head => {:service => "network", :action => "peerDescription", :from => @superPeer.id}, :body => {:peerDescription => @superPeer.description}}).to_json
       # msg = JSON.generate msg
-      logger.info "new peer connected"
+      @logger.info "new peer connected"
       ws.send msg
       @superPeer.newConnection peer
     }
 
     ws.onmessage { |msg|
-      logger.info "msg recieved: "+msg
+      @logger.info "msg recieved: "+msg
       msg = JSON.parse! msg
       @superPeer.handleMessage(msg, peer)
     }
 
     ws.onclose {
-      logger.info "connection closed"
+      @logger.info "connection closed"
       @superPeer.connectionClosed peer
       ws = nil
       peer = nil
     }
     
     ws.onerror { |error|
-      logger.error error
+      @logger.error error
     }
 
   end
 
-  logger.info "SuperPeer started with ID: "+@superPeer.id+"\r\n"+
+  @logger.info "SuperPeer started with ID: "+@superPeer.id+"\r\n"+
    "on Host: "+options[:host]+"\r\n"+
    "on Port: "+options[:port].to_s
 end

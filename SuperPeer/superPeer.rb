@@ -4,6 +4,8 @@ require 'logger'
 require 'em-websocket'
 require 'json'
 require_relative 'documentManager'
+require_relative 'connection'
+require_relative 'connectionManager'
 
 options = {}
 
@@ -72,234 +74,81 @@ else
 end
 @logger.datetime_format = "%Y-%m-%d %H:%M:%S"
 @logger.formatter = proc do |severity, datetime, progname, msg|
-  "#{datetime}: #{msg}\n"
-end
-
-
-class Peer
-  attr_accessor :description, :connection
-  def initialize con
-    @connection = con
+  where = ""
+  if(@logger.level == Logger::DEBUG)
+    #more or less taken from https://code.google.com/p/logstash/source/browse/trunk/lib/logstash/logging.rb?spec=svn469&r=469
+    path, line, method = caller[4].split(/(?::in `|:|')/)
+    # Trim RUBYLIB path from 'file' if we can
+    #whence = $:.select { |p| path.start_with?(p) }[0]
+    whence = $:.detect { |p| path.start_with?(p) }
+    if !whence
+      # We get here if the path is not in $:
+      file = path
+    else
+      file = path[whence.length + 1..-1]
+    end
+    where = " #{file} #{line} #{method}"
   end
-  
-  def send msg
-    if not msg.is_a? String
-      msg = msg.to_json
-    end 
-    @connection.send msg
-  end
+  "#{datetime}#{where} #{severity}: #{msg}\n"
 end
 
 
 class SuperPeer
-  
   def initialize(id, host, port, logger)
     @logger = logger
     @id = SecureRandom.hex 20
     @numID = Integer(@id, 16)
-    @peerDescr = {
+    @peerDesc = {
       "ID" => @id,
       "ws" => "ws://"+host+":"+port.to_s
     }
-    @connectedPeers = {}
-    @newlyConnectedPeers = Array.new
-    @documentManager = DocumentManager.new @logger
+    @docManager = DocumentManager.new @logger
+    @conManager = ConnectionManager.new(@peerDesc, @docManager, @logger)
   end
   
   def description
-    @peerDescr
+    @peerDesc
   end
   
   def id
     @id
   end
   
-  def newConnection peer
-    @newlyConnectedPeers.push peer
-  end
-  
-  def connectionClosed peer
-    key = @connectedPeers.key peer
-    if key != nil
-      @connectedPeers.delete key
-    else
-      @newlyConnectedPeers.delete peer
-    end
-  end
-  
-  def handleMessage(msg, peer)
-    if msg["head"].has_key? "to" and not (msg["head"]["to"].eql? @id or (msg["head"]["action"].eql? "nodeLookup" and not msg["head"].has_key? "code"))
-      routeMessage(msg, peer)
-    elsif msg["head"].has_key? "code"
-      #response
-      @logger.info "response recieved"
-    else 
-      #request
-      handleRequest(msg, peer)
-    end
-  end
-  
-  def handleRequest(msg, peer)
-    case msg["head"]["service"] 
-    when "network"
-      handleNetworkRequest(msg, peer)
-    when "public"
-      handlePublicRequest(msg, peer)
-    else
-      @logger.info "recieved request for unknown service: "+msg["head"]["service"]
-    end
-  end
-  
-  def handleNetworkRequest(msg, peer)
-    @logger.info "handle Network Request"
-    case msg["head"]["action"]
-    when "peerDescription"
-      handlePeerDescription(msg, peer)
-    when "nodeLookup"
-      handleNodeLookup(msg, peer)
-    else
-      @logger.info "recieved request for unknown action in network service: "+msg["head"]["action"]
-    end
-  end
-  
-  def handlePeerDescription(msg, peer)
-    @logger.info "peerDescription"
-    @newlyConnectedPeers.delete peer
-    peer.description = msg["body"]["peerDescription"]
-    @connectedPeers[Integer(msg["head"]["from"], 16)] = peer
-    msg["head"]["code"] = 200
-    peer.send msg
-    @logger.info "response to peerDescription send"
-  end
-  
-  def handleNodeLookup(msg, peer)
-    @logger.info "nodeLookup"
-    targetID = Integer(msg["body"]["id"], 16)
-    tempResult = Array.new
-    @connectedPeers.each do |peerID, tPeer|
-      tempResult.push({:distance => (targetID - peerID).abs, :peerDescription => tPeer.description})
-    end
-    if msg["body"].has_key? "resultList"
-      msg["body"]["resultList"].each do |peerDesc|
-        peerID = Integer(peerDesc["ID"], 16)
-        tempResult.push({:distance => (targetID - peerID).abs, :peerDescription => peerDesc})
-      end
-    end
-    tempResult = tempResult.uniq { |tPeer| tPeer[:peerDescription]["ID"] }
-    tempResult = tempResult.sort_by { |tPeer| tPeer[:distance] }
-    tempResult = tempResult.slice(0,6)
-    result = Array.new
-    tempResult.each do |tPeer|
-      result.push tPeer[:peerDescription]
-    end
-    msg["body"]["resultList"] = result
-    @logger.debug "result of nodeLookup"
-    @logger.debug result
-    if result[0]["ID"].eql? @peerDescr["ID"]
-      msg["head"]["code"] = 200
-      peer.send msg
-    else
-      routeMessage(msg, nil)
-    end
-  end
-  
-  
-  
-  def handlePublicRequest(msg, peer)
-    @logger.info "handle Public Request"
-    case msg["head"]["action"]
-    when "valueStore"
-      handleValueStore(msg, peer)
-    when "valueLookup"
-      handleValueLookup(msg, peer)
-    else
-      @logger.info "recieved request for unknown action in public service: "+msg["head"]["action"]
-    end
-  end
-  
-  def handleValueStore(msg, peer)
-    @logger.info "store Document: "+msg["body"].to_s
-    @documentManager.saveFile(msg["body"]["titleID"], msg["body"])
-    msg["body"] = ""
-    msg["head"]["to"] = msg["head"]["from"]
-    msg["head"]["code"] = 200
-    peer.send msg
-  end
-  
-  def handleValueLookup(msg, peer)
-    if(@documentManager.hasFile? msg["body"]["id"])
-      msg["body"] = @documentManager.getFile msg["body"]["id"] 
-      msg["head"]["to"] = msg["head"]["from"]
-      msg["head"]["code"] = 200
-      @logger.info "send Document: "+msg["body"]
-      peer.send msg
-    else
-      msg["body"] = ""
-      msg["head"]["to"] = msg["head"]["from"]
-      msg["head"]["code"] = 404
-      peer.send msg
-      # routeMessage(msg, peer)
-    end
-  end
-  
-
-  def routeMessage(msg, peer)
-    @logger.info "route Message"
-    targetID = Integer(msg["head"]["to"], 16)
-    closestPeer = nil
-    closestDistance = (targetID - @numID).abs
-    @connectedPeers.each do |peerID, tPeer|
-      distance = (targetID - peerID).abs
-      if(distance < closestDistance)
-        closestDistance = distance
-        closestPeer = tPeer
-        @logger.info "closest Peer has ID: "+tPeer.description["ID"]+" with distance: "+distance.to_s
-        if(closestDistance == 0)
-          break
-        end
-      end
-    end
-    if(closestPeer != nil)
-      @logger.info "forward message to peer "
-      closestPeer.send msg 
-    else
-      @logger.info "I'm the closest one"
-      handleRequest(msg, peer)
-    end
+  def getConManager
+    @conManager
   end
 end
 
 #start server
 EventMachine.run do
   @superPeer = SuperPeer.new(options[:ip], options[:host], options[:port], @logger)
+  @conManager = @superPeer.getConManager
   
   EventMachine::WebSocket.start(:host => options[:ip], :port => options[:port], :debug => options[:debug]) do |ws|
 
-    peer = Peer.new ws
+    connection = Connection.new ws, @logger
     
     ws.onopen {
       msg = ({:head => {:service => "network", :action => "peerDescription", :from => @superPeer.id}, :body => {:peerDescription => @superPeer.description}}).to_json
       # msg = JSON.generate msg
-      @logger.info "new peer connected"
       ws.send msg
-      @superPeer.newConnection peer
+      @conManager.newConnection connection
     }
 
     ws.onmessage { |msg|
       @logger.info "msg recieved: "+msg
       msg = JSON.parse! msg
-      @superPeer.handleMessage(msg, peer)
+      @conManager.handleMessage(msg, connection)
     }
 
     ws.onclose {
-      @logger.info "connection closed"
-      @superPeer.connectionClosed peer
+      @conManager.connectionClosed connection
       ws = nil
-      peer = nil
+      connection = nil
     }
     
     ws.onerror { |error|
-      @logger.error error
+      @logger.error "Error in WebSocketConnection: #{error} \n"+error.backtrace.join("\n")
     }
 
   end

@@ -30,7 +30,7 @@ class DocumentManager
         content = file.read
         content = JSON.parse! content
       rescue => error
-        @logger.error "Error while reading File: "+error.to_s
+        @logger.error "Error while reading File: "+error.backtrace
       ensure
         file.close
       end
@@ -46,7 +46,7 @@ class DocumentManager
       file.write json
       @documents.push id
     rescue => error
-      @logger.error "Error while writing to File: "+error.to_s
+      @logger.error "Error while writing to File: "+error.backtrace
     ensure
       file.close
     end

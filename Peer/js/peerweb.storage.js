@@ -119,13 +119,13 @@ peerWeb.Storage = function(config){
                         tempObject = {
                             "wsAddress": defaultHelper.superPeers[i]
                         };
-                        peerStore.add(tempObject);
+                        peerStore.put(tempObject);
                     }
                     for (i = 0; i < defaultHelper.iceServers.length; i++) {
                         tempObject = {
                             "url": defaultHelper.iceServers[i]
                         };
-                        turnStunStore.add(tempObject);
+                        turnStunStore.put(tempObject);
                     }
                 }
             };
@@ -273,8 +273,8 @@ peerWeb.Storage = function(config){
             peerWeb.log("Document saved and index updated.", "info");
         };
         trans.onerror = db.onerror;
-        pubDocStore.add(doc);
-        indexStore.add(indexEntry);
+        pubDocStore.put(doc);
+        indexStore.put(indexEntry);
     };
     
     /**

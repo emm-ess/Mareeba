@@ -14,7 +14,10 @@ peerWeb.GUI= function(){
      * verhindert das lden der Seite, bei Klick auf einen Link, obwohl die URL im Browser verändert wird.
      */
     aClickFunction = function(event){
-        var state = this.href.slice(baseURL.length);
+        var state = {
+            title: this.title,
+            url: this.href.slice(baseURL.length)
+        };
         event.preventDefault();
         history.pushState(state, this.title, this.href);
         onLocationChange(state);
@@ -40,15 +43,16 @@ peerWeb.GUI= function(){
      * passt die GUI entsprechend der URL im Browser an
      * @param {String} newLoc URL ab dem Wurzelverzeichnis von peerWeb
      */
-    onLocationChange = function(newLoc){
-        var exactLoc;
-        if(newLoc === null || newLoc === undefined){
+    onLocationChange = function(state){
+        var exactLoc, newLoc;
+        if(state === null || state === undefined){
             $('#content nav li').removeClass('active');
             $('li a[href=home]').parent().addClass('active');
             $('#main section').hide();
             $('#home-screen').show();
             return;
         }
+        newLoc = state.url;
         peerWeb.log("new Browser location: "+newLoc, "log");
         exactLoc = newLoc.split("-");
         $('#main section').hide();
@@ -72,6 +76,7 @@ peerWeb.GUI= function(){
                 indexScreen();
             }
         }
+        document.title = state.title+" | peerWeb";
     };
     
     /**

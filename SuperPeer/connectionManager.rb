@@ -1,12 +1,13 @@
 require 'logger'
+require_relative 'publicMessageHandler'
 require_relative 'connection'
 
 class ConnectionManager
+  attr_writer :publicMessageHandler
   
-  def initialize(peerDesc, docMan, logger)
+  def initialize(peerDesc, logger)
     @logger = logger
     @peerDesc = peerDesc
-    @docManager = docMan
     @numID = Integer(@peerDesc["ID"], 16)
     @connectedPeers = {}
     @newlyConnectedPeers = Array.new
@@ -30,6 +31,17 @@ class ConnectionManager
   end
   
   def handleMessage(msg, peer)
+    case msg["head"]["service"]
+    when "network"
+      handleNetworkMessage(msg, peer)
+    when "public"
+      @publicMessageHandler.handle(msg, peer)
+    else
+      @logger.info "recieved message for unknown service: "+msg["head"]["service"]
+    end
+  end
+  
+  def handleNetworkMessage(msg, peer)
     if msg["head"].has_key? "to" and not (msg["head"]["to"].eql? @id or (msg["head"]["action"].eql? "nodeLookup" and not msg["head"].has_key? "code"))
       routeMessage(msg, peer)
     elsif msg["head"].has_key? "code"
@@ -37,18 +49,7 @@ class ConnectionManager
       @logger.info "response recieved"
     else 
       #request
-      handleRequest(msg, peer)
-    end
-  end
-  
-  def handleRequest(msg, peer)
-    case msg["head"]["service"] 
-    when "network"
       handleNetworkRequest(msg, peer)
-    when "public"
-      handlePublicRequest(msg, peer)
-    else
-      @logger.info "recieved request for unknown service: "+msg["head"]["service"]
     end
   end
   
@@ -102,46 +103,6 @@ class ConnectionManager
       routeMessage(msg, nil)
     end
   end
-  
-  
-  
-  def handlePublicRequest(msg, peer)
-    @logger.info "handle Public Request"
-    case msg["head"]["action"]
-    when "valueStore"
-      handleValueStore(msg, peer)
-    when "valueLookup"
-      handleValueLookup(msg, peer)
-    else
-      @logger.info "recieved request for unknown action in public service: "+msg["head"]["action"]
-    end
-  end
-  
-  def handleValueStore(msg, peer)
-    @logger.info "store Document: "+msg["body"].to_s
-    @docManager.saveFile(msg["body"]["titleID"], msg["body"])
-    msg["body"] = ""
-    msg["head"]["to"] = msg["head"]["from"]
-    msg["head"]["code"] = 200
-    peer.send msg
-  end
-  
-  def handleValueLookup(msg, peer)
-    if(@docManager.hasFile? msg["body"]["id"])
-      msg["body"] = @docManager.getFile msg["body"]["id"] 
-      msg["head"]["to"] = msg["head"]["from"]
-      msg["head"]["code"] = 200
-      @logger.info "send Document: "+msg["body"]
-      peer.send msg
-    else
-      msg["body"] = ""
-      msg["head"]["to"] = msg["head"]["from"]
-      msg["head"]["code"] = 404
-      peer.send msg
-      # routeMessage(msg, peer)
-    end
-  end
-  
 
   def routeMessage(msg, peer)
     @logger.info "route Message"

@@ -9,7 +9,7 @@ class DocumentManager
       tempDocs = Dir.glob "documents/*.pwd"
       tempDocs.each do |docPath|
         if docPath.end_with? ".pwd"
-          @documents.push docPath[10,160]
+          @documents.push docPath[10,40]
         end
       end
     else
@@ -18,6 +18,7 @@ class DocumentManager
   end
   
   def hasFile? id
+    @logger.debug @documents.to_s
     return @documents.include? id
   end
   

@@ -3,9 +3,10 @@ require 'optparse'
 require 'logger'
 require 'em-websocket'
 require 'json'
-require_relative 'documentManager'
 require_relative 'connection'
 require_relative 'connectionManager'
+require_relative 'publicMessageHandler'
+require_relative 'documentManager'
 
 options = {}
 
@@ -103,7 +104,9 @@ class SuperPeer
       "ws" => "ws://"+host+":"+port.to_s
     }
     @docManager = DocumentManager.new @logger
-    @conManager = ConnectionManager.new(@peerDesc, @docManager, @logger)
+    @conManager = ConnectionManager.new(@peerDesc, @logger)
+    pubMsgHandler = PublicMessageHandler.new(@conManager, @docManager, @logger)
+    @conManager.publicMessageHandler = pubMsgHandler
   end
   
   def description
@@ -148,7 +151,11 @@ EventMachine.run do
     }
     
     ws.onerror { |error|
-      @logger.error "Error in WebSocketConnection: #{error} \n"+error.backtrace.join("\n")
+      backtrace = ""
+      if error.backtrace != nil
+        backtrace = error.backtrace.join("\n")
+      end
+      @logger.error "Error in WebSocketConnection: #{error} \n"+backtrace
     }
 
   end

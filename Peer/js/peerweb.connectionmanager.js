@@ -489,7 +489,9 @@ peerWeb.ConnectionManager = function(peer, storage){
                 "service": "public",
                 "action": "valueLookup"
             },
-            body: id
+            body: {
+                "id" : id
+            }
         };
         peerWeb.log("Search Document with ID: "+id+" in Network.", "log");
         sendMessage(msg, valueLookupCallback);

@@ -22,7 +22,7 @@ peerWeb.Storage = function(config){
      * setzt das Flag, ob die erforderlichen Speicherorte und somit das Speichermodul von peerWeb genutzt werden kann.
      * ruft zudem den in dem Konfigurationsobjekt gespeicherten Callback für onReady auf.
      */
-(function(){
+    (function(){
         var openIndexedDB, checkRequiredContent, ready;
         indexedDB.onerror = function(e){
             peerWeb.log("IndexedDB Error: "+e.target.errorCode, "error");
@@ -36,26 +36,9 @@ peerWeb.Storage = function(config){
         
         openIndexedDB = function() {
             peerWeb.log("Trying to open IndexedDB.", "info");
-            var version = 1, 
-            request = indexedDB.open("peerWeb", version);
-    
-            request.onsuccess = function(e) {
-                db = e.target.result;
-                peerWeb.log("IndexedDB opened.", "info");
-                checkRequiredContent();
-            };
-    
-            request.onerror = function(e){
-                peerWeb.log("Opening IndexedDB Error: "+e.target.errorCode, "error");
-            };
-            
-            // This event is only implemented in recent browsers
-            request.onupgradeneeded = function(e) {
-                // Update object stores and indices .... 
-                db = e.target.result;
-                peerWeb.log("IndexedDB opened. - Upgrade needed.", "info");
-                
-                if(!db.objectStoreNames.contains("employee")){
+            var version = 2, 
+            doUpgrade = function(versionChangeTransaction){
+                if(!db.objectStoreNames.contains("peers")){
                     db.createObjectStore("peers", { keyPath: "id", autoIncrement: true });
                 }
                 if(!db.objectStoreNames.contains("iceServers")){
@@ -67,6 +50,38 @@ peerWeb.Storage = function(config){
                 if(!db.objectStoreNames.contains("pubDocuments")){
                     db.createObjectStore("pubDocuments", { keyPath: "titleID" });
                 }
+            },
+            request = indexedDB.open("peerWeb", version);
+    
+            request.onsuccess = function(e) {
+                db = e.target.result;
+                peerWeb.log("IndexedDB opened.", "info");
+                if(db.version !== version){
+                    // This version of chrome doesn't support the new API.
+                    var versionChangeRequest = db.setVersion(version.toString());
+                    versionChangeRequest.onsuccess = function (e) {
+                        var versionChangeTransaction = versionChangeRequest.result;
+                        doUpgrade(versionChangeTransaction);
+                        versionChangeTransaction.oncomplete = function(event) {
+                            checkRequiredContent();
+                        };
+                    };
+                }
+                else{
+                    checkRequiredContent();
+                }
+            };
+    
+            request.onerror = function(e){
+                peerWeb.log("Opening IndexedDB Error: "+e.target.errorCode, "error");
+            };
+            
+            // This event is only implemented in recent browsers
+            request.onupgradeneeded = function(e) {
+                // Update object stores and indices .... 
+                db = e.target.result;
+                peerWeb.log("IndexedDB opened. - Upgrade needed.", "info");
+                doUpgrade(e.target.transaction);
                 //checkRequiredContent();
             };
         };

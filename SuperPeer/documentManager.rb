@@ -2,18 +2,20 @@ require 'json'
 require 'logger'
 
 class DocumentManager 
-  def initialize logger
+  def initialize directory, logger
     @documents = Array.new
+    @directory = directory
     @logger = logger
-    if File.directory? "documents"
-      tempDocs = Dir.glob "documents/*.pwd"
+    if File.directory? @directory+"documents"
+      prefLength = @directory.length + 10
+      tempDocs = Dir.glob @directory+"documents/*.pwd"
       tempDocs.each do |docPath|
         if docPath.end_with? ".pwd"
-          @documents.push docPath[10,40]
+          @documents.push docPath[prefLength,40]
         end
       end
     else
-      Dir.mkdir "documents"
+      Dir.mkdir @directory+"documents"
     end
   end
   
@@ -27,7 +29,7 @@ class DocumentManager
     if self.hasFile? id
       file = nil
       begin
-        file = File.new "documents/"+id+".pwd"
+        file = File.new @directory+"documents/"+id+".pwd"
         content = file.read
         content = JSON.parse! content
       rescue => error
@@ -42,7 +44,7 @@ class DocumentManager
   def saveFile id, content
     file = nil
     begin
-      file = File.new("documents/"+id+".pwd", "w")
+      file = File.new(@directory+"documents/"+id+".pwd", "w")
       json = JSON.generate content
       file.write json
       @documents.push id

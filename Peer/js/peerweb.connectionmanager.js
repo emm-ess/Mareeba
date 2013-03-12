@@ -307,7 +307,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             msg.head.from = that.peerDescription.id;
             con.send(msg);
         };
-        storage.getDocument(msg.body, storageResult);
+        storage.getDocument(msg.body.id, storageResult);
     };
     
     /**

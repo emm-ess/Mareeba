@@ -25,13 +25,13 @@ optparse = OptionParser.new do |opts|
     options[:port] = port
   end
 
-  options[:logfile] = 'logs/SuperPeer.log'
-  opts.on('-l', '--logfile LOGFILE', String, 'name for logfile') do |logfile|
-    options[:logfile] = logfile
+  options[:directory] = './'
+  opts.on('-d', '--directory /PATH/TO/PEERWEB', String, 'path to peerweb') do |directory|
+    options[:directory] = directory
   end
 
   options[:debug] = false
-  opts.on('-d', '--debug', 'show all messages of em-websockets') do
+  opts.on('-D', '--debug', 'show all messages of em-websockets') do
     options[:debug] = true
   end
 
@@ -64,10 +64,10 @@ end
 
 
 #Logging
-if !File.directory? "logs"
-  Dir.mkdir "logs"
+if !File.directory? options[:directory]+"logs"
+  Dir.mkdir options[:directory]+"logs"
 end
-@logger = Logger.new(options[:logfile], 10, 1024000)
+@logger = Logger.new(options[:directory]+"logs/SuperPeer.log", 10, 1024000)
 if(options[:debug])
   @logger.sev_threshold = Logger::DEBUG
 else
@@ -95,7 +95,7 @@ end
 
 
 class SuperPeer
-  def initialize(id, host, port, logger)
+  def initialize(id, host, port, directory, logger)
     @logger = logger
     @id = SecureRandom.hex 20
     @numID = Integer(@id, 16)
@@ -103,7 +103,7 @@ class SuperPeer
       "id" => @id,
       "ws" => "ws://"+host+":"+port.to_s
     }
-    @docManager = DocumentManager.new @logger
+    @docManager = DocumentManager.new(directory, @logger)
     @conManager = ConnectionManager.new(@peerDesc, @logger)
     pubMsgHandler = PublicMessageHandler.new(@conManager, @docManager, @logger)
     @conManager.publicMessageHandler = pubMsgHandler
@@ -124,7 +124,7 @@ end
 
 #start server
 EventMachine.run do
-  @superPeer = SuperPeer.new(options[:ip], options[:host], options[:port], @logger)
+  @superPeer = SuperPeer.new(options[:ip], options[:host], options[:port], options[:directory], @logger)
   @conManager = @superPeer.getConManager
   
   EventMachine::WebSocket.start(:host => options[:ip], :port => options[:port], :debug => options[:debug]) do |ws|

@@ -14,7 +14,8 @@ peerWeb.namespace("Storage");
  */
 peerWeb.Storage = function(config){
     "use strict";
-    var that = this, db, usable = false;
+    var that = this, db, usable = false, 
+    readwrite =  window.IDBTransaction.READ_WRITE || "readwrite"; //used for fallback for old API-Version
     
     /**
      * Initialierungscode
@@ -24,6 +25,7 @@ peerWeb.Storage = function(config){
      */
     (function(){
         var openIndexedDB, checkRequiredContent, ready;
+        
         indexedDB.onerror = function(e){
             peerWeb.log("IndexedDB Error: "+e.target.errorCode, "error");
         };
@@ -121,7 +123,7 @@ peerWeb.Storage = function(config){
             saveDefaults = function(){
                 if(defaultPeersLoaded && defaultTurnStunLoaded){
                     peerWeb.log("DefaultHelpers filtered, begin to save.", "info");
-                    var trans = db.transaction(["peers", "iceServers"], "readwrite"),
+                    var trans = db.transaction(["peers", "iceServers"], readwrite),
                     peerStore = trans.objectStore("peers"), 
                     turnStunStore = trans.objectStore("iceServers"),
                     i = 0, tempObject;
@@ -151,7 +153,7 @@ peerWeb.Storage = function(config){
                 "dataType": "json",
                 "cache": false,
                 "success": function(data){
-                    var trans = db.transaction(["peers", "iceServers"], "readonly"),
+                    var trans = db.transaction(["peers", "iceServers"]),
                     peerStore = trans.objectStore("peers"), 
                     turnStunStore = trans.objectStore("iceServers");
                     peerWeb.log("DefaultHelpers loaded", "info");
@@ -277,7 +279,7 @@ peerWeb.Storage = function(config){
      * @param {Object} doc Data-Objekt des Dokuments
      */
     this.saveDocument = function(doc){
-        var trans = db.transaction(["index", "pubDocuments"], "readwrite"),
+        var trans = db.transaction(["index", "pubDocuments"], readwrite),
         indexStore = trans.objectStore("index"), 
         pubDocStore = trans.objectStore("pubDocuments"),
         indexEntry = {

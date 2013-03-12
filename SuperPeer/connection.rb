@@ -13,7 +13,7 @@ class Connection
     if not msg.is_a? String
       msg = msg.to_json
     end 
-    @logger.debug "peerID: "+description['ID']+" msg: "+msg
+    @logger.debug "peerID: "+description['id']+" msg: "+msg
     @connection.send msg
   end
 end

@@ -48,7 +48,7 @@ peerWeb.Peer = function(){
          */
         setID = function(id){
             peerWeb.log("Peer ID is set to: "+id, "info");
-            peer.ID = id;
+            peer.id = id;
             storage.setPeerID(id);
             callback();
         };
@@ -100,8 +100,8 @@ peerWeb.Peer = function(){
         };
         
         continueInit = function(){
-            if(storage.isUsable() && peer.ID !== null){
-                peer.numID = BigInteger.parse(peer.ID, 16);
+            if(storage.isUsable() && peer.id !== null){
+                peer.numID = BigInteger.parse(peer.id, 16);
                 conManager = new peerWeb.ConnectionManager(peer, storage);
                 docManager = new peerWeb.DocumentManager(peer, storage);
                 peerWeb.log("Waiting for Connections.", "info");
@@ -120,12 +120,12 @@ peerWeb.Peer = function(){
             peerWeb.log("WebSockets: "+supportFor.websocket, "info");
             peerWeb.log("WebRTC (with DataChannel): "+supportFor.webrtc, "info");
             storage = new peerWeb.Storage({onReady:continueInit});
-            peer.ID = storage.getPeerID();
-            if(peer.ID === null){
+            peer.id = storage.getPeerID();
+            if(peer.id === null){
                 generateID(continueInit);
             }
             else{
-                peerWeb.log("Peer ID loaded: "+peer.ID, "info");
+                peerWeb.log("Peer ID loaded: "+peer.id, "info");
             }
             continueInit();
         }

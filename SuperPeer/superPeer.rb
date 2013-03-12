@@ -100,7 +100,7 @@ class SuperPeer
     @id = SecureRandom.hex 20
     @numID = Integer(@id, 16)
     @peerDesc = {
-      "ID" => @id,
+      "id" => @id,
       "ws" => "ws://"+host+":"+port.to_s
     }
     @docManager = DocumentManager.new @logger

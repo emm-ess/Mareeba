@@ -37,7 +37,7 @@ peerWeb.ConnectionManager = function(peer, storage){
         };
         
         that.peerDescription = {
-            "ID" : peer.ID
+            "id" : peer.id
         };
         if(peerWeb.supportFor.webrtc){
             that.peerDescription.webrtc = true;
@@ -64,7 +64,7 @@ peerWeb.ConnectionManager = function(peer, storage){
     routeMessage = function(msg, con, callback){
         var tempDist, closestCon, closestDist, targetID, allCon;
         targetID = BigInteger.parse(msg.head.to, 16);
-        if(msg.head.from === peer.ID){
+        if(msg.head.from === peer.id){
             closestDist = peerWeb.BIGGESTID;
         }
         else{
@@ -96,7 +96,7 @@ peerWeb.ConnectionManager = function(peer, storage){
         var tempDist, closestCon, closestDist, targetID;
         targetID = BigInteger.parse(msg.head.to, 16);
         closestDist = peerWeb.BIGGESTID;
-        msg.head.from = peer.ID;
+        msg.head.from = peer.id;
         superPeers.forEach(function(element){
             tempDist = targetID.subtract(element.getNumID()).abs();
             if(tempDist < closestDist){
@@ -129,7 +129,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             result.push( [tempDist, temp[i].getDescription()] );
         }
         for(i = 0, l = resultList.length; i < l; i += 1){
-            temp = BigInteger.parse(resultList[i].ID, 16);
+            temp = BigInteger.parse(resultList[i].id, 16);
             tempDist = targetID.subtract(temp).abs();
             result.push( [tempDist, resultList[i]] );
         }
@@ -137,11 +137,11 @@ peerWeb.ConnectionManager = function(peer, storage){
         //let's have only unique values
         temp = {};
         for(i = 0, l = result.length; i < l; i += 1){
-            if(temp.hasOwnProperty(result[i][1].ID)) {
+            if(temp.hasOwnProperty(result[i][1].id)) {
                 continue;
             }
             tempResult.push(result[i]);
-            temp[result[i][1].ID] = 1;
+            temp[result[i][1].id] = 1;
         }
         
         tempResult.sort(function(a, b){
@@ -156,10 +156,10 @@ peerWeb.ConnectionManager = function(peer, storage){
             result.push(element[1]);
         });
         msg.body.resultList = result;
-        if(result[0].ID === that.peerDescription.ID){
+        if(result[0].id === that.peerDescription.id){
             msg.head.code = "200";
             msg.head.to = msg.head.from;
-            msg.head.from = that.peerDescription.ID;
+            msg.head.from = that.peerDescription.id;
             con.send(msg);
         }
         else{
@@ -182,7 +182,7 @@ peerWeb.ConnectionManager = function(peer, storage){
      */
     peerDescription = function(msg, con){
         var peerDesc = msg.body.peerDescription, dist, removedCon,
-        numID = BigInteger.parse(peerDesc.ID, 16);
+        numID = BigInteger.parse(peerDesc.id, 16);
         con.setDescription(peerDesc, numID);
         //sende response
         msg.head.code = 200;
@@ -284,7 +284,7 @@ peerWeb.ConnectionManager = function(peer, storage){
         msg.body = "";
         msg.head.code = 200;
         msg.head.to = msg.head.from;
-        msg.head.from = that.peerDescription.ID;
+        msg.head.from = that.peerDescription.id;
         con.send(msg);
     };
     
@@ -304,7 +304,7 @@ peerWeb.ConnectionManager = function(peer, storage){
                 msg.body = doc;
             }
             msg.head.to = msg.head.from;
-            msg.head.from = that.peerDescription.ID;
+            msg.head.from = that.peerDescription.id;
             con.send(msg);
         };
         storage.getDocument(msg.body, storageResult);
@@ -364,7 +364,7 @@ peerWeb.ConnectionManager = function(peer, storage){
         }
         if(leafSet.left.length === 0 && leafSet.right.length === 0){
             msg.body = {
-                id: peer.ID,
+                id: peer.id,
                 resultList: []
             };
             nodeLookup(msg);
@@ -431,7 +431,7 @@ peerWeb.ConnectionManager = function(peer, storage){
      * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
      */
     this.handleMessage = function(msg, con){
-        if(msg.head.code !== undefined || msg.head.from === peer.ID){
+        if(msg.head.code !== undefined || msg.head.from === peer.id){
             //response
             handleResponse(msg, con);
         }
@@ -456,7 +456,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             };
             peerWeb.log("Store Document with titleID: "+doc.titleID+" on "+msg.body.resultList.length+" peers", "log");
             msg.body.resultList.forEach(function(element){
-                storeMsg.head.to = element.ID;
+                storeMsg.head.to = element.id;
                 sendMessage(storeMsg);
             });
         }, 

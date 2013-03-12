@@ -8,7 +8,7 @@ class ConnectionManager
   def initialize(peerDesc, logger)
     @logger = logger
     @peerDesc = peerDesc
-    @numID = Integer(@peerDesc["ID"], 16)
+    @numID = Integer(@peerDesc["id"], 16)
     @connectedPeers = {}
     @newlyConnectedPeers = Array.new
   end
@@ -83,11 +83,11 @@ class ConnectionManager
     end
     if msg["body"].has_key? "resultList"
       msg["body"]["resultList"].each do |peerDesc|
-        peerID = Integer(peerDesc["ID"], 16)
+        peerID = Integer(peerDesc["id"], 16)
         tempResult.push({:distance => (targetID - peerID).abs, :peerDescription => peerDesc})
       end
     end
-    tempResult = tempResult.uniq { |tPeer| tPeer[:peerDescription]["ID"] }
+    tempResult = tempResult.uniq { |tPeer| tPeer[:peerDescription]["id"] }
     tempResult = tempResult.sort_by { |tPeer| tPeer[:distance] }
     tempResult = tempResult.slice(0,6)
     result = Array.new
@@ -96,7 +96,7 @@ class ConnectionManager
     end
     msg["body"]["resultList"] = result
     @logger.debug "result of nodeLookup: "+result.to_s
-    if result[0]["ID"].eql? @peerDesc["ID"]
+    if result[0]["id"].eql? @peerDesc["id"]
       msg["head"]["code"] = 200
       peer.send msg
     else
@@ -114,7 +114,7 @@ class ConnectionManager
       if(distance < closestDistance)
         closestDistance = distance
         closestPeer = tPeer
-        @logger.info "closest Peer has ID: "+tPeer.description["ID"]+" with distance: "+distance.to_s
+        @logger.info "closest Peer has : "+tPeer.description["id"]+" with distance: "+distance.to_s
         if(closestDistance == 0)
           break
         end

@@ -83,7 +83,7 @@ peerWeb.Connection = function(conManager, config){
             msg.head.protocolVersion = this.protocolVersion;
         }
         if(msg.head.from === undefined){
-            msg.head.from = conManager.peerDescription.ID;
+            msg.head.from = conManager.peerDescription.id;
         }
         if(msg.head.refCode === undefined){
             refCode = peerWeb.getRandomHexNumber(40);
@@ -118,7 +118,7 @@ peerWeb.Connection = function(conManager, config){
     this.setDescription = function(desc, tNumID){
         description = desc;
         if(tNumID === "undefined"){
-            numID = BigInteger.parse(desc.ID, 16);
+            numID = BigInteger.parse(desc.id, 16);
         }
         else{
             numID = tNumID;

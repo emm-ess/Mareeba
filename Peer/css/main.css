@@ -47,23 +47,30 @@ header h1 {
 	top: 100px;
 	bottom: 0px;
 	overflow: hidden;
-	display: -webkit-inline-flex;
+	display: -webkit-box;      /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-box;         /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-flexbox;      /* TWEENER - IE 10 */
+	display: -webkit-flex;		/* NEW - Chrome */
+	display: -moz-flex;
+	display: flex;				/* NEW, Spec - Opera 12.1, Firefox 20+ */
 	-webkit-flex-direction: row;
-	display: -moz-inline-flex;
 	-moz-flex-direction: row;
-	display: inline-flex;
+	-ms-flex-direction: row;
 	flex-direction: row;
-	
 }
 
 /*NAVI*/
 nav {
 	background: rgba(235,235,235,0.3);
-	width: 210px;
 	z-index: 100;
-	-webkit-flex: 0;
-	-moz-flex: 0;
-	flex: 0;
+	-webkit-box-flex: 0.1;
+  	-moz-box-flex: 0.1;
+	width: 20%;
+  	-webkit-flex: 0.1;
+	-moz-flex: 0.1;
+  	-ms-flex: 0.1;
+  	flex: 0.1;
+  	min-width: 210px;
 }
 
 nav ul {
@@ -107,14 +114,19 @@ nav ul li.active a{
 	-webkit-box-shadow: inset 0 1px 1px rgb(112,112,112);
 	-moz-box-shadow: inset 0 1px 1px rgb(112,112,112);
 	box-shadow: inset 0 1px 1px rgb(112,112,112);
-	-webkit-flex: 1;
+	-webkit-box-flex: 1;
+  	-moz-box-flex: 1;
+	width: 100%;
+  	-webkit-flex: 1;
 	-moz-flex: 1;
-	flex: 1;
+  	-ms-flex: 1;
+  	flex: 1;
 }
 
 section {
 	margin-left: 15px;
-	width: 800px;
+	max-width: 800px;
+	width: 80%;
 	z-index: 50;
 }
 
@@ -170,6 +182,27 @@ form textarea {
 }
 
 /* initial appearance */
-#settings-screen, #search-screen, #a-z-screen, #new-article-screen {
+#settings-screen, #friends-screen, #search-screen, #a-z-screen, #new-article-screen {
 	display: none;
+}
+
+/* Too narrow to support three columns */
+@media all and (max-width: 640px) {
+   #content {
+	    -webkit-flex-direction: column;
+		-moz-flex-direction: column;
+		-ms-flex-direction: column;
+		flex-direction: column;
+   }
+ 
+   nav {
+	    width: 100%;
+	    min-width: 210px;
+   }
+   
+   #main section {
+	    width: auto;
+	    min-width: 210px;
+	    margin-right: 15px;
+   }
 }

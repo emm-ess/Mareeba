@@ -8,24 +8,11 @@ peerWeb.namespace("Connection");
  */
 peerWeb.Connection = function(conManager, config){
     "use strict";
-    var that = this, connection, description, numID,
-    sendDescription;  
+    var that = this, description, numID,
+    sendDescription;
+    this._connection;
     
-    /**
-     * sendet die Beschreibung des lokalen Knotens an den Verbindungspartner
-     */
-    sendDescription = function(){
-        var descriptionMsg = {
-            head: {
-                "service": "network",
-                "action": "peerDescription"
-            },
-            body: {
-                "peerDescription": conManager.peerDescription
-            }
-        };
-        that.send(descriptionMsg);
-    };
+    
 
     /**
      * Initierungscode
@@ -60,7 +47,7 @@ peerWeb.Connection = function(conManager, config){
         switch(protocol){
             case "ws":
             case "wss":
-                connection = new peerWeb.Connection.WebSocket(config);
+                this._connection = new peerWeb.Connection.WebSocket(config);
                 break;
             default:
                 peerWeb.log("cannot determine connection type: "+protocol, "warn");
@@ -69,36 +56,7 @@ peerWeb.Connection = function(conManager, config){
     })();
     
     //public
-    /**
-     * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
-     * @param {Object} msg zu verschickende Nachricht
-     * @param {Function} callback Funktion, die bei Antwort aufgerufen werden soll
-     */
-    this.send = function(msg, callback){
-        var refCode;
-        if(typeof msg === String){
-            msg = JSON.parse(msg);
-        }
-        if(msg.head.protocolVersion === undefined){
-            msg.head.protocolVersion = this.protocolVersion;
-        }
-        if(msg.head.from === undefined){
-            msg.head.from = conManager.peerDescription.id;
-        }
-        if(msg.head.refCode === undefined){
-            refCode = peerWeb.getRandomHexNumber(40);
-            msg.head.refCode = refCode;
-        }
-        if(msg.head.date === undefined){
-            msg.head.date = new Date().getTime();
-        }
-        msg = JSON.stringify(msg);
-        peerWeb.log("Message send: "+msg, "log");
-        connection.send(msg);
-        if(refCode !== undefined){
-            config.storeMessage(refCode, msg, callback);
-        }
-    };
+    
     
     /**
      * liefert den aktuellen Status der Verbindung zurück.
@@ -142,4 +100,59 @@ peerWeb.Connection = function(conManager, config){
 /**
  * implementierte Protokoll Version von peerWeb
  */
-peerWeb.Connection.prototype.protocolVersion = "0.1";
+peerWeb.Connection.prototype = (function(){
+    "use strict";
+    var protocolVersion = "0.1",
+    sendDescription, send;
+    
+    /**
+     * sendet die Beschreibung des lokalen Knotens an den Verbindungspartner
+     */
+    sendDescription = function(){
+        var descriptionMsg = {
+            head: {
+                "service": "network",
+                "action": "peerDescription"
+            },
+            body: {
+                "peerDescription": conManager.peerDescription
+            }
+        };
+        send(descriptionMsg);
+    };
+    
+    /**
+     * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
+     * @param {Object} msg zu verschickende Nachricht
+     * @param {Function} callback Funktion, die bei Antwort aufgerufen werden soll
+     */
+    send = function(msg, callback){
+        var refCode;
+        if(typeof msg === String){
+            msg = JSON.parse(msg);
+        }
+        if(msg.head.protocolVersion === undefined){
+            msg.head.protocolVersion = this.protocolVersion;
+        }
+        if(msg.head.from === undefined){
+            msg.head.from = conManager.peerDescription.id;
+        }
+        if(msg.head.refCode === undefined){
+            refCode = peerWeb.getRandomHexNumber(40);
+            msg.head.refCode = refCode;
+        }
+        if(msg.head.date === undefined){
+            msg.head.date = new Date().getTime();
+        }
+        msg = JSON.stringify(msg);
+        peerWeb.log("Message send: "+msg, "log");
+        this._connection.send(msg);
+        if(refCode !== undefined){
+            config.storeMessage(refCode, msg, callback);
+        }
+    };
+    
+    return {
+        send : send
+    }
+})();

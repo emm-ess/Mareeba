@@ -18,7 +18,7 @@ peerWeb.ConnectionManager = function(peer, storage){
     nodeLookup, peerDescription,
     handlePublicRequest, handlePublicResponse,
     valueStore, valueLookup,
-    checkMinimumConnections, routeMessage, sendMessage;
+    checkMinimumConnections, updateConInfo, routeMessage, sendMessage;
     
     /**
      * Initierungscode
@@ -53,6 +53,14 @@ peerWeb.ConnectionManager = function(peer, storage){
         peerWeb.log("request all saved SuperPeers", "info");
         storage.getAllSuperPeers(initSuperPeersConnections);
     })();
+    
+    /**
+     * updates the Info about connections
+     */
+    updateConInfo = function(){
+        var connections = superPeers.length+leafSet.left.length+leafSet.right.length+rConnections.length+friends.length;
+        peer.updateConnectivityInfo(connections, newConnections.length);
+    };
     
     /**
      * Routing-Algorithmus.
@@ -229,6 +237,7 @@ peerWeb.ConnectionManager = function(peer, storage){
         }
         newConnections = peerWeb.removeFromArray(con, newConnections);
         checkMinimumConnections();
+        updateConInfo();
     };
     
     /**
@@ -524,6 +533,6 @@ peerWeb.ConnectionManager = function(peer, storage){
         amountConPeers += checkConnections(rConnections, "part two (R)");
         peerWeb.log("Remainig Connections to Peers: "+amountConPeers+", remaining Connections to SuperPeers: "+amountConSuperPeers, "log");
         checkMinimumConnections();
-        peer.updateConnectivityInfo(amountConPeers+superPeers.length, newConnections.length);
+        updateConInfo();
     };
 };

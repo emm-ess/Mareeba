@@ -132,6 +132,18 @@ peerWeb.GUI= function(){
     };
     
     /**
+     * updates the the number of connections shown
+     */
+    this.updateConnectivityInfo = function(usableConnections, openingConnections){
+        if(usableConnections === 1){
+            $('#con-info').html(usableConnections+" aktive Verbindung ("+openingConnections+" im Aufbau)");
+        }
+        else{
+            $('#con-info').html(usableConnections+" aktive Verbindungen ("+openingConnections+" im Aufbau)");
+        }
+    };
+    
+    /**
      * Initierungscode
      */
     (function(){

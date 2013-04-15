@@ -153,5 +153,12 @@ peerWeb.Peer = function(){
         conManager.searchInNetwork(id, callback);
     };
     
+    /**
+     * updates the the number of connections shown
+     */
+    peer.updateConnectivityInfo = function(usableConnections, openingConnections){
+        gui.updateConnectivityInfo(usableConnections, openingConnections);
+    };
+    
     return peer;
 };

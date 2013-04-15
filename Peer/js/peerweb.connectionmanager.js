@@ -524,5 +524,6 @@ peerWeb.ConnectionManager = function(peer, storage){
         amountConPeers += checkConnections(rConnections, "part two (R)");
         peerWeb.log("Remainig Connections to Peers: "+amountConPeers+", remaining Connections to SuperPeers: "+amountConSuperPeers, "log");
         checkMinimumConnections();
+        peer.updateConnectivityInfo(amountConPeers+superPeers.length, newConnections.length);
     };
 };

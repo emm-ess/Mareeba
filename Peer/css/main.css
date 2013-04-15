@@ -111,6 +111,8 @@ nav ul li.active a{
 /*NAVI end*/
 
 #main {
+	overflow: auto;
+	overflow-x: hidden;
 	-webkit-box-shadow: inset 0 1px 1px rgb(112,112,112);
 	-moz-box-shadow: inset 0 1px 1px rgb(112,112,112);
 	box-shadow: inset 0 1px 1px rgb(112,112,112);

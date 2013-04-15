@@ -3,7 +3,7 @@ window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || 
 window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
 
 peerWeb.supportFor.indexeddb = window.indexedDB !== undefined;
-peerWeb.supportFor.webstorage = window.localStorage !== undefined && window.sessionStorage !== undefined;
+peerWeb.supportFor.webstorage = window.indexedDB !== undefined;
 
 peerWeb.namespace("Storage");
 /**

@@ -134,12 +134,12 @@ peerWeb.GUI= function(){
     /**
      * updates the the number of connections shown
      */
-    this.updateConnectivityInfo = function(usableConnections, openingConnections){
-        if(usableConnections === 1){
-            $('#con-info').html(usableConnections+" aktive Verbindung ("+openingConnections+" im Aufbau)");
+    this.updateConnectivityInfo = function(peerCons, superPeerCons, openingCons){
+        if(peerCons + superPeerCons === 1){
+            $('#con-info').html("aktive Verbindung: Peers: "+peerCons+" SuperPeers: "+superPeerCons+" ("+openingCons+" im Aufbau)");
         }
         else{
-            $('#con-info').html(usableConnections+" aktive Verbindungen ("+openingConnections+" im Aufbau)");
+            $('#con-info').html("aktive Verbindungen: Peers: "+peerCons+" SuperPeers: "+superPeerCons+" ("+openingCons+" im Aufbau)");
         }
     };
     

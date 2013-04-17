@@ -156,8 +156,8 @@ peerWeb.Peer = function(){
     /**
      * updates the the number of connections shown
      */
-    peer.updateConnectivityInfo = function(usableConnections, openingConnections){
-        gui.updateConnectivityInfo(usableConnections, openingConnections);
+    peer.updateConnectivityInfo = function(peerCons, superPeerCons, openingCons){
+        gui.updateConnectivityInfo(peerCons, superPeerCons, openingCons);
     };
     
     return peer;

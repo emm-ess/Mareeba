@@ -1,5 +1,7 @@
 //used to have only one interface
 window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription;
+window.RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate;
 
 if(!!window.webkitRTCPeerConnection){
     //must be chrome
@@ -29,7 +31,7 @@ peerWeb.Connection.WebRTC = function(__peerDesc, __config){
     
     (function(that){
         peerWeb.Connection.WebRTC.parent.init.call(that, __peerDesc, __config);
-        that._connection = new RTCPeerConnection({iceServers: [{url:"stun:stunserver.org:3478"},{url:"stun:stun.l.google.com:19302"}]}, {optional: [{RtpDataChannels: true}]});
+        that._connection = new window.RTCPeerConnection({iceServers: [{url:"stun:stunserver.org:3478"},{url:"stun:stun.l.google.com:19302"}]}, {optional: [{RtpDataChannels: true}]});
         that._connection.onicecandidate = function(e){that._iceCallback(e,that);};
         that._connection.onerror = that._config.onerror;
         that._connection.onclose = that._config.onclose;

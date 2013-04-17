@@ -17,7 +17,7 @@ peerWeb.ConnectionManager = function(peer, storage){
     nodeLookup, handleNodeLookupResponse, peerDescription, handlePCDescription, handleIceProcess,
     handlePublicRequest, handlePublicResponse,
     valueStore, valueLookup,
-    checkMinimumConnections, isConnectedTo, getConnectionTo, updateConInfo, routeMessage, sendMessage,
+    checkMinimumConnections, isConnectedTo, getConnectionTo, updateConInfo, routeMessage,
     buildConnection = peerWeb.ConnectionFactory.buildConnection;
     
     /**
@@ -110,7 +110,7 @@ peerWeb.ConnectionManager = function(peer, storage){
         allCon = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
         allCon.forEach(function(element){
             tempDist = targetID.subtract(element.getNumID()).abs();
-            if(tempDist < closestDist){
+            if(tempDist.compare(closestDist) < 0){
                 closestDist = tempDist;
                 closestCon = element;
             }
@@ -130,13 +130,13 @@ peerWeb.ConnectionManager = function(peer, storage){
      * @param {Function} callback Funktion die im Falle einer Antwort aufgerufen werden soll
      */
     this.sendMessage = function(msg, callback){
-        var tempDist, closestCon, closestDist, targetID;
+        var tempDist, closestCon, closestDist, targetID, allCon;
         targetID = BigInteger.parse(msg.head.to, 16);
         closestDist = peerWeb.BIGGESTID;
         msg.head.from = peer.id;
         superPeers.forEach(function(element){
             tempDist = targetID.subtract(element.getNumID()).abs();
-            if(tempDist < closestDist){
+            if(tempDist.compare(closestDist) < 0){
                 closestDist = tempDist;
                 closestCon = element;
             }
@@ -145,7 +145,20 @@ peerWeb.ConnectionManager = function(peer, storage){
             closestCon.sendMsg(msg, callback);
         }
         else{
-            routeMessage(msg, undefined, callback);
+            allCon = leafSet.left.concat(leafSet.right, rConnections, friends);
+            allCon.forEach(function(element){
+                tempDist = targetID.subtract(element.getNumID()).abs();
+                if(tempDist.compare(closestDist) < 0){
+                    closestDist = tempDist;
+                    closestCon = element;
+                }
+            });
+            if(closestCon !== undefined){
+                closestCon.sendMsg(msg, callback);
+            }
+            else{
+                routeMessage(msg, undefined, callback);
+            }
         }
     };
     
@@ -557,7 +570,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             peerWeb.log("Store Document with titleID: "+doc.titleID+" on "+msg.body.resultList.length+" peers", "log");
             msg.body.resultList.forEach(function(element){
                 storeMsg.head.to = element.id;
-                sendMessage(storeMsg);
+                that.sendMessage(storeMsg);
             });
         }, 
         msg = {
@@ -594,7 +607,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             }
         };
         peerWeb.log("Search Document with ID: "+id+" in Network.", "log");
-        sendMessage(msg, valueLookupCallback);
+        that.sendMessage(msg, valueLookupCallback);
     };
     
     /**

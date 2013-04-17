@@ -1,12 +1,12 @@
 peerWeb.namespace("ConnectionFactory");
 
-peerWeb.ConnectionFactory.buildConnection = function(peerDescr, config){
+peerWeb.ConnectionFactory.buildConnection = function(peerDesc, config){
     "use strict";
     var type, connection;
-    if(!!peerDescr.webrtc){
+    if(!!peerDesc.webrtc){
         type = "WebRTC";
     }
-    else if(!!peerDescr.ws){
+    else if(!!peerDesc.ws){
         type = "WebSocket";
     }
     else{
@@ -19,6 +19,6 @@ peerWeb.ConnectionFactory.buildConnection = function(peerDescr, config){
         peerWeb.Connection[type].prototype.__proto__ = new peerWeb.Connection();
         peerWeb.Connection[type].prototype.constructor = peerWeb.Connection[type];
     }
-    connection = new peerWeb.Connection[type](peerDescr, config);
+    connection = new peerWeb.Connection[type](peerDesc, config);
     return connection;
 };

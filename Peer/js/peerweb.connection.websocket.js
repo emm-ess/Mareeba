@@ -39,10 +39,18 @@ peerWeb.Connection.WebSocket.prototype = (function(){
      */
     getReadyState = function(){
         return this._connection.readyState;
+    },
+    
+    close = function(){
+        this._connection.onclose = function(){};
+        this._connection.close();
+        this._connection = null;
+        this._config = null;
     };
     
     return {
         _send: send,
-        _getReadyState: getReadyState
+        getReadyState: getReadyState,
+        close: close
     }
 })();

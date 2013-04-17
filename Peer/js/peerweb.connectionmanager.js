@@ -14,10 +14,10 @@ peerWeb.ConnectionManager = function(peer, storage){
     responseCallbacks = {},
     handleRequest, handleResponse,
     handleNetworkRequest, handleNetworkResponse,
-    nodeLookup, handleNodeLookupResponse, peerDescription,
+    nodeLookup, handleNodeLookupResponse, peerDescription, handlePCDescription, handleIceProcess,
     handlePublicRequest, handlePublicResponse,
     valueStore, valueLookup,
-    checkMinimumConnections, isConnectedTo, updateConInfo, routeMessage, sendMessage,
+    checkMinimumConnections, isConnectedTo, getConnectionTo, updateConInfo, routeMessage, sendMessage,
     buildConnection = peerWeb.ConnectionFactory.buildConnection;
     
     /**
@@ -69,6 +69,20 @@ peerWeb.ConnectionManager = function(peer, storage){
         return false;
     };
     
+    getConnectionTo = function(fPeerID){
+        var i, j, tempDesc, tempCon, connections = [newConnections, leafSet.left, leafSet.right, superPeers, rConnections];
+        for(i = 0; i < connections.length; i += 1){
+            for(j = 0; j < connections[i].length; j += 1){
+                tempCon = connections[i][j];
+                tempDesc = tempCon.getDescription();
+                if(tempDesc !== undefined && tempDesc.id === fPeerID){
+                    return tempCon;
+                }
+            }
+        }
+        return null;
+    };
+    
     /**
      * updates the Info about connections
      */
@@ -115,7 +129,7 @@ peerWeb.ConnectionManager = function(peer, storage){
      * @param {Object} msg weiterzuleitende Nachricht
      * @param {Function} callback Funktion die im Falle einer Antwort aufgerufen werden soll
      */
-    sendMessage = function(msg, callback){
+    this.sendMessage = function(msg, callback){
         var tempDist, closestCon, closestDist, targetID;
         targetID = BigInteger.parse(msg.head.to, 16);
         closestDist = peerWeb.BIGGESTID;
@@ -193,7 +207,7 @@ peerWeb.ConnectionManager = function(peer, storage){
                     action: "nodeLookup"
                 };
             }
-            sendMessage(msg, callback);
+            that.sendMessage(msg, callback);
         }
     };
     
@@ -277,6 +291,33 @@ peerWeb.ConnectionManager = function(peer, storage){
         updateConInfo();
     };
     
+    handlePCDescription = function(msg){
+        var config, tempConnection, peerDesc;
+        if(msg.head.to === peer.id){
+            if(isConnectedTo(msg.head.from) && msg.body.type === "answer"){//self initiated
+                getConnectionTo(msg.head.from).gotAnswer(msg.body);
+                peerWeb.log("Other Peer answered (has ID: "+msg.head.from+")", "info");
+            }
+            else{//other initiated
+                config = defaultConfig;
+                config.offer = msg.body;
+                peerDesc = {
+                    id: msg.head.from,
+                    webrtc: true
+                };
+                peerWeb.log("Other Peer initiated Connection (has ID: "+peerDesc.id+")", "info");
+                tempConnection = buildConnection(peerDesc, config);
+                newConnections.push(tempConnection);
+            }
+        }
+    };
+    
+    handleIceProcess = function(msg){
+        if(msg.head.to === peer.id){
+            getConnectionTo(msg.head.from).gotIceMsg(msg.body);
+        }
+    };
+    
     /**
      * leitet die Nachricht an die entsprechende Methode weiter.
      * verwendet dafür das "action"-Feld im Header der Nachricht
@@ -290,6 +331,12 @@ peerWeb.ConnectionManager = function(peer, storage){
             break;
             case "nodeLookup":
                 nodeLookup(msg, con);
+            break;
+            case "pcDescription":
+                handlePCDescription(msg, con);
+            break;
+            case "iceProcess":
+                handleIceProcess(msg, con);
             break;
             default:
                 //unknown or unimplemented message. log those to determine if it is an attack
@@ -312,6 +359,12 @@ peerWeb.ConnectionManager = function(peer, storage){
             case "nodeLookup":
                 peerWeb.log("recieved response for nodeLookup", "log");
                 handleNodeLookupResponse(msg);
+            break;
+            case "pcDescription":
+                
+            break;
+            case "iceProcess":
+                
             break;
             default:
                 //unknown or unimplemented message. log those to determine if it is an attack
@@ -555,6 +608,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             var i, removed = 0;
             for(i = 0; i < part.length; i += 1){
                 if(part[i].getReadyState() === 2 || part[i].getReadyState() === 3){
+                    part[i].close();
                     part.splice(i, 1);
                     i -= 1;
                     removed += 1;

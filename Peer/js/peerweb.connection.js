@@ -13,35 +13,41 @@ peerWeb.Connection = function(){
 
 peerWeb.Connection.prototype = (function(){
     "use strict";
-    var conManager,
+    var conManager, protocolVersion = "0.1",
     
     /**
      * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
      * @param {Object} msg zu verschickende Nachricht
      * @param {Function} callback Funktion, die bei Antwort aufgerufen werden soll
      */
-    sendMsg = function(msg, callback){
-        var refCode;
-        if(typeof msg === String){
-            msg = JSON.parse(msg);
-        }
+    validateMsg = function(msg, that){
         if(msg.head.protocolVersion === undefined){
-            msg.head.protocolVersion = this.protocolVersion;
+            msg.head.protocolVersion = protocolVersion;
         }
         if(msg.head.from === undefined){
             msg.head.from = conManager.peerDescription.id;
         }
         if(msg.head.refCode === undefined){
-            refCode = peerWeb.getRandomHexNumber(40);
-            msg.head.refCode = refCode;
+            msg.head.refCode = peerWeb.getRandomHexNumber(40);
         }
         if(msg.head.date === undefined){
             msg.head.date = new Date().getTime();
         }
+        return msg;
+    },
+    
+    sendMsg = function(msg, callback){
+        var save, refCode;
+        if(typeof msg === String){
+            msg = JSON.parse(msg);
+        }
+        save = msg.head.refCode === undefined;
+        msg = validateMsg(msg);
+        refCode = msg.head.refCode;
         msg = JSON.stringify(msg);
         peerWeb.log("Message send: "+msg, "log");
         this._send(msg);
-        if(refCode !== undefined){
+        if(save){
             this._config.storeMessage(refCode, msg, callback);
         }
     },
@@ -49,7 +55,7 @@ peerWeb.Connection.prototype = (function(){
     /**
      * sendet die Beschreibung des lokalen Knotens an den Verbindungspartner
      */
-    onopen = function(msg){
+    onopen = function(msg, that){
         peerWeb.log("Connection open", "log");
         var descriptionMsg = {
             head: {
@@ -60,10 +66,11 @@ peerWeb.Connection.prototype = (function(){
                 "peerDescription": conManager.peerDescription
             }
         };
-        this.sendMsg(descriptionMsg);
+        that.sendMsg(descriptionMsg);
     },
     
     init = function(__peerDesc, __config){
+        var that = this;
         if(__config === null || __config === undefined){
             throw {
                 name: "Error",
@@ -81,22 +88,13 @@ peerWeb.Connection.prototype = (function(){
         __config.onmessage = function(msg){
             peerWeb.log("Message recieved: "+msg.data, "log");
             msg = JSON.parse(msg.data);
-            conManager.handleMessage(msg, this);
+            conManager.handleMessage(msg, that);
         };
         
-        __config.onopen = onopen;
+        __config.onopen = function(e){onopen(e,that);};
             
         this._config = __config;
         this._peerDesc = __peerDesc;
-    },
-    
-    /**
-     * liefert den aktuellen Status der Verbindung zurück.
-     * die Verbindungsstati entsprechen denen von WebSockets 
-     * @return {int} readyState Verbindungsstatus
-     */
-    getReadyState = function(){
-        return this._getReadyState();
     },
     
     /**
@@ -132,12 +130,12 @@ peerWeb.Connection.prototype = (function(){
     };
     
     return {
-        protocolVersion: "0.1",
+        protocolVersion: protocolVersion,
         init: init,
         sendMsg: sendMsg,
-        getReadyState: getReadyState,
         setDescription: setDescription,
         getDescription: getDescription,
-        getNumID: getNumID
+        getNumID: getNumID,
+        validateMsg: validateMsg
     };
 })();

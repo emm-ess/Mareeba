@@ -31,6 +31,7 @@ peerWeb.ConnectionManager = function(peer, storage){
                 tempConnection = buildConnection({ws: superPeers[i].wsAddress}, defaultConfig);
                 newConnections.push(tempConnection);
             }
+            updateConInfo();
             peerWeb.log("allready started trying to connect to to all saved SuperPeers", "info");
         };
         

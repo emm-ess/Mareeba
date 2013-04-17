@@ -7,34 +7,42 @@ peerWeb.namespace("Connection.WebSocket");
  * @constructor
  * @param {Object} config Konfigurationsobjekt enthält Eventhandler
  */
-peerWeb.Connection.WebSocket = function(config){
+peerWeb.Connection.WebSocket = function(__peerDesc, __config){
     "use strict";
-    var connection;
-    
     /**
      * Initierungscode
      */
-    (function(){
-        peerWeb.log("Trying to connect to: "+config.connectTo, "info");
-        connection = new WebSocket(config.connectTo);
-        connection.onerror = config.onerror;
-        connection.onclose = config.onclose;
-        connection.onmessage = config.onmessage;
-        connection.onopen = config.onopen;
-    })();
+    peerWeb.Connection.WebSocket.parent.init.call(this, __peerDesc, __config);
+    peerWeb.log("Trying to connect to: "+this._peerDesc.ws, "info");
+    this._connection = new WebSocket(this._peerDesc.ws);
+    this._connection.onerror = this._config.onerror;
+    this._connection.onclose = this._config.onclose;
+    this._connection.onmessage = $.proxy(this._config.onmessage, this);
+    this._connection.onopen = $.proxy(this._config.onopen, this);
     
+};
+peerWeb.Connection.WebSocket.parent = peerWeb.Connection.prototype;
+peerWeb.Connection.WebSocket.prototype = (function(){
+    "use strict";
+    var
     /**
      * verschickt Nachrichten an den Verbindungspartner
      * @param {String} msg zu verschickende Nachricht als JSON-String
      */
-    this.send = function(msg){
-        connection.send(msg);
-    };
+    send = function(msg){
+        this._connection.send(msg);
+    },
+    
     /**
      * gibt den aktuellen Status der zu grundeliegenden Verbindung wieder
      * @return {int} readyState Status der Verbindung
      */
-    this.getReadyState = function(){
-        return connection.readyState;
+    getReadyState = function(){
+        return this._connection.readyState;
     };
-};
+    
+    return {
+        _send: send,
+        _getReadyState: getReadyState
+    }
+})();

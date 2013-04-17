@@ -1,7 +1,21 @@
 //used to have only one interface
 window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
 
-peerWeb.supportFor.webrtc = window.RTCPeerConnection !== undefined && window.DataChannel !== undefined;
+if(!!window.webkitRTCPeerConnection){
+    //must be chrome
+    var testPC = new RTCPeerConnection({iceServers: [{url:"stun:stunserver.org:3478"},{url:"stun:stun.l.google.com:19302"}]},{optional: [{RtpDataChannels: true}]});
+    if (testPC && testPC.createDataChannel) {
+        var dc = testPC.createDataChannel("sendDataChannel", {reliable: false});
+        if (!!dc) {
+          peerWeb.supportFor.webrtc = true;
+          dc = null;
+        } 
+    }
+    testPC.close();
+}
+else{
+    peerWeb.supportFor.webrtc = window.RTCPeerConnection !== undefined && window.DataChannel !== undefined;
+}
 
 peerWeb.namespace("Connection.WebRTC");
 /**
@@ -10,14 +24,31 @@ peerWeb.namespace("Connection.WebRTC");
  * @constructor
  * @param {Object} config
  */
-peerWeb.Connection.WebRTC = function(config){
+peerWeb.Connection.WebRTC = function(__peerDesc, __config){
     "use strict";
-    var connection, offer;
-    config = {iceServers: [{url:"stun:stunserver.org:3478"},{url:"stun:stun.l.google.com:19302"}]};
+    var connection, dataChannel, iceCallback;
     
-    connection = new RTCPeerConnection(config);
+    peerWeb.Connection.WebRTC.parent.init.call(this, __peerDesc, __config);
+    connection = new RTCPeerConnection({iceServers: [{url:"stun:stunserver.org:3478"},{url:"stun:stun.l.google.com:19302"}]}, {optional: [{RtpDataChannels: true}]});
+    dataChannel = connection.createDataChannel("peerWeb", {reliable: false});
+    connection.onicecandidate = iceCallback;
+    dataChannel.onerror = this._config.onerror;
+    dataChannel.onclose = this._config.onclose;
+    dataChannel.onmessage = this._config.onmessage;
+    dataChannel.onopen = this._config.onopen;
+    
+    iceCallback = function(e){
+        if(e.candidate){
+            
+        }
+    };
     
     this.send = function(msg){
-        console.log(connection);
+        dataChannel.send(msg);
+    };
+    
+    this.getReadyState = function(){
+        return dataChannel.readyState;
     };
 };
+peerWeb.Connection.WebRTC.parent = peerWeb.Connection.prototype;

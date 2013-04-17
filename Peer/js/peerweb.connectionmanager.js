@@ -8,17 +8,17 @@ peerWeb.namespace("ConnectionManager");
  */
 peerWeb.ConnectionManager = function(peer, storage){
     "use strict";
-    var Connection = peerWeb.Connection,
-    that = this, defaultConfig = {}, l = 6,
+    var that = this, defaultConfig = {}, l = 6,
     leafSet = {left: [], right: []}, rConnections = [], superPeers = [], friends = [], newConnections = [], 
     amountConPeers = 0, amountConSuperPeers = 0,
     responseCallbacks = {},
     handleRequest, handleResponse,
     handleNetworkRequest, handleNetworkResponse,
-    nodeLookup, peerDescription,
+    nodeLookup, handleNodeLookupResponse, peerDescription,
     handlePublicRequest, handlePublicResponse,
     valueStore, valueLookup,
-    checkMinimumConnections, updateConInfo, routeMessage, sendMessage;
+    checkMinimumConnections, isConnectedTo, updateConInfo, routeMessage, sendMessage,
+    buildConnection = peerWeb.ConnectionFactory.buildConnection;
     
     /**
      * Initierungscode
@@ -26,11 +26,9 @@ peerWeb.ConnectionManager = function(peer, storage){
     (function(){
         var initSuperPeersConnections = function(superPeers){
             peerWeb.log("got all saved SuperPeers ("+superPeers.length+")", "info");
-            var tempConnection, tempConfig, i;
+            var tempConnection, i;
             for(i = 0; i < superPeers.length; i += 1){
-                tempConfig = defaultConfig;
-                tempConfig.connectTo = superPeers[i].wsAddress;
-                tempConnection = new Connection(that, tempConfig);
+                tempConnection = buildConnection({ws: superPeers[i].wsAddress}, defaultConfig);
                 newConnections.push(tempConnection);
             }
             peerWeb.log("allready started trying to connect to to all saved SuperPeers", "info");
@@ -48,11 +46,28 @@ peerWeb.ConnectionManager = function(peer, storage){
                 responseCallbacks[refCode] = callback;
             }
         };
+        defaultConfig.connectionManager = that;
         leafSet.longDistLeft = (BigInteger.ZERO).subtract(peer.numID); 
         leafSet.longDistRight = (peerWeb.BIGGESTID).subtract(peer.numID);
         peerWeb.log("request all saved SuperPeers", "info");
         storage.getAllSuperPeers(initSuperPeersConnections);
     })();
+    
+    /**
+     * checks if peer is already connected to a certain other peer
+     */
+    isConnectedTo = function(fPeerID){
+        var i, j, tempDesc, connections = [newConnections, leafSet.left, leafSet.right, superPeers, rConnections];
+        for(i = 0; i < connections.length; i += 1){
+            for(j = 0; j < connections[i].length; j += 1){
+                tempDesc = connections[i][j].getDescription();
+                if(tempDesc !== undefined && tempDesc.id === fPeerID){
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
     
     /**
      * updates the Info about connections
@@ -87,7 +102,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             }
         });
         if(closestCon !== undefined){
-            closestCon.send(msg, callback);
+            closestCon.sendMsg(msg, callback);
         }
         else{
             handleRequest(msg, con);
@@ -113,7 +128,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             }
         });
         if(closestCon !== undefined){
-            closestCon.send(msg, callback);
+            closestCon.sendMsg(msg, callback);
         }
         else{
             routeMessage(msg, undefined, callback);
@@ -168,7 +183,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             msg.head.code = "200";
             msg.head.to = msg.head.from;
             msg.head.from = that.peerDescription.id;
-            con.send(msg);
+            con.sendMsg(msg);
         }
         else{
             if(msg.head === undefined){
@@ -179,6 +194,28 @@ peerWeb.ConnectionManager = function(peer, storage){
                 };
             }
             sendMessage(msg, callback);
+        }
+    };
+    
+    /**
+     * 
+     */
+    handleNodeLookupResponse = function(msg){
+        var i, peerDesc, tempConnection;
+        for(i = 0; i < msg.body.resultList.length; i += 1){
+            if(msg.body.resultList[i].id !== that.peerDescription.id && !isConnectedTo(msg.body.resultList[i].id)){
+                peerDesc = msg.body.resultList[i];
+                //check if it is possible to connect
+                if(peerDesc.ws !== undefined){
+                    peerWeb.log("new SuperPeer discovered (has ID: "+peerDesc.id+")", "info");
+                    tempConnection = buildConnection(peerDesc, defaultConfig);
+                    newConnections.push(tempConnection);
+                } else if(!!peerDesc.webrtc && !!that.peerDescription.webrtc){
+                    peerWeb.log("new Peer discovered (has ID: "+peerDesc.id+")", "info");
+                    tempConnection = buildConnection(peerDesc, defaultConfig);
+                    newConnections.push(tempConnection);
+                }
+            }
         }
     };
     
@@ -194,7 +231,7 @@ peerWeb.ConnectionManager = function(peer, storage){
         con.setDescription(peerDesc, numID);
         //sende response
         msg.head.code = 200;
-        con.send(msg);
+        con.sendMsg(msg);
         //check if superpeer
         if(peerDesc.ws !== undefined || peerDesc.ajax !== undefined){
             superPeers.push(con);
@@ -274,6 +311,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             break;
             case "nodeLookup":
                 peerWeb.log("recieved response for nodeLookup", "log");
+                handleNodeLookupResponse(msg);
             break;
             default:
                 //unknown or unimplemented message. log those to determine if it is an attack
@@ -294,7 +332,7 @@ peerWeb.ConnectionManager = function(peer, storage){
         msg.head.code = 200;
         msg.head.to = msg.head.from;
         msg.head.from = that.peerDescription.id;
-        con.send(msg);
+        con.sendMsg(msg);
     };
     
     /**
@@ -314,7 +352,7 @@ peerWeb.ConnectionManager = function(peer, storage){
             }
             msg.head.to = msg.head.from;
             msg.head.from = that.peerDescription.id;
-            con.send(msg);
+            con.sendMsg(msg);
         };
         storage.getDocument(msg.body.id, storageResult);
     };

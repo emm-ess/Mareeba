@@ -6,7 +6,7 @@ peerWeb.namespace("GUI");
  */
 peerWeb.GUI= function(){
     "use strict";
-    var config, baseURL, 
+    var config, baseURL = "http://localhost/bachelor/Prototyp/Peer/", 
     onLocationChange, articleSearchButtonClick, newArticleButtonClick, indexScreen,
     aClickFunction;
     
@@ -151,7 +151,6 @@ peerWeb.GUI= function(){
         peerWeb.setLogDisplay(function(msg){
             $('#startlogarea').append("<p>"+msg+"</p>");
         });
-        baseURL = window.location.href;
         $('a').click(aClickFunction);
         window.addEventListener('popstate', function(event) {
             onLocationChange(event.state);

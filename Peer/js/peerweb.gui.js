@@ -47,6 +47,7 @@ peerWeb.GUI= function(){
      */
     onLocationChange = function(state){
         var exactLoc, newLoc;
+        state = state || history.state;
         if(state === null || state === undefined){
             $('#content nav li').removeClass('active');
             $('li a[href=home]').parent().addClass('active');
@@ -157,6 +158,13 @@ peerWeb.GUI= function(){
         window.addEventListener('popstate', function(event) {
             onLocationChange(event.state);
         });
+        if(document.URL !== baseURL){
+            var state = {
+                title: "peerWeb",
+                url: document.URL.slice(baseURL.length)
+            };
+            history.pushState(state, state.title, document.URL);
+        }
         $('button#new-article-button').click(newArticleButtonClick);
         $('button#article-search-button').click(articleSearchButtonClick);
     })();

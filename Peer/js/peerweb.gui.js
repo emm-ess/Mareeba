@@ -6,7 +6,7 @@ peerWeb.namespace("GUI");
  */
 peerWeb.GUI= function(){
     "use strict";
-    var config, baseURL = "http://localhost/bachelor/Prototyp/Peer/", 
+    var config, baseURL = peerWeb.baseURL, 
     onLocationChange, articleSearchButtonClick, newArticleButtonClick, indexScreen,
     aClickFunction;
     
@@ -14,13 +14,15 @@ peerWeb.GUI= function(){
      * verhindert das lden der Seite, bei Klick auf einen Link, obwohl die URL im Browser verändert wird.
      */
     aClickFunction = function(event){
-        var state = {
-            title: this.title,
-            url: this.href.slice(baseURL.length)
-        };
-        event.preventDefault();
-        history.pushState(state, this.title, this.href);
-        onLocationChange(state);
+        if(this.href.indexOf(baseURL) === 0){
+            var state = {
+                title: this.title,
+                url: this.href.slice(baseURL.length)
+            };
+            event.preventDefault();
+            history.pushState(state, this.title, this.href);
+            onLocationChange(state);
+        }
     };
     
     /**

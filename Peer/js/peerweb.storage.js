@@ -149,7 +149,7 @@ peerWeb.Storage = function(config){
             
             peerWeb.log("Checking IndexedDB storage.", "info");
             $.ajax({
-                "url": "defaultHelpers.json",
+                "url": peerWeb.baseURL+"defaultHelpers.json",
                 "dataType": "json",
                 "cache": false,
                 "success": function(data){

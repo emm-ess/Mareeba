@@ -107,7 +107,7 @@ peerWeb.MessageHandler.Public = function(config){
         peerWeb.log("recieved valueLookup Request Message", "log");
         var refCode = msg.head.refCode, doc,
         callback = msgHndl.getCallback(refCode);
-        if(msg.head.code !== 200){
+        if(msg.head.code === 200){
             doc = new peerWeb.Document(msg.body);
             callback(doc);
         }

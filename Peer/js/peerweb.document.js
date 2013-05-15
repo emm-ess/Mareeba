@@ -15,11 +15,14 @@ peerWeb.Document = function(data){
      * Initierungscode
      */
     (function(){
-        if(data === undefined || data.title === undefined || data.content === undefined){
+        if(data === undefined){
             throw {
                 name: "InvalidArgument",
-                message: "one of the needed Arguments was wrong"
+                message: "the needed Argument was wrong"
             };
+        }
+        if(typeof data === String){
+            data = JSON.parse(data);
         }
         title = data.title;
         content = data.content;

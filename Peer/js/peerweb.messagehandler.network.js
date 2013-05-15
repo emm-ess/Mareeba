@@ -13,7 +13,7 @@ peerWeb.MessageHandler.Network = function(config){
     peerID = peerWeb.Peer.id,
     
     initNodeLookup = function(id, callback){
-        var nearestPeers = conMng.getNearestPeers(id, []),
+        var nearestPeers = conMng.getNearestPeers(id, null, 6),
         msg = {
             "head": {
                 "service": "network",
@@ -22,7 +22,7 @@ peerWeb.MessageHandler.Network = function(config){
             },
             "body" : {
                 "id" : id,
-                "resultList" : nearestPeers.slice(0,6)
+                "resultList" : nearestPeers
             }
         };
         msgHndl.send(msg, callback);
@@ -44,6 +44,19 @@ peerWeb.MessageHandler.Network = function(config){
         }
     },
     
+    nodeLookupRequest = function(msg, con){
+        var oldList = msg.body.resultList,
+        nearestPeers = conMng.getNearestPeers(msg.body.id, msg.body.resultList, 6);
+        
+        msg.body.resultList = nearestPeers;
+        if(nearestPeers[0] === peerID){
+            msgHndl.answer(msg, con);
+        }
+        else{
+            msgHndl.forward(msg, con);
+        }
+    },
+     
     /**
      * Suche nach nächsten Peers zur gesuchten ID (wird im Body der Nachricht übergeben)
      * ordnet alle Peers und die in der Nachricht übergebenen nach Entfernung zum Datum und schreibt die nächsten 6 Peers in die Liste im Body der Nachricht.
@@ -54,16 +67,7 @@ peerWeb.MessageHandler.Network = function(config){
     nodeLookup = function(msg, con){
         peerWeb.log("recieved nodeLookup Message for: "+msg.body.id, "log");
         if(msg.head.code !== undefined){
-            var oldList = msg.body.resultList,
-            nearestPeers = conMng.getNearestPeers(msg.body.id, msg.body.resultList);
-            
-            msg.body.resultList = nearestPeers.slice(0,6);
-            if(nearestPeers[0] === peerID){
-                msgHndl.answer(msg, con);
-            }
-            else{
-                msgHndl.forward(msg, con);
-            }
+            nodeLookupRequest(msg, con);
         }
         else{
             nodeLookupResponse(msg, con);

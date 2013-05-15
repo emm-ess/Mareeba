@@ -16,28 +16,13 @@ peerWeb.Connection.prototype = (function(){
     var conManager,    
     
     send = function(msg){
+        var couldSend = false;
         if(typeof msg !== String){
             msg = JSON.stringify(msg);
         }
+        couldSend = this._send(msg);
         peerWeb.log("Message send: "+msg, "debug");
-        this._send(msg);
-    },
-    
-    /**
-     * sendet die Beschreibung des lokalen Knotens an den Verbindungspartner
-     */
-    onopen = function(msg, that){
-        peerWeb.log("Connection open", "log");
-        var descriptionMsg = {
-            head: {
-                "service": "network",
-                "action": "peerDescription"
-            },
-            body: {
-                "peerDescription": conManager.peerDescription
-            }
-        };
-        that.sendMsg(descriptionMsg);
+        return couldSend;
     },
     
     init = function(__peerDesc, __config){
@@ -53,8 +38,8 @@ peerWeb.Connection.prototype = (function(){
         msgHndl = __config.messageHandler;
         __config.onerror = function(err){peerWeb.log(err, "error");};
         
-        __config.onclose = function(msg){
-            peerWeb.log(msg, "log");
+        __config.onclose = function(e){
+            peerWeb.log(e, "log");
             conManager.connectionClosed();
         };
         
@@ -64,7 +49,19 @@ peerWeb.Connection.prototype = (function(){
             msgHndl.handleMessage(msg, that);
         };
         
-        __config.onopen = function(e){onopen(e,that);};
+        __config.onopen = function(e){
+            peerWeb.log("Connection open", "log");
+            var descriptionMsg = {
+                head: {
+                    "service": "network",
+                    "action": "peerDescription"
+                },
+                body: {
+                    "peerDescription": conManager.peerDescription
+                }
+            };
+            msgHndl.send(descriptionMsg, null, that);
+        };
             
         this._config = __config;
         this._peerDesc = __peerDesc;

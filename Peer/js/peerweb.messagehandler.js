@@ -13,6 +13,15 @@ peerWeb.MessageHandler = function(config){
     responseCallbacks = {},
     storeMsg = config.storeMessage,
     
+    
+    /*
+    handleResponse = function(msg, con){
+        var refCode = msg.head.refCode;
+        if(typeof(responseCallbacks[refCode]) ===  "function"){
+            responseCallbacks[refCode](msg, con);
+            responseCallbacks[refCode] = undefined;
+        }
+    };*/
     /**
      * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
      * @param {Object} msg zu verschickende Nachricht
@@ -48,7 +57,7 @@ peerWeb.MessageHandler = function(config){
         msg.head.to = msg.head.from;
         msg.head.from = peerID;
         msg = buildMandatoryFields(msg);
-        con.sendMsg(msg);
+        con.send(msg);
     },
     
     forward = function(msg){
@@ -56,12 +65,17 @@ peerWeb.MessageHandler = function(config){
         conMng.route(msg);
     },
     
-    send = function(msg, callback){
+    send = function(msg, callback, con){
         var save, refCode;
         save = msg.head.refCode === undefined;
         msg = buildMandatoryFields(msg);
         refCode = msg.head.refCode;
-        conMng.send(msg);
+        if(con !== undefined){
+            con.send(msg);
+        }
+        else{
+            conMng.send(msg);
+        }
         if(save){
             storeMsg(refCode, msg);
         }

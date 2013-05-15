@@ -81,8 +81,8 @@ peerWeb.ConnectionManager = function(config){
      * @param {peerWeb.Connection} con Verbindung über die die Nachricht geschickt wurde
      * @param {Function} callback Funktion die im Falle einer Antwort aufgerufen werden soll
      */ 
-    this.route = function(msg, con, callback){
-        var tempDist, closestCon, closestDist, targetID, allCon;
+    this.route = function(msg){
+        var closestCon, closestDist, targetID, allCon, couldSend = false;
         targetID = BigInteger.parse(msg.head.to, 16);
         if(msg.head.from === peer.id){
             closestDist = peerWeb.BIGGESTID;
@@ -91,20 +91,11 @@ peerWeb.ConnectionManager = function(config){
             closestDist = targetID.subtract(peer.numID).abs();
         }
         allCon = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
-        allCon.forEach(function(element){
-            tempDist = targetID.subtract(element.getNumID()).abs();
-            if(tempDist.compare(closestDist) < 0){
-                closestDist = tempDist;
-                closestCon = element;
-            }
-        });
+        closestCon = that.getNearestConnection(targetID, allCon, closestDist);
         if(closestCon !== undefined){
-            closestCon.sendMsg(msg, callback);
-            return true;
+            couldSend = closestCon.send(msg);
         }
-        else{
-            return false;
-        }
+        return couldSend;
     };
     
     /**
@@ -113,50 +104,69 @@ peerWeb.ConnectionManager = function(config){
      * @param {Object} msg weiterzuleitende Nachricht
      * @param {Function} callback Funktion die im Falle einer Antwort aufgerufen werden soll
      */
-    this.send = function(msg, callback){
-        var tempDist, closestCon, closestDist, targetID, allCon;
-        targetID = BigInteger.parse(msg.head.to, 16);
-        closestDist = peerWeb.BIGGESTID;
-        msg.head.from = peer.id;
-        superPeers.forEach(function(element){
+    this.send = function(msg){
+        var closestCon, targetID = BigInteger.parse(msg.head.to, 16), allCon, couldSend = false;
+        closestCon = that.getNearestConnection(targetID, superPeers);
+        if(closestCon !== undefined){
+            couldSend = closestCon.send(msg);
+        }
+        if(!couldSend){
+            allCon = leafSet.left.concat(leafSet.right, rConnections, friends);
+            closestCon = that.getNearestConnection(targetID, allCon);
+            if(closestCon !== undefined){
+                couldSend = closestCon.send(msg);
+            }
+            else{
+                peerWeb.log("couldn't send Message towards ID: "+msg.head.to, "log");
+            }
+        }
+        return couldSend;
+    };
+    
+    this.getNearestConnection = function(targetID, connections, currentDistance){
+        var tempDist, closestDist, closestCon;
+        if(typeof targetID === BigInteger){
+            targetID = BigInteger.parse(targetID, 16);
+        }
+        if(typeof connections !== Array){
+            connections = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
+        }
+        if(typeof currentDistance !== BigInteger){
+            closestDist = peerWeb.BIGGESTID;
+        }
+        else{
+            closestDist = currentDistance;
+        }
+        connections.forEach(function(element){
             tempDist = targetID.subtract(element.getNumID()).abs();
             if(tempDist.compare(closestDist) < 0){
                 closestDist = tempDist;
                 closestCon = element;
             }
         });
-        if(closestCon !== undefined){
-            closestCon.sendMsg(msg, callback);
-        }
-        else{
-            allCon = leafSet.left.concat(leafSet.right, rConnections, friends);
-            allCon.forEach(function(element){
-                tempDist = targetID.subtract(element.getNumID()).abs();
-                if(tempDist.compare(closestDist) < 0){
-                    closestDist = tempDist;
-                    closestCon = element;
-                }
-            });
-            if(closestCon !== undefined){
-                closestCon.sendMsg(msg, callback);
-            }
-            else{
-                that.route(msg, undefined, callback);
-            }
-        }
+        return closestCon;
     };
     
-    this.getNearestPeers = function(fPeerID, resultList){
-        var temp, tempResult = [], result = [], i, l, tempDist, targetID = BigInteger.parse(fPeerID, 16);
+    this.getNearestPeer = function(targetID){
+        var peerArr = that.getNearestPeers(targetID, null, 1);
+        return peerArr[0];
+    };
+    
+    this.getNearestPeers = function(targetID, resultList, amount){
+        var temp, tempResult = [], result = [], i, l, tempDist;
+        targetID = BigInteger.parse(targetID, 16);
         temp = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
         for(i = 0, l = temp.length; i < l; i += 1){
             tempDist = targetID.subtract(temp[i].getNumID());
             result.push( [tempDist, temp[i].getDescription()] );
         }
-        for(i = 0, l = resultList.length; i < l; i += 1){
-            temp = BigInteger.parse(resultList[i].id, 16);
-            tempDist = targetID.subtract(temp).abs();
-            result.push( [tempDist, resultList[i]] );
+        
+        if(typeof resultList === Array){
+            for(i = 0, l = resultList.length; i < l; i += 1){
+                temp = BigInteger.parse(resultList[i].id, 16);
+                tempDist = targetID.subtract(temp).abs();
+                result.push( [tempDist, resultList[i]] );
+            }
         }
         
         //let's have only unique values
@@ -172,9 +182,13 @@ peerWeb.ConnectionManager = function(config){
         tempResult.sort(function(a, b){
            return a[0].compareAbs(b[0]);
         });
-        if(tempResult.length > l){
-            tempResult = tempResult.splice(0, l);
+        
+        if(typeof amount === Number){
+            if(tempResult.length > amount){
+                tempResult = tempResult.splice(0, amount);
+            }
         }
+        
         //use result again
         result = [];
         tempResult.forEach(function(element){
@@ -269,15 +283,6 @@ peerWeb.ConnectionManager = function(config){
         getConnectionTo(fPeerID).gotIceMsg(ICEmsg);
     };
     
-    /*
-    handleResponse = function(msg, con){
-        var refCode = msg.head.refCode;
-        if(typeof(responseCallbacks[refCode]) ===  "function"){
-            responseCallbacks[refCode](msg, con);
-            responseCallbacks[refCode] = undefined;
-        }
-    };*/
-    
     /**
      * entfernt geschlossene oder sich in dem Prozess der Schließung befindene Verbindungen aus der Routing-Tabelle.
      * Anschließend wird checkMinimumConnections aufgerufen, um ein entsprechendes Defizit auszugeleichen.
@@ -306,8 +311,8 @@ peerWeb.ConnectionManager = function(config){
         amountConSuperPeers -= checkConnections(superPeers, "SuperPeers");
         amountConPeers += checkConnections(rConnections, "part two (R)");
         peerWeb.log("Remainig Connections to Peers: "+amountConPeers+", remaining Connections to SuperPeers: "+amountConSuperPeers, "log");
-        checkMinimumConnections();
         updateConInfo();
+        checkMinimumConnections();
     };
     
     /**

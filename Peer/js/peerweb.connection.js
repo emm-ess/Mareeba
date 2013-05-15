@@ -13,43 +13,14 @@ peerWeb.Connection = function(){
 
 peerWeb.Connection.prototype = (function(){
     "use strict";
-    var conManager, protocolVersion = "0.1",
+    var conManager,    
     
-    /**
-     * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
-     * @param {Object} msg zu verschickende Nachricht
-     * @param {Function} callback Funktion, die bei Antwort aufgerufen werden soll
-     */
-    validateMsg = function(msg, that){
-        if(msg.head.protocolVersion === undefined){
-            msg.head.protocolVersion = protocolVersion;
+    send = function(msg){
+        if(typeof msg !== String){
+            msg = JSON.stringify(msg);
         }
-        if(msg.head.from === undefined){
-            msg.head.from = conManager.peerDescription.id;
-        }
-        if(msg.head.refCode === undefined){
-            msg.head.refCode = peerWeb.getRandomHexNumber(40);
-        }
-        if(msg.head.date === undefined){
-            msg.head.date = new Date().getTime();
-        }
-        return msg;
-    },
-    
-    sendMsg = function(msg, callback){
-        var save, refCode;
-        if(typeof msg === String){
-            msg = JSON.parse(msg);
-        }
-        save = msg.head.refCode === undefined;
-        msg = validateMsg(msg);
-        refCode = msg.head.refCode;
-        msg = JSON.stringify(msg);
-        peerWeb.log("Message send: "+msg, "log");
+        peerWeb.log("Message send: "+msg, "debug");
         this._send(msg);
-        if(save){
-            this._config.storeMessage(refCode, msg, callback);
-        }
     },
     
     /**
@@ -88,7 +59,7 @@ peerWeb.Connection.prototype = (function(){
         };
         
         __config.onmessage = function(msg){
-            peerWeb.log("Message recieved: "+msg.data, "log");
+            peerWeb.log("Message recieved: "+msg.data, "debug");
             msg = JSON.parse(msg.data);
             msgHndl.handleMessage(msg, that);
         };
@@ -132,12 +103,10 @@ peerWeb.Connection.prototype = (function(){
     };
     
     return {
-        protocolVersion: protocolVersion,
         init: init,
-        sendMsg: sendMsg,
+        send: send,
         setDescription: setDescription,
         getDescription: getDescription,
-        getNumID: getNumID,
-        validateMsg: validateMsg
+        getNumID: getNumID
     };
 })();

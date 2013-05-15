@@ -5,10 +5,34 @@ peerWeb.namespace("MessageHandler");
  * @constructor
  * @param {Object} config
  */
-peerWeb.MessageHandler = function(){
+peerWeb.MessageHandler = function(config){
     "use strict";
     var serviceHndl = {}, conMng,
     peerID = peerWeb.Peer.id,
+    protocolVersion = "0.1",
+    responseCallbacks = {},
+    storeMsg = config.storeMessage,
+    
+    /**
+     * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
+     * @param {Object} msg zu verschickende Nachricht
+     * @param {Function} callback Funktion, die bei Antwort aufgerufen werden soll
+     */
+    buildMandatoryFields = function(msg, that){
+        if(msg.head.protocolVersion === undefined){
+            msg.head.protocolVersion = protocolVersion;
+        }
+        if(msg.head.from === undefined){
+            msg.head.from = peerID;
+        }
+        if(msg.head.refCode === undefined){
+            msg.head.refCode = peerWeb.getRandomHexNumber(40);
+        }
+        if(msg.head.date === undefined){
+            msg.head.date = new Date().getTime();
+        }
+        return msg;
+    },
     
     handleMessage = function(msg, con){
         if(!!serviceHndl[msg.head.service]){
@@ -23,15 +47,27 @@ peerWeb.MessageHandler = function(){
         msg.head.code = code;
         msg.head.to = msg.head.from;
         msg.head.from = peerID;
+        msg = buildMandatoryFields(msg);
         con.sendMsg(msg);
     },
     
-    forward = function(msg, con){
+    forward = function(msg){
+        msg = buildMandatoryFields(msg);
         conMng.route(msg);
     },
     
-    send = function(msg){
+    send = function(msg, callback){
+        var save, refCode;
+        save = msg.head.refCode === undefined;
+        msg = buildMandatoryFields(msg);
+        refCode = msg.head.refCode;
         conMng.send(msg);
+        if(save){
+            storeMsg(refCode, msg);
+        }
+        if(callback !== undefined){
+            responseCallbacks[refCode] = callback;
+        }
     },
     
     setServiceHandler = function(handler, service){

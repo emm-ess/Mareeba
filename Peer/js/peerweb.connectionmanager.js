@@ -13,12 +13,9 @@ peerWeb.ConnectionManager = function(config){
     defaultConfig = {}, l = 6,
     leafSet = {left: [], right: []}, rConnections = [], superPeers = [], friends = [], newConnections = [], 
     amountConPeers = 0, amountConSuperPeers = 0,
-    responseCallbacks = {},
     buildConnection = peerWeb.ConnectionFactory.buildConnection,
     networkMsgHndl,
-    
-    
-    
+
     /**
      * checks if peer is already connected to a certain other peer
      */
@@ -334,12 +331,6 @@ peerWeb.ConnectionManager = function(config){
         if(peerWeb.supportFor.webrtc){
             that.peerDescription.webrtc = true;
         }
-        defaultConfig.storeMessage = function(refCode, msg, callback){
-            storage.storeMessage(refCode, msg);
-            if(callback !== undefined){
-                responseCallbacks[refCode] = callback;
-            }
-        };
         defaultConfig.connectionManager = that;
         defaultConfig.messageHandler = config.messageHandler;
         config.messageHandler.setConnectionManager(that);

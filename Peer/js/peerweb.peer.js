@@ -98,7 +98,7 @@ peerWeb.Peer = function(config){
                 if(config === undefined){
                     config = {};
                 }
-                msgHndl = config.messageHandler || new peerWeb.MessageHandler();
+                msgHndl = config.messageHandler || new peerWeb.MessageHandler({"storeMessage" : function(refCode, msg){storage.storeMessage(refCode, msg);}});
                 netMsgHndl = config.networkMessageHandler || new peerWeb.MessageHandler.Network({"messageHandler": msgHndl});
                 pubMsgHndl = config.publicMessageHandler || new peerWeb.MessageHandler.Public({"messageHandler": msgHndl});
                 peer.numID = BigInteger.parse(peer.id, 16);

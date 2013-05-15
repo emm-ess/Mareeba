@@ -42,6 +42,7 @@ peerWeb.MessageHandler.Network = function(config){
                 conMng.newPeerDiscovered(peerDesc);
             }
         }
+        msgHndl.deleteMessage(msg.head.refCode);
     },
     
     nodeLookupRequest = function(msg, con){
@@ -90,6 +91,7 @@ peerWeb.MessageHandler.Network = function(config){
             msgHndl.answer(msg, con, 200);
         }
         else{
+            msgHndl.deleteMessage(msg.head.refCode);
             peerWeb.log("recieved peerDescription (as Response) Message", "log");
         }
     },
@@ -98,11 +100,17 @@ peerWeb.MessageHandler.Network = function(config){
         if(msg.head.to === peerID){
             conMng.pcDescriptionRecieved(msg.head.from, msg.body);
         }
+        else{
+            msgHndl.forward(msg);
+        }
     },
     
     iceProcess = function(msg){
         if(msg.head.to === peerID){
             conMng.iceProcess(msg.head.from, msg.body);
+        }
+        else{
+            msgHndl.forward(msg);
         }
     },
     

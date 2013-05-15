@@ -35,6 +35,20 @@ peerWeb.MessageHandler.Public = function(config){
         netMsgHndl.nodeLookup(doc.titleID, nodeLookupCallback);
     },
     
+    valueStoreRequest = function(msg, con){
+        peerWeb.log("recieved valueStore Request Message", "log");
+        var doc = JSON.parse(msg.body);
+        doc = new peerWeb.Document(doc);
+        docMng.adddDocument(doc);
+        msg.body = "";
+        msgHndl.answer(msg, con);
+    },
+    
+    valueStoreResponse = function(msg, con){
+        peerWeb.log("recieved valueStore Response Message", "log");
+        msgHndl.deleteMessage(msg.head.refCode);
+    },
+    
     /**
      * verarbeitet valueStore-Nachrichten,
      * speichert deren Body in der Datenbank
@@ -43,11 +57,12 @@ peerWeb.MessageHandler.Public = function(config){
      */
     valueStore = function(msg, con){
         if(msg.head.to === peerID){
-            var doc = JSON.parse(msg.body);
-            doc = new peerWeb.Document(doc);
-            docMng.adddDocument(doc);
-            msg.body = "";
-            msgHndl.answer(msg, con);
+            if(msg.head.code === undefined){
+                valueStoreRequest(msg, con);
+            }
+            else{
+                valueStoreResponse(msg, con);
+            }
         }
         else{
             msgHndl.forward(msg);
@@ -60,15 +75,7 @@ peerWeb.MessageHandler.Public = function(config){
      * @param {Function} callback
      */
     initValueLookup = function(id, callback){
-        var valueLookupCallback = function(msg){
-            if(msg.head.code !== 200){
-                callback(undefined);
-            }
-            else{
-                callback(msg.body);
-            }
-        },
-        msg = {
+        var msg = {
             head: {
                 "to": id,
                 "service": "public",
@@ -79,16 +86,11 @@ peerWeb.MessageHandler.Public = function(config){
             }
         };
         peerWeb.log("Search Document with ID: "+id+" in Network.", "log");
-        msgHndl.send(msg, valueLookupCallback);
+        msgHndl.send(msg, callback);
     },
     
-    /**
-     * verarbeitet valueLookup-Nachrichten
-     * antwortet mit 200 und dem dokument im body, falls dies vorhanden ist; sonst mit 404
-     * @param {Object} msg eingegangene Nachricht
-     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
-     */
-    valueLookup = function(msg, con){
+    valueLookupRequest = function(msg, con){
+        peerWeb.log("recieved valueLookup Request Message", "log");
         var storageResult = function(doc){
             if(doc === undefined){
                 msgHndl.answer(msg, con, 404);
@@ -99,6 +101,36 @@ peerWeb.MessageHandler.Public = function(config){
             }
         };
         docMng.getDocument(msg.body.id, storageResult);
+    },
+    
+    valueLookupResponse = function(msg, con){
+        peerWeb.log("recieved valueLookup Request Message", "log");
+        var refCode = msg.head.refCode, doc,
+        callback = msgHndl.getCallback(refCode);
+        if(msg.head.code !== 200){
+            doc = new peerWeb.Document(msg.body);
+            callback(doc);
+        }
+        else{
+            callback(undefined);
+        }
+        msgHndl.deleteMessage(refCode);
+        msgHndl.deleteCallback(refCode);
+    },
+    
+    /**
+     * verarbeitet valueLookup-Nachrichten
+     * antwortet mit 200 und dem dokument im body, falls dies vorhanden ist; sonst mit 404
+     * @param {Object} msg eingegangene Nachricht
+     * @param {peerWeb.Connection} con Verbindung über die diese geschickt wurde
+     */
+    valueLookup = function(msg, con){
+        if(msg.head.action === undefined){
+            valueLookupRequest(msg, con);
+        }
+        else{
+            valueLookupResponse(msg, con);
+        }
     },
     
     handleMessage = function(msg, con){

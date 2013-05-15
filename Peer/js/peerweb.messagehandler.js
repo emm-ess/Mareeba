@@ -12,22 +12,14 @@ peerWeb.MessageHandler = function(config){
     protocolVersion = "0.1",
     responseCallbacks = {},
     storeMsg = config.storeMessage,
+    deleteMsg = config.deleteMessage,
     
-    
-    /*
-    handleResponse = function(msg, con){
-        var refCode = msg.head.refCode;
-        if(typeof(responseCallbacks[refCode]) ===  "function"){
-            responseCallbacks[refCode](msg, con);
-            responseCallbacks[refCode] = undefined;
-        }
-    };*/
     /**
      * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
      * @param {Object} msg zu verschickende Nachricht
      * @param {Function} callback Funktion, die bei Antwort aufgerufen werden soll
      */
-    buildMandatoryFields = function(msg, that){
+    buildMandatoryFields = function(msg){
         if(msg.head.protocolVersion === undefined){
             msg.head.protocolVersion = protocolVersion;
         }
@@ -79,7 +71,7 @@ peerWeb.MessageHandler = function(config){
         if(save){
             storeMsg(refCode, msg);
         }
-        if(callback !== undefined){
+        if(typeof callback === "function"){
             responseCallbacks[refCode] = callback;
         }
     },
@@ -96,6 +88,16 @@ peerWeb.MessageHandler = function(config){
         conMng = tempConMng;
     },
     
+    getCallback = function(refCode){
+        return responseCallbacks[refCode];
+    },
+    
+    deleteCallback = function(refCode){
+        if(typeof(responseCallbacks[refCode]) ===  "function"){
+            delete responseCallbacks[refCode];
+        }
+    },
+    
     that = {
         "setServiceHandler" : setServiceHandler,
         "getServiceHandler" : getServiceHandler,
@@ -103,7 +105,10 @@ peerWeb.MessageHandler = function(config){
         "handleMessage" : handleMessage,
         "answer" : answer,
         "forward" : forward,
-        "send" : send
+        "send" : send,
+        "deleteMessage" : deleteMsg,
+        "getCallback" : getCallback,
+        "deleteCallback" : deleteCallback
     };
     
     return that;

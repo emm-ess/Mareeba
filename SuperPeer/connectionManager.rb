@@ -125,7 +125,7 @@ class ConnectionManager
       closestPeer.send msg 
     else
       @logger.info "I'm the closest one"
-      handleRequest(msg, peer)
+      #handleRequest(msg, peer)
     end
   end
 end

@@ -21,7 +21,7 @@ peerWeb.Connection.prototype = (function(){
             msg = JSON.stringify(msg);
         }
         couldSend = this._send(msg);
-        peerWeb.log("Message send: "+msg, "debug");
+        peerWeb.log("Message send to Peer: "+this._peerDesc.id+" --- "+msg, "debug");
         return couldSend;
     },
     

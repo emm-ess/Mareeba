@@ -45,6 +45,7 @@ peerWeb.MessageHandler.Network = function(config){
     },
     
     nodeLookupRequest = function(msg, con){
+        peerWeb.log("recieved nodeLookup Request Message for: "+msg.body.id, "log");
         var oldList = msg.body.resultList,
         nearestPeers = conMng.getNearestPeers(msg.body.id, msg.body.resultList, 6);
         
@@ -65,7 +66,6 @@ peerWeb.MessageHandler.Network = function(config){
      * @param {peerWeb.Connection} con Verbindung über die die Nachricht geschickt wurd
      */
     nodeLookup = function(msg, con){
-        peerWeb.log("recieved nodeLookup Message for: "+msg.body.id, "log");
         if(msg.head.code !== undefined){
             nodeLookupRequest(msg, con);
         }
@@ -81,13 +81,16 @@ peerWeb.MessageHandler.Network = function(config){
      * @param {peerWeb.Connection} con Verbindung über die die Nachricht geschickt wurde
      */
     peerDescription = function(msg, con){
-        peerWeb.log("recieved peerDescription Message", "log");
-        if(msg.head.code !== undefined){
+        if(msg.head.code === undefined){
+            peerWeb.log("recieved peerDescription (as Request) Message", "log");
             var peerDesc = msg.body.peerDescription,
             numID = BigInteger.parse(peerDesc.id, 16);
             con.setDescription(peerDesc, numID);
-            msgHndl.answer(msg, con);
             conMng.peerDescriptionRecieved(peerDesc, con, numID);
+            msgHndl.answer(msg, con, 200);
+        }
+        else{
+            peerWeb.log("recieved peerDescription (as Response) Message", "log");
         }
     },
     

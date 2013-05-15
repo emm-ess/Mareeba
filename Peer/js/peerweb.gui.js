@@ -7,7 +7,7 @@ peerWeb.namespace("GUI");
 peerWeb.GUI= function(){
     "use strict";
     var config, baseURL = peerWeb.baseURL, 
-    onLocationChange, articleSearchButtonClick, newArticleButtonClick, indexScreen,
+    onLocationChange, documentSearchButtonClick, newDocumentButtonClick, indexScreen,
     aClickFunction;
     
     /**
@@ -33,7 +33,7 @@ peerWeb.GUI= function(){
         var showIndecies = function(indecies){
             var indexList = "";
             indecies.forEach(function(element){
-                indexList += "<li><a href=\"article-"+element.titleID+"\" title=\""+element.title+"\">"+element.title+"</a></li>";
+                indexList += "<li><a href=\"document-"+element.titleID+"\" title=\""+element.title+"\">"+element.title+"</a></li>";
             });
             $('#a-z-result').html('<ul>'+indexList+'</ul>');
             $('#a-z-result a').click(aClickFunction);
@@ -43,7 +43,7 @@ peerWeb.GUI= function(){
     
     /**
      * passt die GUI entsprechend der URL im Browser an
-     * @param {String} newLoc URL ab dem Wurzelverzeichnis von peerWeb
+     * @param {Object} newLoc URL ab dem Wurzelverzeichnis von peerWeb
      */
     onLocationChange = function(state){
         var exactLoc, newLoc;
@@ -59,15 +59,15 @@ peerWeb.GUI= function(){
         peerWeb.log("new Browser location: "+newLoc, "log");
         exactLoc = newLoc.split("-");
         $('#main section').hide();
-        if(exactLoc[0] === "article"){
-            $('#article-screen').html('<h2>Lade Artikel</h2>');
-            $('#article-screen').show();
-            config.articleSearchByID( exactLoc[1], function(doc){
+        if(exactLoc[0] === "document"){
+            $('#document-screen').html('<h2>Lade Dokument</h2>');
+            $('#document-screen').show();
+            config.documentSearchByID( exactLoc[1], function(doc){
                 if(doc !== undefined){
-                    $('#article-screen').html(doc.toHTML());
+                    $('#document-screen').html(doc.toHTML());
                 }
                 else{
-                    $('#article-screen').html('<h2>Es wurde kein entsprechender Artikel gefunden.</h2>');
+                    $('#document-screen').html('<h2>Es wurde kein entsprechendes Dokument gefunden.</h2>');
                 }
             });
         }
@@ -85,17 +85,17 @@ peerWeb.GUI= function(){
     /**
      * nimmt den Suchbegriff entgegen und leitet ihn weiter
      */
-    articleSearchButtonClick = function(event){
+    documentSearchButtonClick = function(event){
         event.preventDefault();
         $('#inner-overlay').html('<h2>suche</h2>');
         $('#overlay').fadeIn('slow');
-        config.articleSearch( $('#search-article-title').val().trim(), function(doc){
+        config.documentSearch( $('#search-document-title').val().trim(), function(doc){
             if(doc !== undefined){
-                $('#article-search-result').html(doc.toHTML());
+                $('#document-search-result').html(doc.toHTML());
                 $('#overlay').fadeOut('slow');
             }
             else{
-                $('#article-search-result').html('<h2>Es wurde kein entsprechender Artikel gefunden.</h2>');
+                $('#document-search-result').html('<h2>Es wurde kein entsprechendes Dokument gefunden.</h2>');
                 $('#overlay').fadeOut('slow');
             }
         });
@@ -104,15 +104,15 @@ peerWeb.GUI= function(){
     /**
      * nimmt die Eingaben zu einem neuen Artikel auf und leitet sie weiter.
      */
-    newArticleButtonClick = function(event){
+    newDocumentButtonClick = function(event){
         event.preventDefault();
-        var article = {
-            title: $('#new-article-title').val().trim(),
-            content: $('#new-article-content').val().trim()
+        var document = {
+            title: $('#new-document-title').val().trim(),
+            content: $('#new-document-content').val().trim()
         };
-        if(article.title !== "" && article.content !== ""){
-            config.newArticle(article);
-            alert("Der Artikel wurde gespeichert und ist nun im Netzwerk verfügbar.");
+        if(document.title !== "" && document.content !== ""){
+            config.newDocument(document);
+            alert("Das Dokument wurde gespeichert und ist nun im Netzwerk verfügbar.");
         }
         else {
             alert("Der Titel oder der Inhalt wurde nicht angegeben.");
@@ -165,7 +165,7 @@ peerWeb.GUI= function(){
             };
             history.pushState(state, state.title, document.URL);
         }
-        $('button#new-article-button').click(newArticleButtonClick);
-        $('button#article-search-button').click(articleSearchButtonClick);
+        $('button#new-document-button').click(newDocumentButtonClick);
+        $('button#document-search-button').click(documentSearchButtonClick);
     })();
 };

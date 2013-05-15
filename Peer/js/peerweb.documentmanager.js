@@ -6,19 +6,38 @@ peerWeb.namespace("DocumentManager");
  * @param {peerWeb.Peer} peer Referenz auf den lokalen Peer
  * @param {peerWeb.Storage} storage Speichermodul von peerWeb
  */
-peerWeb.DocumentManager = function(peer, storage){
+peerWeb.DocumentManager = function(config){
     "use strict";
-    var that = this;
+    var that = this,
+    peer = config.peer, storage = config.storage,
+    docMsgHndl;
     
     /**
      * nimmt ein Document entgegen und speichert dies lokal sowie im Netzwerk
      * @param {peerWeb.Document} doc zu verwaltendes Dokument
      */
-    this.registerOwnDocument = function(doc){
+    this.addOwnDocument = function(doc){
         var data = doc.getDataObject();
         peerWeb.log("should manage new users document with titleID: "+data.titleID, "log");
-        peer.storeInNetwork(data);
+        docMsgHndl.initValueStore(data);
         storage.saveDocument(data);
+    };
+    
+    this.addDocument = function(doc){
+        var data = doc.getDataObject();
+        storage.saveDocument(data);
+    };
+    
+    this.getDocument = function(id, callback){
+        storage.getDocument(id, function(doc){
+            if(doc !== undefined){
+                doc = new peerWeb.Document(doc);
+                callback(doc);
+            }
+            else {
+                callback(undefined);
+            }
+        });
     };
     
     /**
@@ -27,9 +46,9 @@ peerWeb.DocumentManager = function(peer, storage){
      * @param {String} title Titel nach dem gesucht wird.
      * @param {Function} callback Methode die bei Fund oder Nichtfund aufgerufen wird.
      */
-    this.searchArticle = function(title, callback){
+    this.searchDocument = function(title, callback){
         var potID = CryptoJS.SHA1(title).toString(CryptoJS.enc.Hex);
-        that.searchArticleByID(potID, callback);
+        that.searchDocumentByID(potID, callback);
     };
     
     /**
@@ -38,23 +57,19 @@ peerWeb.DocumentManager = function(peer, storage){
      * @param {String} id ID nach der gesucht wird.
      * @param {Function} callback Methode die bei Fund oder Nichtfund aufgerufen wird.
      */
-    this.searchArticleByID = function(id, callback){
-        var networkResult = function(doc){
+    this.searchDocumentByID = function(id, callback){
+        that.getDocument(id, function(doc){
             if(doc !== undefined){
-                storage.saveDocument(doc);
-                doc = new peerWeb.Document(doc);
-            }
-            callback(doc);
-        },
-        storageResult = function(doc){
-            if(doc !== undefined){
-                doc = new peerWeb.Document(doc);
                 callback(doc);
             }
-            else {
-                peer.searchInNetwork(id, networkResult);
+            else{
+                docMsgHndl.initValueLookup(id, callback);
             }
-        };
-        storage.getDocument(id, storageResult);
+        });
     };
+    
+    (function(){
+        docMsgHndl = config.messageHandler.getServiceHandler("public");
+        docMsgHndl.setDocumentManager(that);
+    })();
 };

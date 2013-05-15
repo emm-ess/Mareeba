@@ -70,7 +70,8 @@ peerWeb.Connection.prototype = (function(){
     },
     
     init = function(__peerDesc, __config){
-        var that = this;
+        var that = this,
+        msgHndl;
         if(__config === null || __config === undefined){
             throw {
                 name: "Error",
@@ -78,6 +79,7 @@ peerWeb.Connection.prototype = (function(){
             };
         }
         conManager = __config.connectionManager;
+        msgHndl = __config.messageHandler;
         __config.onerror = function(err){peerWeb.log(err, "error");};
         
         __config.onclose = function(msg){
@@ -88,7 +90,7 @@ peerWeb.Connection.prototype = (function(){
         __config.onmessage = function(msg){
             peerWeb.log("Message recieved: "+msg.data, "log");
             msg = JSON.parse(msg.data);
-            conManager.handleMessage(msg, that);
+            msgHndl.handleMessage(msg, that);
         };
         
         __config.onopen = function(e){onopen(e,that);};

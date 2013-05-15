@@ -35,7 +35,7 @@
 						<a href="a-z" title="A-Z">A-Z</a>
 					</li>
 					<li>
-						<a href="new-article" title="neuer Artikel">neuer Artikel</a>
+						<a href="new-document" title="neues Dokument">neues Dokument</a>
 					</li>
 					<li>
 						<a href="settings" title="Einstellungen">Einstellungen</a>
@@ -62,13 +62,13 @@
 	
 				<section id="search-screen">
 					<h2>Suche</h2>
-					<p class="description">Es kann nach Artikeln gesucht werden, die nicht in Ihrem Index vermerkt sind. Hierfür wird jedoch der Titel benötigt, wie er in dem
+					<p class="description">Es kann nach Dokumenten gesucht werden, die nicht in Ihrem Index vermerkt sind. Hierfür wird jedoch der Titel benötigt, wie er in dem
 						Dokument angegeben ist.</p>
-					<form id="article-search">
-						<input type="text" name="search-article-title" id="search-article-title" /><br />
-						<button id="article-search-button">suchen &amp; anzeigen</button>
+					<form id="document-search">
+						<input type="text" name="search-document-title" id="search-document-title" /><br />
+						<button id="document-search-button">suchen &amp; anzeigen</button>
 					</form>
-					<div id="article-search-result"> </div>
+					<div id="document-search-result"> </div>
 				</section>
 	
 				<section id="a-z-screen">
@@ -79,7 +79,7 @@
 					<div id="a-z-result">lade Indexeinträge</div>
 				</section>
 				
-				<section id="article-screen">
+				<section id="document-screen">
 					
 				</section>
 				
@@ -88,16 +88,16 @@
 					<p class="description">peerWeb unterstützt der Zeit noch keine Freundschaftsverbindungen.</p>
 				</section>
 	
-				<section id="new-article-screen">
-					<h2>neuer Artikel</h2>
+				<section id="new-document-screen">
+					<h2>neues Dokument</h2>
 					<p class="description">An dieser Stelle können neue Dokumente angelegt werden. Da zur Zeit noch keine Versionierung stattfindet, werden bei Angabe gleicher
 						Titel der ältere überschrieben.</p>
-					<form id="new-article">
-						<label for="new-article-title">Titel</label>
-						<input type="text" name="new-article-title" id="new-article-title" /><br />
-						<label for="new-article-content">Inhalt</label>
-						<textarea name="new-article-content" id="new-article-content"> </textarea><br />
-						<button id="new-article-button">speichern</button>
+					<form id="new-document">
+						<label for="new-document-title">Titel</label>
+						<input type="text" name="new-document-title" id="new-document-title" /><br />
+						<label for="new-document-content">Inhalt</label>
+						<textarea name="new-document-content" id="new-document-content"> </textarea><br />
+						<button id="new-document-button">speichern</button>
 					</form>
 				</section>
 			</div>
@@ -122,6 +122,10 @@
 		
 		<script src="js/peerweb.js"></script>
 		<script src="js/peerweb.peer.js"></script>
+		
+		<script src="js/peerweb.messagehandler.js"></script>
+		<script src="js/peerweb.messagehandler.network.js"></script>
+		<script src="js/peerweb.messagehandler.public.js"></script>
 		
 		<script src="js/peerweb.connection.js"></script>
 		<script src="js/peerweb.connection.webrtc.js"></script>

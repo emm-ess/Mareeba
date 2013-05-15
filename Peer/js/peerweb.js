@@ -6,7 +6,7 @@
 (function(window){
     "use strict";
     var peerWeb = window.peerWeb || {},
-    peer, logDisplay;
+    logDisplay;
     
     //define functions of peerWeb
     //
@@ -111,14 +111,6 @@
      */
     peerWeb.BIGGESTID = BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16);
     
-    /**
-     * Eingangspunkt.
-     * erzeugt eine Instanz von peerWeb.Peer
-     */
-    peerWeb.init = function(){
-        peer = new peerWeb.Peer();
-    };
-    
     window.peerWeb = peerWeb;
 })( window );
 
@@ -127,5 +119,5 @@
  */
 $(document).ready(function(){
     "use strict";
-    peerWeb.init();
+    new peerWeb.Peer();
 });

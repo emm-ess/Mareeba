@@ -1,25 +1,60 @@
 peerWeb.namespace("MessageHandler");
 /**
- * Wrapper für WebRTC basierte p2p-Verbindungen
+ * Main Class for Handling Messages
  * @author Marten Schälicke
  * @constructor
  * @param {Object} config
  */
-peerWeb.MessageHandler = function(config){
+peerWeb.MessageHandler = function(){
     "use strict";
-    var netMsgHndl = config.networkMessageHandler,
-    pubMsgHndl = config.publicMessageHandler;
+    var serviceHndl = {}, conMng,
+    peerID = peerWeb.Peer.id,
     
-    this.handleMessage = function(msg, con){
-        switch(msg.head.service){
-            case "network": netMsgHndl.handleMessage(msg, con);
-            break;
-            case "public": pubMsgHndl.handleMessage(msg, con);
-            break;
-            default:
-                //unknown or unimplemented message. log those to determine if it is an attack
-                peerWeb.log("recieved request for unknown service: "+msg.head.service, "warn");
-            break;
+    handleMessage = function(msg, con){
+        if(!!serviceHndl[msg.head.service]){
+            serviceHndl[msg.head.service].handleMessage(msg, con);
         }
+        else{
+            peerWeb.log("recieved request for unknown service: "+msg.head.service, "warn");
+        }
+    },
+    
+    answer = function(msg, con, code){
+        msg.head.code = code;
+        msg.head.to = msg.head.from;
+        msg.head.from = peerID;
+        con.sendMsg(msg);
+    },
+    
+    forward = function(msg, con){
+        conMng.route(msg);
+    },
+    
+    send = function(msg){
+        conMng.send(msg);
+    },
+    
+    setServiceHandler = function(handler, service){
+        serviceHndl[service] = handler;
+    },
+    
+    getServiceHandler = function(service){
+        return serviceHndl[service];
+    },
+    
+    setConnectionManager = function(tempConMng){
+        conMng = tempConMng;
+    },
+    
+    that = {
+        "setServiceHandler" : setServiceHandler,
+        "getServiceHandler" : getServiceHandler,
+        "setConnectionManager" : setConnectionManager,
+        "handleMessage" : handleMessage,
+        "answer" : answer,
+        "forward" : forward,
+        "send" : send
     };
+    
+    return that;
 };

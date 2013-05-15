@@ -6,9 +6,9 @@ peerWeb.namespace("Peer");
  * @author Marten Schälicke
  * @constructor
  */
-peerWeb.Peer = function(){
+peerWeb.Peer = function(config){
     "use strict";
-    var conManager, docManager, storage, peer, gui,
+    var conMng, docMng, storage, peer = this, gui,
     //private Methods
     generateID;
     
@@ -70,13 +70,6 @@ peerWeb.Peer = function(){
         });
     };
     
-    //making sure initialcode is only called once, using singletonpattern
-    peerWeb.Peer = function(){
-        return peer;
-    };
-    peerWeb.Peer.prototype = this;
-    peer = new peerWeb.Peer();
-    peer.constructor = peerWeb.Peer;
     
     /**
      * Initierungscode
@@ -88,22 +81,29 @@ peerWeb.Peer = function(){
         usable, supportFor = peerWeb.supportFor;
         
         setGUICallbacks = function(){
-            var config = {};
-            config.newArticle = function(articleData){
-                var document = new peerWeb.Document(articleData);
-                docManager.registerOwnDocument(document);
+            var guiConfig = {};
+            guiConfig.newDocument = function(documentData){
+                var document = new peerWeb.Document(documentData);
+                docMng.addOwnDocument(document);
             };
-            config.articleSearch = docManager.searchArticle;
-            config.articleSearchByID = docManager.searchArticleByID;
-            config.getAllIndexEntries = storage.getAllIndexEntries;
-            gui.setConfig(config);
+            guiConfig.documentSearch = docMng.searchDocument;
+            guiConfig.documentSearchByID = docMng.searchDocumentByID;
+            guiConfig.getAllIndexEntries = storage.getAllIndexEntries;
+            gui.setConfig(guiConfig);
         };
         
         continueInit = function(){
+            var msgHndl, netMsgHndl, pubMsgHndl;
             if(storage.isUsable() && peer.id !== null){
+                if(config === undefined){
+                    config = {};
+                }
+                msgHndl = config.messageHandler || new peerWeb.MessageHandler();
+                netMsgHndl = config.networkMessageHandler || new peerWeb.MessageHandler.Network({"messageHandler": msgHndl});
+                pubMsgHndl = config.publicMessageHandler || new peerWeb.MessageHandler.Public({"messageHandler": msgHndl});
                 peer.numID = BigInteger.parse(peer.id, 16);
-                conManager = new peerWeb.ConnectionManager(peer, storage);
-                docManager = new peerWeb.DocumentManager(peer, storage);
+                conMng = new peerWeb.ConnectionManager({"peer": peer, "storage": storage, "messageHandler": msgHndl, "onConnectivityChange": gui.updateConnectivityInfo});
+                docMng = new peerWeb.DocumentManager({"peer": peer, "storage": storage, "messageHandler": msgHndl});
                 peerWeb.log("Waiting for Connections.", "info");
                 setGUICallbacks();
                 gui.peerReady();
@@ -137,28 +137,6 @@ peerWeb.Peer = function(){
         }
     })();
     
-    /**
-     * reicht das gegebende Objekt an den ConnectionManager weiter, welcher dies im Netzwerk ablegt.
-     * @param {Object} data Data-Objekt des zu speichernden Dokuments
-     */
-    peer.storeInNetwork = function(data){
-        conManager.storeInNetwork(data);
-    };
-    
-    /**
-     * reicht die Anfrage an den ConnectionManager weiter
-     * @param {String} id des gesuchten Dokuments
-     */
-    peer.searchInNetwork = function(id, callback){
-        conManager.searchInNetwork(id, callback);
-    };
-    
-    /**
-     * updates the the number of connections shown
-     */
-    peer.updateConnectivityInfo = function(peerCons, superPeerCons, openingCons){
-        gui.updateConnectivityInfo(peerCons, superPeerCons, openingCons);
-    };
-    
+    peerWeb.Peer = peer;
     return peer;
 };

@@ -26,91 +26,60 @@
         <![endif]-->
 		
 		<header>
-			<h1>peerWeb</h1>
-		</header>
-
-		<div id="content">
+			<h1><a href="home" title="Startseite">peerWeb</a></h1>
+			<form id="document-search">
+				<h2><label for="search-document-title">Suche</label></h2>
+				<input type="text" name="search-document-title" id="search-document-title" placeholder="Titel" />
+				<button id="document-search-button">suchen</button>
+			</form>
 			<nav>
 				<ul>
-					<li class="active">
-						<a href="home" title="Startseite">Startseite</a>
-					</li>
-					<li>
-						<a href="friends" title="Freunde">Freunde</a>
-					</li>
-					<li>
-						<a href="search" title="Suche">Suche</a>
-					</li>
-					<li>
+					<li class="first">
 						<a href="a-z" title="A-Z">A-Z</a>
 					</li>
 					<li>
 						<a href="new-document" title="neues Dokument">neues Dokument</a>
 					</li>
-					<li>
-						<a href="settings" title="Einstellungen">Einstellungen</a>
-					</li>
 				</ul>
 			</nav>
-		
-			<div id="main">
-				<section id="home-screen">
-					<h2>Willkommen bei PeerWeb</h2>
-					<p class="description">peerWeb ist ein browserbasiertes Peer-to-Peer-Netzwerk und womöglich ein Einstieg in das Web 3.0. Zunächst wirkt es sicherlich nicht so. Es scheint ein Wiki oder eine Art soziales Netzwerk zu sein, was es schon mehr als einmal gibt. Die Besonderheit von peerWeb liegt in der Technik. Alle Inhalte innerhalb von peerWeb werden dezentral abgelegt und zwar bei den Nutzern der Seite! Große Server sind damit nicht mehr notwendig. Wie das ganze dennoch funktioniert steht im Wiki. Somit kann einer Zensur des Internets - durch Sperren von Internetseiten - entgegengewirkt werden. Außerdem sparrt es große Rechenzentren, da die Nutzer den Speicherplatz bereitstellen. Und es kann keine zentrale Stelle das Verhalten eines Nutzers analysieren.</p>
+		</header>
+
+		<div id="main">
+			<section id="home-screen">
+				<h2>Willkommen bei PeerWeb</h2>
+				<p class="description">peerWeb ist ein browserbasiertes Peer-to-Peer-Netzwerk und womöglich ein Einstieg in das Web 3.0. Zunächst wirkt es sicherlich nicht so. Es scheint ein Wiki oder eine Art soziales Netzwerk zu sein, was es schon mehr als einmal gibt. Die Besonderheit von peerWeb liegt in der Technik. Alle Inhalte innerhalb von peerWeb werden dezentral abgelegt und zwar bei den Nutzern der Seite! Große Server sind damit nicht mehr notwendig. Wie das ganze dennoch funktioniert steht im Wiki. Somit kann einer Zensur des Internets - durch Sperren von Internetseiten - entgegengewirkt werden. Außerdem sparrt es große Rechenzentren, da die Nutzer den Speicherplatz bereitstellen. Und es kann keine zentrale Stelle das Verhalten eines Nutzers analysieren.</p>
 
 <p>Noch ist das Ganze in den Kinderschuhen, wenn nicht gar in Babyschuhen. Noch ist nicht einmal der öffentliche Teil vollständig umgesetzt. Auch wenn es in Grundzügen schon benutzbar ist, so fehlen doch noch wichtige Funktionen, die zum Beispiel einen Missbrauch verhindern. Von dem späteren sozialen Aspekt - dem Netzwerk im Netzwerk - ganz zu schweigen. Zur Zeit ist ebenso die Verbindungsstruktur auf gleichbleibende Verhältnisse ausgelegt, so dass unter Umständen nicht alles funktioniert wie es sollte. Das liegt einfach daran, dass es sich hierbei um eine Bachelorarbeit handelt, deren Fokus auf der Spezifizierung des Gesamtsystems mit allen zukünftigen Möglichkeiten lag. Diese Umsetzung ist eben nur der Beginn davon, quasi die Machbarkeitsstudie, welche nun nach und nach vervollständigt wird.
-					</p>
-					<p>Für eine optimale Benutzung von peerWeb wird die Verwendung der aktuellen Version von Chrome empfohlen. Firefox wird auch unterstützt, hier muss jedoch
-						- wie Sie wahrscheinlich sehen - ein Flag in den Einstellungen gesetzt werden. Dazu wird in "about:config" der Wert für "layout.css.flexbox.enabled"
-						auf true gesetzt.</p>
-				</section>
-	
-				<section id="settings-screen">
-					<h2>Einstellungen</h2>
-					<p class="description">Noch können die Einstellungen des Knotens nicht verändert werden.</p>
-				</section>
-	
-				<section id="search-screen">
-					<h2>Suche</h2>
-					<p class="description">Es kann nach Dokumenten gesucht werden, die nicht in Ihrem Index vermerkt sind. Hierfür wird jedoch der Titel benötigt, wie er in dem
-						Dokument angegeben ist.</p>
-					<form id="document-search">
-						<input type="text" name="search-document-title" id="search-document-title" /><br />
-						<button id="document-search-button">suchen &amp; anzeigen</button>
-					</form>
-					<div id="document-search-result"> </div>
-				</section>
-	
-				<section id="a-z-screen">
-					<h2>A-Z</h2>
-					<p class="description">Hier finden sich die Einträge im Index Ihres Knotens. Die hier aufgeführten Artikel müssen dabei nicht in diesem gespeichert sein,
-						außerdem handelt es sich hierbei um keine vollständige Liste der in peerWeb verfügbaren Dokumente. Falls die Liste leer ist, legen Sie doch einfach
-						einen Artikel an.</p>
-					<div id="a-z-result">lade Indexeinträge</div>
-				</section>
+				</p>
+				<p>Für eine optimale Benutzung von peerWeb wird die Verwendung der aktuellen Version von Chrome empfohlen. Firefox wird auch unterstützt, hier muss jedoch
+					- wie Sie wahrscheinlich sehen - ein Flag in den Einstellungen gesetzt werden. Dazu wird in "about:config" der Wert für "layout.css.flexbox.enabled"
+					auf true gesetzt.</p>
+			</section>
+
+			<section id="a-z-screen">
+				<h2>A-Z</h2>
+				<p class="description">Hier finden sich die Einträge im Index Ihres Knotens. Die hier aufgeführten Artikel müssen dabei nicht in diesem gespeichert sein,
+					außerdem handelt es sich hierbei um keine vollständige Liste der in peerWeb verfügbaren Dokumente. Falls die Liste leer ist, legen Sie doch einfach
+					einen Artikel an.</p>
+				<div id="a-z-result">lade Indexeinträge</div>
+			</section>
+			
+			<section id="document-screen">
 				
-				<section id="document-screen">
-					
-				</section>
-				
-				<section id="friends-screen">
-					<h2>Freunde</h2>
-					<p class="description">peerWeb unterstützt der Zeit noch keine Freundschaftsverbindungen.</p>
-				</section>
-	
-				<section id="new-document-screen">
-					<h2>neues Dokument</h2>
-					<p class="description">An dieser Stelle können neue Dokumente angelegt werden. Da zur Zeit noch keine Versionierung stattfindet, werden bei Angabe gleicher
-						Titel der ältere überschrieben.</p>
-					<form id="new-document">
-						<label for="new-document-title">Titel</label>
-						<input type="text" name="new-document-title" id="new-document-title" /><br />
-						<label for="new-document-content">Inhalt</label>
-						<textarea name="new-document-content" id="new-document-content"> </textarea><br />
-						<button id="new-document-button">speichern</button>
-					</form>
-				</section>
-			</div>
+			</section>
+
+			<section id="new-document-screen">
+				<h2>neues Dokument</h2>
+				<p class="description">An dieser Stelle können neue Dokumente angelegt werden. Da zur Zeit noch keine Versionierung stattfindet, werden bei Angabe gleicher
+					Titel der ältere überschrieben.</p>
+				<form id="new-document">
+					<label for="new-document-title">Titel</label>
+					<input type="text" name="new-document-title" id="new-document-title" /><br />
+					<label for="new-document-content">Inhalt</label>
+					<textarea name="new-document-content" id="new-document-content"> </textarea><br />
+					<button id="new-document-button">speichern</button>
+				</form>
+			</section>
 		</div>
 		
 		<div id="overlay">

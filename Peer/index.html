@@ -28,9 +28,9 @@
 		<header>
 			<h1><a href="home" title="Startseite">peerWeb</a></h1>
 			<form id="document-search">
-				<h2><label for="search-document-title">Suche</label></h2>
-				<input type="text" name="search-document-title" id="search-document-title" placeholder="Titel" />
-				<button id="document-search-button">suchen</button>
+				<h2 class="visuallyhidden"><label for="search-document-title">Suche</label></h2>
+				<input type="search" name="search-document-title" id="search-document-title" placeholder="Titel" />
+				<input type="submit" id="document-search-button" value="suchen" />
 			</form>
 			<nav>
 				<ul>
@@ -73,11 +73,17 @@
 				<p class="description">An dieser Stelle können neue Dokumente angelegt werden. Da zur Zeit noch keine Versionierung stattfindet, werden bei Angabe gleicher
 					Titel der ältere überschrieben.</p>
 				<form id="new-document">
-					<label for="new-document-title">Titel</label>
-					<input type="text" name="new-document-title" id="new-document-title" /><br />
-					<label for="new-document-content">Inhalt</label>
-					<textarea name="new-document-content" id="new-document-content"> </textarea><br />
-					<button id="new-document-button">speichern</button>
+					<div>
+						<label for="new-document-title">Titel</label>
+						<div><input type="text" name="new-document-title" id="new-document-title" spellcheck="true" /></div>
+					</div>
+					<div>
+						<label for="new-document-content">Inhalt</label>
+						<div><textarea name="new-document-content" id="new-document-content" spellcheck="true" rows="10" cols="50"></textarea></div>
+					</div>
+					<div>
+						<div><input type="submit" id="new-document-button" value="speichern" /></div>
+					</div>
 				</form>
 			</section>
 		</div>

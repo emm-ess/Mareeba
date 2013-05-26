@@ -96,7 +96,68 @@ textarea {
 body {
 	background: #EEEEEE;
 	font-family: 'Ubuntu', 'Verdana', 'Helvectia', 'Arial', sans-serif;
+}
+
+form > div {
+	clear: both;
+	padding: 1px;
+	overflow: hidden;
+	margin: 0 0 10px 0;
+}
+
+form > div > label,
+form > div > fieldset > legend {
+	width: 20%;
+	float: left;
+	padding-right: 10px;
+}
+
+form > div > div,
+form > div > fieldset > div {
+	width: 75%;
+	float: right;
+}
+
+input[type=text],
+input[type=email],
+input[type=url],
+input[type=password],
+select,
+textarea {
+	vertical-align:middle;
 	font-size: 1em;
+	width: 98%;
+	padding: 5px 3px 3px 3px; 
+	background: #FAFAFA; 
+	border-top: 1px solid #AAA;
+	border-left: 1px solid #AAA;
+	border-right: 1px solid #CCC;
+	border-bottom: 1px solid #CCC;
+}
+
+input[type=text],
+input[type=email],
+input[type=url],
+input[type=password] {
+	width: 75%;
+}
+
+input[type=text]:focus,
+input[type=email]:focus,
+input[type=url]:focus,
+input[type=password]:focus,
+textarea:focus {
+  outline: 0;
+  border-color: #4697e4;
+}
+
+form input[type=submit] {
+	min-width: 80px; 
+	padding: 3px 10px; 
+	border: none; 
+	color: #EEEEEE; 
+	background: #363636;
+	cursor: pointer;
 }
 
 header {
@@ -134,14 +195,8 @@ header #document-search {
 	float: left;
 }
 
-header #document-search h2 {
-	position: absolute;
-	top: -9999px;
-	left: -9999px;
-}
-
-header #document-search input {
-	vertical-align:middle; 
+header #document-search input[type=search] {
+    vertical-align:middle; 
 	font-weight:bold; 
 	font-size: 1em;
 	width:400px; 
@@ -151,13 +206,14 @@ header #document-search input {
 	margin-right:-87px; 
 }
 
-header #document-search button {
-	width:80px; 
+header #document-search input[type=submit] {
+  	width:80px; 
 	padding:2px; 
 	border:none; 
 	color: #EEEEEE; 
 	background: #363636;
 	cursor:pointer;
+	margin-left: 0px;
 }
 
 header #document-search button::-moz-focus-inner {
@@ -253,20 +309,6 @@ footer {
 	height: 1.5em;
 	background: rgb(112,112,112);
 	color: rgb(235,235,235);
-}
-
-form label {
-	width: 150px;
-	display: inline-block;
-}
-
-form input {
-	width: 400px;
-}
-
-form textarea {
-	width: 650px;
-	height: 400px;
 }
 
 /* initial appearance */
@@ -408,7 +450,7 @@ section#a-z-screen, section#new-document-screen, section#document-screen {
    		width: 90%;
    }
    
-   header #document-search input {
+   header #document-search input[type=search] {
    		max-width: 40%;
    		min-width: 146px;
    }
@@ -431,6 +473,31 @@ section#a-z-screen, section#new-document-screen, section#document-screen {
    #main section {
    		width: 100%;
    }
+}
+
+@media only screen and (max-width: 600px) {
+	form > div > label,
+	form > div > fieldset > legend {
+		width: 100%;
+		float: none;
+		padding-right: 0px;
+		margin-bottom: 5px;
+	}
+
+	form > div > div,
+	form > div > fieldset > div {
+		width: 98%;
+		float: none;
+	}
+	
+	input[type=text],
+	input[type=email],
+	input[type=url],
+	input[type=password],
+	select,
+	textarea {
+		width: 100%;
+	}
 }
 
 @media print,

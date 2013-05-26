@@ -49,7 +49,7 @@ peerWeb.GUI= function(){
         var exactLoc, newLoc;
         state = state || history.state;
         if(state === null || state === undefined){
-            $('#content nav li').removeClass('active');
+            $('header nav li').removeClass('active');
             $('li a[href=home]').parent().addClass('active');
             $('#main section').hide();
             $('#home-screen').show();
@@ -72,7 +72,7 @@ peerWeb.GUI= function(){
             });
         }
         else{
-            $('#content nav li').removeClass('active');
+            $('header nav li').removeClass('active');
             $('li a[href='+newLoc+']').parent().addClass('active');
             $('#'+newLoc+'-screen').show();
             if(newLoc === "a-z"){

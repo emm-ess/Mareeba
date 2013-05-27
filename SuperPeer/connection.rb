@@ -4,13 +4,13 @@ require 'logger'
 
 class Connection
   attr_accessor :description, :connection
-  def initialize con, logger
+  def initialize(con, logger)
     @connection = con
     @logger = logger
   end
   
-  def send msg
-    if not msg.is_a? String
+  def send(msg)
+    if(not msg.is_a? String)
       msg = msg.to_json
     end 
     @logger.debug "peerID: "+description['id']+" msg: "+msg

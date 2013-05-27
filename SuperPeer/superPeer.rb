@@ -7,6 +7,9 @@ require_relative 'connection'
 require_relative 'connectionManager'
 require_relative 'publicMessageHandler'
 require_relative 'documentManager'
+require_relative 'messageHandler'
+require_relative 'networkMessageHandler'
+require_relative 'publicMessageHandler'
 
 options = {}
 
@@ -30,8 +33,13 @@ optparse = OptionParser.new do |opts|
     options[:directory] = directory
   end
 
+  options[:debug_em] = false
+  opts.on('--debug-em', 'debug WebSocket Server') do
+    options[:debug_em] = true
+  end
+
   options[:debug] = false
-  opts.on('-D', '--debug', 'show all messages of em-websockets') do
+  opts.on('-D', '--debug', '') do
     options[:debug] = true
   end
 
@@ -84,7 +92,7 @@ end
     whence = $:.detect { |p| path.start_with?(p) }
     if !whence
       # We get here if the path is not in $:
-      file = path
+      file = path[options[:directory].length + 0..-1]
     else
       file = path[whence.length + 1..-1]
     end
@@ -103,10 +111,14 @@ class SuperPeer
       "id" => @id,
       "ws" => "ws://"+host+":"+port.to_s
     }
-    @docManager = DocumentManager.new(directory, @logger)
-    @conManager = ConnectionManager.new(@peerDesc, @logger)
-    pubMsgHandler = PublicMessageHandler.new(@conManager, @docManager, @logger)
-    @conManager.publicMessageHandler = pubMsgHandler
+    @msgHndl = MessageHandler.new(@id, @logger)
+    @netMsgHndl = NetworkMessageHandler.new(@msgHndl, @id, @logger)
+    @pubMsgHndl = PublicMessageHandler.new(@msgHndl, @id, @logger)
+    @docMng = DocumentManager.new(directory, @logger)
+    @conMng = ConnectionManager.new(@peerDesc, @logger)
+    @msgHndl.setConnectionManager(@conMng)
+    @netMsgHndl.setConnectionManager(@conMng)
+    @pubMsgHndl.setDocumentManager(@docMng)
   end
   
   def description
@@ -117,35 +129,40 @@ class SuperPeer
     @id
   end
   
-  def getConManager
-    @conManager
+  def getConMng
+    @conMng
+  end
+  
+  def getMsgHndl
+    @msgHndl
   end
 end
 
 #start server
 EventMachine.run do
   @superPeer = SuperPeer.new(options[:ip], options[:host], options[:port], options[:directory], @logger)
-  @conManager = @superPeer.getConManager
+  @conMng = @superPeer.getConMng
+  @msgHndl = @superPeer.getMsgHndl
   
-  EventMachine::WebSocket.start(:host => options[:ip], :port => options[:port], :debug => options[:debug]) do |ws|
+  EventMachine::WebSocket.start(:host => options[:ip], :port => options[:port], :debug => options[:debug_em]) do |ws|
 
-    connection = Connection.new ws, @logger
+    connection = Connection.new(ws, @logger)
     
     ws.onopen {
       msg = ({:head => {:service => "network", :action => "peerDescription", :from => @superPeer.id}, :body => {:peerDescription => @superPeer.description}}).to_json
       # msg = JSON.generate msg
       ws.send msg
-      @conManager.newConnection connection
+      @conMng.newConnection connection
     }
 
     ws.onmessage { |msg|
       @logger.info "msg recieved: "+msg
       msg = JSON.parse! msg
-      @conManager.handleMessage(msg, connection)
+      @msgHndl.handleMessage(msg, connection)
     }
 
     ws.onclose {
-      @conManager.connectionClosed connection
+      @conMng.connectionClosed connection
       ws = nil
       connection = nil
     }

@@ -1,60 +1,76 @@
 require 'logger'
 require_relative 'connectionManager'
 require_relative 'connection'
+require_relative 'documentManager'
+require_relative 'messageHandler'
 
 class PublicMessageHandler
-  def initialize(conMan, docMan, logger)
-    @conManager = conMan
-    @docManager = docMan
+  def initialize(msgHndl, peerID, logger)
+    @msgHndl = msgHndl
+    @msgHndl.setServiceHandler(self, "public")
+    @netMsgHndl = @msgHndl.getServiceHandler("network")
+    @peerID = peerID
     @logger = logger
   end
   
-  def handle(msg, peer)
-    if msg["head"].has_key? "code"
-      #response
-      @logger.info "response recieved"
-    else 
-      #request
-      handleRequest(msg, peer)
-    end
-  end
-  
-  def handleRequest(msg, peer)
+  def handleMessage(msg, con)
     case msg["head"]["action"]
     when "valueStore"
-      handleValueStore(msg, peer)
+      valueStore(msg, con)
     when "valueLookup"
-      handleValueLookup(msg, peer)
+      valueLookup(msg, con)
     else
-      @logger.info "recieved request for unknown action in public service: "+msg["head"]["action"]
+      @logger.info "recieved Message for unknown action of public service: "+msg["head"]["action"]
     end
   end
   
-  def handleValueStore(msg, peer)
+  def valueStoreRequest(msg, con)
     @logger.info "store Document: "+msg["body"].to_s
     @docManager.saveFile(msg["body"]["titleID"], msg["body"])
-    msg["body"] = ""
-    msg["head"]["to"] = msg["head"]["from"]
-    msg["head"]["code"] = 200
-    peer.send msg
+    if(msg["head"].has_key? "to" and msg["head"]["to"].eql? @peerID)
+      @msgHndl.forward(msg)
+    else
+      @msgHndl.answer(msg, con, 200)
+    end
   end
   
-  def handleValueLookup(msg, peer)
+  def valueStoreResponse(msg, con)
+    @msgHndl.forward(msg)
+  end
+  
+  def valueStore(msg, con)
+    if(msg["head"].has_key? "code")
+      valueStoreResponse(msg, con)
+    else
+      valueStoreRequest(msg, con)
+    end
+  end
+  
+  def valueLookupRequest(msg, con)
     id = msg["body"]["id"].to_s
-    @logger.debug "recieved valueLookup for id: "+id
-    if(@docManager.hasFile? id)
-      msg["body"] = @docManager.getFile id
-      msg["head"]["to"] = msg["head"]["from"]
-      msg["head"]["code"] = 200
-      @logger.info "send Document: "+msg["body"].to_s
-      peer.send msg
+    @logger.info "recieved valueLookup Request for id: "+id
+    if(@docMng.hasFile? id)
+      msg["body"] = @docMng.getFile id
+      @msgHndl.answer(msg, con, 200)
     else
       msg["body"] = ""
-      msg["head"]["to"] = msg["head"]["from"]
-      msg["head"]["code"] = 404
-      @logger.debug "document id: "+id+" not found"
-      peer.send msg
-      # routeMessage(msg, peer)
+      @msgHndl.answer(msg, con, 404)
     end
+  end
+  
+  def valueLookupResponse(msg, con)
+    @msgHndl.forward(msg)
+  end
+  
+  def valueLookup(msg, con)
+    if(msg["head"].has_key? "code")
+      valueLookupResponse(msg, con)
+    else
+      valueLookupRequest(msg, con)
+    end
+  end
+  
+  def setDocumentManager(docMng)
+    @docMng = docMng
   end
 end

@@ -91,13 +91,18 @@ peerWeb.GUI= function(){
         $('#overlay').fadeIn('slow');
         config.documentSearch( $('#search-document-title').val().trim(), function(doc){
             if(doc !== undefined){
-                $('#document-search-result').html(doc.toHTML());
-                $('#overlay').fadeOut('slow');
+                $('#search-screen').html(doc.toHTML());
             }
             else{
-                $('#document-search-result').html('<h2>Es wurde kein entsprechendes Dokument gefunden.</h2>');
-                $('#overlay').fadeOut('slow');
+                $('#search-screen').html('<h2>Es wurde kein entsprechendes Dokument gefunden.</h2>');
             }
+            var state = {
+                title: "Suche",
+                url: "search"
+            };
+            history.pushState(state, "Suche", "search");
+            $('#overlay').fadeOut('slow');
+            onLocationChange(state);
         });
     };
     
@@ -165,7 +170,7 @@ peerWeb.GUI= function(){
             };
             history.pushState(state, state.title, document.URL);
         }
-        $('button#new-document-button').click(newDocumentButtonClick);
-        $('button#document-search-button').click(documentSearchButtonClick);
+        $('input#new-document-button').click(newDocumentButtonClick);
+        $('input#document-search-button').click(documentSearchButtonClick);
     })();
 };

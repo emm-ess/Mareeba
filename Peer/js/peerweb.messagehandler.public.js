@@ -32,7 +32,7 @@ peerWeb.MessageHandler.Public = function(config){
                 msgHndl.send(storeMsg);
             });
         };
-        netMsgHndl.nodeLookup(doc.titleID, nodeLookupCallback);
+        netMsgHndl.initNodeLookup(doc.titleID, nodeLookupCallback);
     },
     
     valueStoreRequest = function(msg, con){
@@ -104,7 +104,7 @@ peerWeb.MessageHandler.Public = function(config){
     },
     
     valueLookupResponse = function(msg, con){
-        peerWeb.log("recieved valueLookup Request Message", "log");
+        peerWeb.log("recieved valueLookup Response Message", "log");
         var refCode = msg.head.refCode, doc,
         callback = msgHndl.getCallback(refCode);
         if(msg.head.code === 200){

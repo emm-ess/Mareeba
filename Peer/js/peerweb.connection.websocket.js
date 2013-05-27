@@ -30,7 +30,7 @@ peerWeb.Connection.WebSocket.prototype = (function(){
      * @param {String} msg zu verschickende Nachricht als JSON-String
      */
     send = function(msg){
-        this._connection.send(msg);
+        return this._connection.send(msg);
     },
     
     /**

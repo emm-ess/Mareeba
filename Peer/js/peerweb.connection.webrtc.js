@@ -126,7 +126,7 @@ peerWeb.Connection.WebRTC.prototype = (function(){
     },
     
     send = function(msg){
-        this._dataChannel.send(msg);
+        return this._dataChannel.send(msg);
     },
     
     /**

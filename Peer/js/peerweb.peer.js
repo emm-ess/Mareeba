@@ -114,11 +114,11 @@ peerWeb.Peer = function(config){
         gui = new peerWeb.GUI();
         peerWeb.log("Initialisiere Peer.", "info");
         peerWeb.log("Check requirements", "info");
-        usable = supportFor.indexeddb && supportFor.webstorage && supportFor.websocket;
+        usable = !!peerWeb.Storage && !!peerWeb.Connection.WebSocket;
         if(usable){
             peerWeb.log("WebStorage: "+supportFor.webstorage, "info");
             peerWeb.log("indexedDB: "+supportFor.indexeddb, "info");
-            peerWeb.log("WebSockets: "+supportFor.websocket, "info");
+            peerWeb.log("WebSockets: "+!!peerWeb.Connection.WebSocket, "info");
             peerWeb.log("WebRTC (with DataChannel): "+supportFor.webrtc, "info");
             storage = new peerWeb.Storage({onReady:continueInit});
             peer.id = storage.getPeerID();

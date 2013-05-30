@@ -28,7 +28,7 @@ peerWeb.MessageHandler.Network = function(config){
         msgHndl.send(msg, callback);
     },
     
-    /**
+    /*
      * 
      */
     nodeLookupResponse = function(msg, con){
@@ -47,8 +47,7 @@ peerWeb.MessageHandler.Network = function(config){
     
     nodeLookupRequest = function(msg, con){
         peerWeb.log("recieved nodeLookup Request Message for: "+msg.body.id, "log");
-        var oldList = msg.body.resultList,
-        nearestPeers = conMng.getNearestPeers(msg.body.id, msg.body.resultList, 6);
+        var nearestPeers = conMng.getNearestPeers(msg.body.id, msg.body.resultList, 6);
         
         msg.body.resultList = nearestPeers;
         if(nearestPeers[0] === peerID){
@@ -84,10 +83,8 @@ peerWeb.MessageHandler.Network = function(config){
     peerDescription = function(msg, con){
         if(msg.head.code === undefined){
             peerWeb.log("recieved peerDescription (as Request) Message", "log");
-            var peerDesc = msg.body.peerDescription,
-            numID = BigInteger.parse(peerDesc.id, 16);
-            con.setDescription(peerDesc, numID);
-            conMng.peerDescriptionRecieved(peerDesc, con, numID);
+            var peerDesc = msg.body.peerDescription;
+            conMng.peerDescriptionRecieved(peerDesc, con);
             msgHndl.answer(msg, con, 200);
         }
         else{

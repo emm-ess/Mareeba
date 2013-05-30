@@ -213,11 +213,10 @@ peerWeb.ConnectionManager = function(config){
         }
     };
     
-    this.peerDescriptionRecieved = function(peerDesc, con, numID){
-        var dist, removedCon;
-        if(numID === undefined){
+    this.peerDescriptionRecieved = function(peerDesc, con){
+        var dist, removedCon,
             numID = BigInteger.parse(peerDesc.id, 16);
-        }
+        con.setDescription(peerDesc, numID);
         if(peerDesc.ws !== undefined || peerDesc.ajax !== undefined){
             superPeers.push(con);
             amountConSuperPeers += 1;

@@ -40,7 +40,7 @@ peerWeb.MessageHandler = function(config){
             serviceHndl[msg.head.service].handleMessage(msg, con);
         }
         else{
-            peerWeb.log("recieved request for unknown service: "+msg.head.service, "warn");
+            peerWeb.log("recieved message for unknown service: "+msg.head.service, "warn");
         }
     },
     

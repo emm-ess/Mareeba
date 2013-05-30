@@ -59,8 +59,7 @@ peerWeb.Connection.WebRTC.prototype = (function(){
             "body": pcDesc
         };
         that._connection.setLocalDescription(pcDesc);
-        msg = that.validateMsg(msg);
-        that._config.connectionManager.sendMessage(msg);
+        that.msgHndl.send(msg);
     },
     
     initConnection = function(){
@@ -83,8 +82,7 @@ peerWeb.Connection.WebRTC.prototype = (function(){
             "body": pcDesc
         };
         that._connection.setLocalDescription(pcDesc);
-        msg = that.validateMsg(msg);
-        that._config.connectionManager.sendMessage(msg);
+        that.msgHndl.send(msg);
     },
     
     onDataChannel = function(e, that){
@@ -116,8 +114,7 @@ peerWeb.Connection.WebRTC.prototype = (function(){
                 },
                 "body": e.candidate
             };
-            msg = that.validateMsg(msg);
-            that._config.connectionManager.sendMessage(msg);
+            that.msgHndl.send(msg);
         }
     },
     

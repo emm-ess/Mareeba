@@ -1,4 +1,4 @@
-(function(peerWeb){
+(function(peerWeb, BigInteger){
     "use strict";
     peerWeb.namespace("ConnectionManager");
     /**
@@ -9,14 +9,14 @@
      * @param {peerWeb.Storage} storage Speichermodul von peerWeb
      */
     peerWeb.ConnectionManager = function(config){
-        var that = this, 
+        var that = this,
         peer = config.peer, storage = config.storage,
         defaultConfig = {}, l = 6,
-        leafSet = {left: [], right: []}, rConnections = [], superPeers = [], friends = [], newConnections = [], 
+        leafSet = {left: [], right: []}, rConnections = [], superPeers = [], friends = [], newConnections = [],
         amountConPeers = 0, amountConSuperPeers = 0,
         buildConnection = peerWeb.ConnectionFactory.buildConnection,
         networkMsgHndl,
-    
+
         /**
          * checks if peer is already connected to a certain other peer
          */
@@ -32,7 +32,7 @@
             }
             return false;
         },
-        
+
         getConnectionTo = function(fPeerID){
             var i, j, tempDesc, tempCon, connections = [newConnections, leafSet.left, leafSet.right, superPeers, rConnections];
             for(i = 0; i < connections.length; i += 1){
@@ -46,7 +46,7 @@
             }
             return null;
         },
-        
+
         /**
          * updates the Info about connections
          */
@@ -54,11 +54,11 @@
             var connections = leafSet.left.length+leafSet.right.length+rConnections.length+friends.length;
             config.onConnectivityChange(connections, superPeers.length, newConnections.length);
         },
-        
+
         /**
          * prüft, wie viele freie Verbindungen verfügbar sind und versucht gegebenenfalls entsprechende Knoten zu finden.
          * führt daher u.U. zu einem nodeLookup
-         * @see nodeLookup 
+         * @see nodeLookup
          */
         checkMinimumConnections = function(){
             if(amountConPeers === 0 && amountConSuperPeers === 0){
@@ -68,20 +68,20 @@
                 networkMsgHndl.initNodeLookup(peer.id);
             }
             else if(leafSet.left.length < l/2){
-                
+                //TODO
             }
             else if(leafSet.right.length < l/2){
-                
+                //TODO
             }
         };
-        
+
         /**
          * Routing-Algorithmus.
          * Wählt den nächsten passenden Peer aus und schickt die Nachricht an diesen.
          * @param {Object} msg weiterzuleitende Nachricht
          * @param {peerWeb.Connection} con Verbindung über die die Nachricht geschickt wurde
          * @param {Function} callback Funktion die im Falle einer Antwort aufgerufen werden soll
-         */ 
+         */
         this.route = function(msg){
             var closestCon, closestDist, targetID, allCon, couldSend = false;
             targetID = BigInteger.parse(msg.head.to, 16);
@@ -98,7 +98,7 @@
             }
             return couldSend;
         };
-        
+
         /**
          * erster Schritt des Routings wenn der lokale Peer der Sender ist.
          * schickt die Nachricht an den nächsten SuperPeer
@@ -123,7 +123,7 @@
             }
             return couldSend;
         };
-        
+
         this.getNearestConnection = function(targetID, connections, currentDistance){
             var tempDist, closestDist, closestCon;
             if(typeof targetID === BigInteger){
@@ -147,12 +147,12 @@
             });
             return closestCon;
         };
-        
+
         this.getNearestPeer = function(targetID){
             var peerArr = that.getNearestPeers(targetID, null, 1);
             return peerArr[0];
         };
-        
+
         this.getNearestPeers = function(targetID, resultList, amount){
             var temp, tempResult = [], result = [], i, l, tempDist;
             targetID = BigInteger.parse(targetID, 16);
@@ -161,7 +161,7 @@
                 tempDist = targetID.subtract(temp[i].getNumID());
                 result.push( [tempDist, temp[i].getDescription()] );
             }
-            
+
             if(typeof resultList === Array){
                 for(i = 0, l = resultList.length; i < l; i += 1){
                     temp = BigInteger.parse(resultList[i].id, 16);
@@ -169,7 +169,7 @@
                     result.push( [tempDist, resultList[i]] );
                 }
             }
-            
+
             //let's have only unique values
             temp = {};
             for(i = 0, l = result.length; i < l; i += 1){
@@ -179,17 +179,17 @@
                 tempResult.push(result[i]);
                 temp[result[i][1].id] = 1;
             }
-            
+
             tempResult.sort(function(a, b){
                return a[0].compareAbs(b[0]);
             });
-            
+
             if(typeof amount === Number){
                 if(tempResult.length > amount){
                     tempResult = tempResult.splice(0, amount);
                 }
             }
-            
+
             //use result again
             result = [];
             tempResult.forEach(function(element){
@@ -197,7 +197,7 @@
             });
             return result;
         };
-        
+
         this.newPeerDiscovered = function(peerDesc){
             var tempConnection;
             if(!isConnectedTo(peerDesc.id)){
@@ -213,7 +213,7 @@
                 }
             }
         };
-        
+
         this.peerDescriptionRecieved = function(peerDesc, con){
             var dist, removedCon,
                 numID = BigInteger.parse(peerDesc.id, 16);
@@ -261,7 +261,7 @@
             checkMinimumConnections();
             updateConInfo();
         };
-        
+
         this.pcDescriptionRecieved = function(fPeerID, PCDesc){
             var config, peerDesc, tempConnection;
             if(isConnectedTo(fPeerID) && PCDesc.type === "answer"){//self initiated
@@ -278,18 +278,18 @@
                 newConnections.push(tempConnection);
             }
         };
-        
+
         this.iceProcess = function(fPeerID, ICEmsg){
             getConnectionTo(fPeerID).gotIceMsg(ICEmsg);
         };
-        
+
         /**
          * entfernt geschlossene oder sich in dem Prozess der Schließung befindene Verbindungen aus der Routing-Tabelle.
          * Anschließend wird checkMinimumConnections aufgerufen, um ein entsprechendes Defizit auszugeleichen.
          * @see checkMinimumConnections
          */
         this.connectionClosed = function(){
-            var i, 
+            var i,
             checkConnections = function(part, partname){
                 var i, removed = 0;
                 for(i = 0, l = part.length; i < l; i += 1){
@@ -304,7 +304,7 @@
                 }
                 return removed;
             };
-            
+
             checkConnections(newConnections, "new connections");
             amountConPeers += checkConnections(leafSet.left, "left LeafSet");
             amountConPeers += checkConnections(leafSet.right, "right LeafSet");
@@ -314,7 +314,7 @@
             updateConInfo();
             checkMinimumConnections();
         };
-        
+
         /**
          * Initierungscode
          */
@@ -329,7 +329,7 @@
                 updateConInfo();
                 peerWeb.log("allready started trying to connect to to all saved SuperPeers", "info");
             };
-            
+
             that.peerDescription = {
                 "id" : peer.id
             };
@@ -341,10 +341,10 @@
             config.messageHandler.setConnectionManager(that);
             networkMsgHndl = config.messageHandler.getServiceHandler("network");
             networkMsgHndl.setConnectionManager(that);
-            leafSet.longDistLeft = (BigInteger.ZERO).subtract(peer.numID); 
+            leafSet.longDistLeft = (BigInteger.ZERO).subtract(peer.numID);
             leafSet.longDistRight = (peerWeb.BIGGESTID).subtract(peer.numID);
             peerWeb.log("request all saved SuperPeers", "info");
             storage.getAllSuperPeers(initSuperPeersConnections);
-        })();
+        }());
     };
-})(peerWeb);
+}(peerWeb, BigInteger));

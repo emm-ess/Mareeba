@@ -3,11 +3,11 @@
  * Diese hängt die Variable peerWeb an das globale Objekt und stellt einige Grundfunktionen zur Verfügung.
  * @param {Object} window das globale Objekt
  */
-(function(window){
+(function(window, BigInteger, $){
     "use strict";
     var peerWeb = window.peerWeb || {},
     logDisplay;
-    
+
     //define functions of peerWeb
     //
     /**
@@ -19,7 +19,7 @@
         var parts = ns_string.split('.'),
             parent = peerWeb,
             i;
-            
+
         if(parts[0] === "peerWeb"){
             parts = parts.slice(1);
         }
@@ -31,12 +31,12 @@
         }
         return parent;
     };
-    
+
     /**
      * in dieses Objekt definieren die Module ihre Abhängigkeiten
      */
     peerWeb.supportFor = {};
-    
+
     /**
      * Logging Funktion
      * Ist das logging aktiviert werden Nachrichten in die Konsole und in den angegebenen Bereich im DOM geschrieben.
@@ -60,7 +60,7 @@
             logDisplay(msg);
         }
     };
-    
+
     /**
      * Gibt die Möglichkeit die Ausgabe der Log-Nachrichten im DOM zu steuern
      * @param {Function} display Funktion die Log-Nachrichten weiterverarbeitet
@@ -68,7 +68,7 @@
     peerWeb.setLogDisplay = function(display){
         logDisplay = display;
     };
-    
+
     /**
      * Erzeugt einen zufälligen Hex-String der gewünschten Länge.
      * die Länge wird in Zeichen angegeben. So entsprechen 2 Zeichen einem Byte.
@@ -83,7 +83,7 @@
         }
         return number;
     };
-    
+
     /**
      * Entfernt eine Nadel aus einem Heuhaufen.
      * @param {Object} needle das zu entfernende Objekt
@@ -100,19 +100,19 @@
         }
         var idx = stack.indexOf(needle); // Find the index
         if(idx !== -1){
-           stack.splice(idx, 1); 
+           stack.splice(idx, 1);
         }
         return stack;
     };
-    
+
     /**
      * beschreibt die größte mögliche ID und somit auch Entfernung in peerWeb (2^160)
      * @constant
      */
     peerWeb.BIGGESTID = BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16);
-    
+
     window.peerWeb = peerWeb;
-})( window );
+}(window, BigInteger, jQuery));
 
 /**
  * wartet, bis alles geladen ist und ruft anschließend den Eingangspunkt auf.

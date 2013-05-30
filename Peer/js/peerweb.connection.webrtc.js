@@ -5,23 +5,26 @@
     window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
     window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription;
     window.RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate;
-    
-    if(!!window.webkitRTCPeerConnection){
-        //must be chrome
-        var testPC = new RTCPeerConnection({iceServers: [{url:"stun:stunserver.org:3478"},{url:"stun:stun.l.google.com:19302"}]},{optional: [{RtpDataChannels: true}]});
-        if (testPC && testPC.createDataChannel) {
-            var dc = testPC.createDataChannel("sendDataChannel", {reliable: false});
-            if (!!dc) {
-              supported = true;
-              dc = null;
-            } 
+
+    (function(){
+        if(!!window.webkitRTCPeerConnection){
+            //must be chrome
+            var testPC = new window.RTCPeerConnection({iceServers: [{url:"stun:stunserver.org:3478"},{url:"stun:stun.l.google.com:19302"}]},{optional: [{RtpDataChannels: true}]}),
+            dc;
+            if (testPC && testPC.createDataChannel) {
+                dc = testPC.createDataChannel("sendDataChannel", {reliable: false});
+                if (!!dc) {
+                  supported = true;
+                  dc = null;
+                }
+            }
+            testPC.close();
         }
-        testPC.close();
-    }
-    else{
-        supported = window.RTCPeerConnection !== undefined && window.DataChannel !== undefined;
-    }
-    
+        else{
+            supported = window.RTCPeerConnection !== undefined && window.DataChannel !== undefined;
+        }
+    }());
+
     if(supported){
         peerWeb.namespace("Connection.WebRTC");
         /**
@@ -31,21 +34,21 @@
          * @param {Object} config
          */
         peerWeb.Connection.WebRTC = function(__peerDesc, __config){
-            
-            
+
+
             (function(that){
                 peerWeb.Connection.WebRTC.parent.init.call(that, __peerDesc, __config);
                 that._connection = new window.RTCPeerConnection({iceServers: [{url:"stun:stunserver.org:3478"},{url:"stun:stun.l.google.com:19302"}]}, {optional: [{RtpDataChannels: true}]});
                 that._connection.onicecandidate = function(e){that._iceCallback(e,that);};
                 that._connection.onerror = that._config.onerror;
                 that._connection.onclose = that._config.onclose;
-                
+
                 if(that._config.offer === undefined){
                     that._initConnection();
                 }
-            
+
                 else{
-                   that._answer(); 
+                   that._answer();
                 }
             })(this);
         };
@@ -64,7 +67,7 @@
                 that._connection.setLocalDescription(pcDesc);
                 that.msgHndl.send(msg);
             },
-            
+
             initConnection = function(){
                 var that = this;
                 that._dataChannel = that._connection.createDataChannel("peerWeb", {reliable: false});
@@ -74,7 +77,7 @@
                 that._dataChannel.onopen = that._config.onopen;
                 that._connection.createOffer(function(d){gotOffer(d, that);});
             },
-            
+
             gotAnswer = function(pcDesc, that){
                 var msg = {
                     "head": {
@@ -87,7 +90,7 @@
                 that._connection.setLocalDescription(pcDesc);
                 that.msgHndl.send(msg);
             },
-            
+
             onDataChannel = function(e, that){
                 that._dataChannel = e.channel;
                 that._dataChannel.onerror = that._config.onerror;
@@ -95,18 +98,18 @@
                 that._dataChannel.onmessage = that._config.onmessage;
                 that._dataChannel.onopen = that._config.onopen;
             },
-            
+
             answer = function(){
                 var that = this;
                 this._connection.ondatachannel = function(e){onDataChannel(e,that);};
                 this._connection.setRemoteDescription(new RTCSessionDescription(this._config.offer));
                 this._connection.createAnswer(function(d){gotAnswer(d, that);});
             },
-            
+
             gotAnswerMsg = function(answer){
                 this._connection.setRemoteDescription(new RTCSessionDescription(answer));
             },
-            
+
             iceCallback = function(e,that){
                 if(e.candidate){
                     var msg = {
@@ -120,18 +123,18 @@
                     that.msgHndl.send(msg);
                 }
             },
-            
+
             gotIceMsg = function(ice){
                 this._connection.addIceCandidate(new RTCIceCandidate({sdpMLineIndex:ice.label, candidate:ice.candidate}));
             },
-            
+
             send = function(msg){
                 return this._dataChannel.send(msg);
             },
-            
+
             /**
              * liefert den aktuellen Status der Verbindung zurück.
-             * die Verbindungsstati entsprechen denen von WebSockets 
+             * die Verbindungsstati entsprechen denen von WebSockets
              * @return {int} readyState Verbindungsstatus
              */
             getReadyState = function(){
@@ -149,7 +152,7 @@
                 }
                 return intRState;
             },
-            
+
             close = function(){
                 this._dataChannel.onclose = function(){};
                 this._connection.onclose = function(){};
@@ -159,7 +162,7 @@
                 this._connection = null;
                 this._config = null;
             };
-            
+
             return {
                 _send: send,
                 _iceCallback: iceCallback,
@@ -170,6 +173,6 @@
                 getReadyState: getReadyState,
                 close: close
             }
-        })();
+        }());
     }
-})(peerWeb, window);
+}(peerWeb, window));

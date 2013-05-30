@@ -23,4 +23,4 @@
         connection = new peerWeb.Connection[type](peerDesc, config);
         return connection;
     };
-})(peerWeb);
+}(peerWeb));

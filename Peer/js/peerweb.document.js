@@ -1,4 +1,4 @@
-(function(peerWeb){
+(function(peerWeb, CryptoJS){
     "use strict";
     peerWeb.namespace("Document");
     /**
@@ -11,7 +11,7 @@
     peerWeb.Document = function(data){
         var that = this,
         title, content, titleID, versionID;
-        
+
         /**
          * Initierungscode
          */
@@ -39,8 +39,8 @@
             else {
                 versionID = CryptoJS.SHA1(content).toString(CryptoJS.enc.Hex);
             }
-        })();
-        
+        }());
+
         /**
          * Getter der TitleID
          * @return {Strin} titleID die TitelID als String
@@ -48,7 +48,7 @@
         this.getTitleID = function(){
             return titleID;
         };
-        
+
         /**
          * gibt die grundlegenden Daten des Dokuments zurück
          * @return {Object} data Data-Objekt des Dokuments
@@ -62,7 +62,7 @@
             };
             return data;
         };
-        
+
         /**
          * Erzeugt ein HTML-Snippet aus dem Dokument und gibt dieses zurück
          * @return {String} DOMString Dokument mit HTML-Tags
@@ -72,7 +72,7 @@
                        "<div>"+content+"</div>";
             return html;
         };
-        
+
         /**
          * Erzeugt aus dem Dokument einen JSON-String und gibt diesen zurück.
          * @return {String} documentString das Dokument mit allen IDs als JSON-String
@@ -82,4 +82,4 @@
             return JSON.stringify(data);
         };
     };
-})(peerWeb);
+}(peerWeb, CryptoJS));

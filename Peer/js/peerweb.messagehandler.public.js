@@ -12,7 +12,7 @@
         docMng, netMsgHndl,
         msgHndl = config.messageHandler,
         peerID = peerWeb.Peer.id,
-        
+
         /**
          * löst einen nodeLookupvorgang aus, dem sich ein valueStore anschließt.
          * Speichert somit ein Datum im Netzwerk.
@@ -35,7 +35,7 @@
             };
             netMsgHndl.initNodeLookup(doc.titleID, nodeLookupCallback);
         },
-        
+
         valueStoreRequest = function(msg, con){
             peerWeb.log("recieved valueStore Request Message", "log");
             var doc = JSON.parse(msg.body);
@@ -44,12 +44,12 @@
             msg.body = "";
             msgHndl.answer(msg, con);
         },
-        
+
         valueStoreResponse = function(msg, con){
             peerWeb.log("recieved valueStore Response Message", "log");
             msgHndl.deleteMessage(msg.head.refCode);
         },
-        
+
         /**
          * verarbeitet valueStore-Nachrichten,
          * speichert deren Body in der Datenbank
@@ -69,7 +69,7 @@
                 msgHndl.forward(msg);
             }
         },
-        
+
         /**
          * sucht die übergebene ID im Netzwerk, ruft den callback auf, wenn gefunden (mit document) oder nicht (mit undefined).
          * @param {String} id
@@ -89,7 +89,7 @@
             peerWeb.log("Search Document with ID: "+id+" in Network.", "log");
             msgHndl.send(msg, callback);
         },
-        
+
         valueLookupRequest = function(msg, con){
             peerWeb.log("recieved valueLookup Request Message", "log");
             var storageResult = function(doc){
@@ -103,7 +103,7 @@
             };
             docMng.getDocument(msg.body.id, storageResult);
         },
-        
+
         valueLookupResponse = function(msg, con){
             peerWeb.log("recieved valueLookup Response Message", "log");
             var refCode = msg.head.refCode, doc,
@@ -118,7 +118,7 @@
             msgHndl.deleteMessage(refCode);
             msgHndl.deleteCallback(refCode);
         },
-        
+
         /**
          * verarbeitet valueLookup-Nachrichten
          * antwortet mit 200 und dem dokument im body, falls dies vorhanden ist; sonst mit 404
@@ -133,7 +133,7 @@
                 valueLookupResponse(msg, con);
             }
         },
-        
+
         handleMessage = function(msg, con){
             switch(msg.head.action){
                 case "valueStore":
@@ -148,23 +148,23 @@
                 break;
             }
         },
-        
+
         setDocumentManager = function(tempDocMng){
             docMng = tempDocMng;
         },
-        
+
         that = {
             "setDocumentManager" : setDocumentManager,
             "initValueStore" : initValueStore,
             "initValueLookup" : initValueLookup,
             "handleMessage" : handleMessage
         };
-        
+
         (function(){
             msgHndl.setServiceHandler(that, "public");
             netMsgHndl = msgHndl.getServiceHandler("network");
-        })();
-        
+        }());
+
         return that;
     };
-})(peerWeb);
+}(peerWeb));

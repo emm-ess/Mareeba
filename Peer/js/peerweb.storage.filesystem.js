@@ -9,4 +9,4 @@
      */
     peerWeb.Storage.FileSystem = function(config){
     };
-})(peerWeb);
+}(peerWeb));

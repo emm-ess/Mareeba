@@ -9,4 +9,4 @@
      */
     peerWeb.Friend = function(){
     };
-})(peerWeb);
+}(peerWeb));

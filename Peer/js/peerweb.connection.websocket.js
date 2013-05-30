@@ -19,7 +19,7 @@
             this._connection.onclose = this._config.onclose;
             this._connection.onmessage = $.proxy(this._config.onmessage, this);
             this._connection.onopen = $.proxy(this._config.onopen, this);
-            
+
         };
         peerWeb.Connection.WebSocket.parent = peerWeb.Connection.prototype;
         peerWeb.Connection.WebSocket.prototype = (function(){
@@ -31,7 +31,7 @@
             send = function(msg){
                 return this._connection.send(msg);
             },
-            
+
             /**
              * gibt den aktuellen Status der zu grundeliegenden Verbindung wieder
              * @return {int} readyState Status der Verbindung
@@ -39,19 +39,19 @@
             getReadyState = function(){
                 return this._connection.readyState;
             },
-            
+
             close = function(){
                 this._connection.onclose = function(){};
                 this._connection.close();
                 this._connection = null;
                 this._config = null;
             };
-            
+
             return {
                 _send: send,
                 getReadyState: getReadyState,
                 close: close
             }
-        })();
+        }());
     }
-})(peerWeb, window);
+}(peerWeb, window));

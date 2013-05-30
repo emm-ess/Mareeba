@@ -9,7 +9,7 @@
          * @param {Object} config
          */
         peerWeb.Connection.Flash = function(config){
-            
+
         };
     }
-})(peerWeb, swfobject);
+}(peerWeb, swfobject));

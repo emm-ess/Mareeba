@@ -9,4 +9,4 @@
      */
     peerWeb.User = function(config){
     };
-})(peerWeb);
+}(peerWeb));

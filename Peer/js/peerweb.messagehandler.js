@@ -14,7 +14,7 @@
         responseCallbacks = {},
         storeMsg = config.storeMessage,
         deleteMsg = config.deleteMessage,
-        
+
         /**
          * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
          * @param {Object} msg zu verschickende Nachricht
@@ -35,7 +35,7 @@
             }
             return msg;
         },
-        
+
         handleMessage = function(msg, con){
             if(!!serviceHndl[msg.head.service]){
                 serviceHndl[msg.head.service].handleMessage(msg, con);
@@ -44,7 +44,7 @@
                 peerWeb.log("recieved message for unknown service: "+msg.head.service, "warn");
             }
         },
-        
+
         answer = function(msg, con, code){
             msg.head.code = code;
             msg.head.to = msg.head.from;
@@ -52,12 +52,12 @@
             msg = buildMandatoryFields(msg);
             con.send(msg);
         },
-        
+
         forward = function(msg){
             msg = buildMandatoryFields(msg);
             conMng.route(msg);
         },
-        
+
         send = function(msg, callback, con){
             var save, refCode;
             save = msg.head.refCode === undefined;
@@ -76,29 +76,29 @@
                 responseCallbacks[refCode] = callback;
             }
         },
-        
+
         setServiceHandler = function(handler, service){
             serviceHndl[service] = handler;
         },
-        
+
         getServiceHandler = function(service){
             return serviceHndl[service];
         },
-        
+
         setConnectionManager = function(tempConMng){
             conMng = tempConMng;
         },
-        
+
         getCallback = function(refCode){
             return responseCallbacks[refCode];
         },
-        
+
         deleteCallback = function(refCode){
             if(typeof(responseCallbacks[refCode]) ===  "function"){
                 delete responseCallbacks[refCode];
             }
         },
-        
+
         that = {
             "setServiceHandler" : setServiceHandler,
             "getServiceHandler" : getServiceHandler,
@@ -111,7 +111,7 @@
             "getCallback" : getCallback,
             "deleteCallback" : deleteCallback
         };
-        
+
         return that;
     };
-})(peerWeb);
+}(peerWeb));

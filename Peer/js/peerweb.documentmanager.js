@@ -1,4 +1,4 @@
-(function(peerWeb){
+(function(peerWeb, CryptoJS){
     "use strict";
     peerWeb.namespace("DocumentManager");
     /**
@@ -12,7 +12,7 @@
         var that = this,
         peer = peerWeb.peer, storage = config.storage,
         docMsgHndl;
-        
+
         /**
          * nimmt ein Document entgegen und speichert dies lokal sowie im Netzwerk
          * @param {peerWeb.Document} doc zu verwaltendes Dokument
@@ -23,12 +23,12 @@
             docMsgHndl.initValueStore(data);
             storage.saveDocument(data);
         };
-        
+
         this.addDocument = function(doc){
             var data = doc.getDataObject();
             storage.saveDocument(data);
         };
-        
+
         this.getDocument = function(id, callback){
             storage.getDocument(id, function(doc){
                 if(doc !== undefined){
@@ -40,9 +40,9 @@
                 }
             });
         };
-        
+
         /**
-         * initiert die Suche nach einem Dokument mit bestimmten Titel. 
+         * initiert die Suche nach einem Dokument mit bestimmten Titel.
          * bildet die potentielle ID des Artikels, schaut, ob eine lokale Kopie vorhanden ist und schickt andernfalls eine valueLookup-Nachricht
          * @param {String} title Titel nach dem gesucht wird.
          * @param {Function} callback Methode die bei Fund oder Nichtfund aufgerufen wird.
@@ -51,9 +51,9 @@
             var potID = CryptoJS.SHA1(title).toString(CryptoJS.enc.Hex);
             that.searchDocumentByID(potID, callback);
         };
-        
+
         /**
-         * initiert die Suche nach einem Dokument mit bestimmter ID. 
+         * initiert die Suche nach einem Dokument mit bestimmter ID.
          * schaut, ob eine lokale Kopie vorhanden ist und schickt andernfalls eine valueLookup-Nachricht
          * @param {String} id ID nach der gesucht wird.
          * @param {Function} callback Methode die bei Fund oder Nichtfund aufgerufen wird.
@@ -68,10 +68,10 @@
                 }
             });
         };
-        
+
         (function(){
             docMsgHndl = config.messageHandler.getServiceHandler("public");
             docMsgHndl.setDocumentManager(that);
-        })();
+        }());
     };
-})(peerWeb);
+}(peerWeb, CryptoJS));

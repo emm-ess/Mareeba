@@ -4,14 +4,10 @@
     /**
      * Wrapper für WebRTC basierte p2p-Verbindungen
      * @author Marten Schälicke
-     * @constructor
-     * @param {Object} config
      */
-    peerWeb.MessageHandler.Public = function(config){
+    peerWeb.MessageHandler.Public = (function(){
         var
-        docMng, netMsgHndl,
-        msgHndl = config.messageHandler,
-        peerID = peerWeb.Peer.id,
+        docMng, netMsgHndl, msgHndl, peerID,
 
         /**
          * löst einen nodeLookupvorgang aus, dem sich ein valueStore anschließt.
@@ -149,22 +145,19 @@
             }
         },
 
-        setDocumentManager = function(tempDocMng){
-            docMng = tempDocMng;
-        },
-
-        that = {
-            "setDocumentManager" : setDocumentManager,
-            "initValueStore" : initValueStore,
-            "initValueLookup" : initValueLookup,
-            "handleMessage" : handleMessage
+        init = function(config){
+            peerID = config.peer.id;
+            docMng = config.documentManager || peerWeb.DocumentManager;
+            msgHndl = config.messageHandler || peerWeb.MessageHandler;
+            msgHndl.setServiceHandler(peerWeb.MessageHandler.Public, "public");
+            netMsgHndl = msgHndl.getServiceHandler("network");
         };
 
-        (function(){
-            msgHndl.setServiceHandler(that, "public");
-            netMsgHndl = msgHndl.getServiceHandler("network");
-        }());
-
-        return that;
-    };
+        return {
+            "initValueStore" : initValueStore,
+            "initValueLookup" : initValueLookup,
+            "handleMessage" : handleMessage,
+            "init" : init
+        };
+    }());
 }(peerWeb));

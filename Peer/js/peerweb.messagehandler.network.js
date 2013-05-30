@@ -4,14 +4,10 @@
     /**
      *
      * @author Marten Schälicke
-     * @constructor
-     * @param {Object} config
      */
-    peerWeb.MessageHandler.Network = function(config){
+    peerWeb.MessageHandler.Network = (function(){
         var
-        conMng,
-        msgHndl = config.messageHandler,
-        peerID = peerWeb.Peer.id,
+        conMng, msgHndl, peerID,
 
         initNodeLookup = function(id, callback){
             var nearestPeers = conMng.getNearestPeers(id, null, 6),
@@ -29,9 +25,6 @@
             msgHndl.send(msg, callback);
         },
 
-        /*
-         *
-         */
         nodeLookupResponse = function(msg, con){
             peerWeb.log("recieved nodeLookupResponse Message for: "+msg.body.id, "log");
             var i, l,
@@ -139,20 +132,17 @@
             }
         },
 
-        setConnectionManager = function(tempConMng){
-            conMng = tempConMng;
-        },
-
-        that = {
-            "setConnectionManager" : setConnectionManager,
-            "initNodeLookup" : initNodeLookup,
-            "handleMessage" : handleMessage
+        init = function(config){
+            peerID = config.peer.id;
+            conMng = config.connectionManager || peerWeb.ConnectionManager;
+            msgHndl = config.messageHandler || peerWeb.MessageHandler;
+            msgHndl.setServiceHandler(peerWeb.MessageHandler.Network, "network");
         };
 
-        (function(){
-            msgHndl.setServiceHandler(that, "network");
-        }());
-
-        return that;
-    };
+        return {
+            "initNodeLookup" : initNodeLookup,
+            "handleMessage" : handleMessage,
+            "init" : init
+        };
+    }());
 }(peerWeb));

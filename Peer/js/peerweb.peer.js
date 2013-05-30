@@ -78,8 +78,8 @@
          * prüft die Mindestanforderungen an den Browser und erzeugt alle nötigen Objekte.
          */
         (function(){
-            var continueInit, setGUICallbacks,
-            usable, supportFor = peerWeb.supportFor;
+            var
+            usable, supportFor = peerWeb.supportFor,
 
             setGUICallbacks = function(){
                 var guiConfig = {};
@@ -91,26 +91,33 @@
                 guiConfig.documentSearchByID = docMng.searchDocumentByID;
                 guiConfig.getAllIndexEntries = storage.getAllIndexEntries;
                 gui.setConfig(guiConfig);
-            };
+            },
 
             continueInit = function(){
-                var msgHndl, netMsgHndl, pubMsgHndl;
                 if(storage.isUsable() && peer.id !== null){
-                    if(config === undefined){
-                        config = {};
-                    }
-                    msgHndl = config.messageHandler || new peerWeb.MessageHandler({"storeMessage" : function(refCode, msg){storage.storeMessage(refCode, msg);},
-                    "deleteMessage" : function(refCode){return storage.deleteMessage(refCode);}});
-                    netMsgHndl = config.networkMessageHandler || new peerWeb.MessageHandler.Network({"messageHandler": msgHndl});
-                    pubMsgHndl = config.publicMessageHandler || new peerWeb.MessageHandler.Public({"messageHandler": msgHndl});
                     peer.numID = BigInteger.parse(peer.id, 16);
-                    conMng = new peerWeb.ConnectionManager({"peer": peer, "storage": storage, "messageHandler": msgHndl, "onConnectivityChange": gui.updateConnectivityInfo});
-                    docMng = new peerWeb.DocumentManager({"peer": peer, "storage": storage, "messageHandler": msgHndl});
+
+                    config.messageHandler.init({"peer": peer, "storeMessage" : function(refCode, msg){storage.storeMessage(refCode, msg);},
+                    "deleteMessage" : function(refCode){return storage.deleteMessage(refCode);}});
+                    config.networkMessageHandler.init(config);
+                    config.publicMessageHandler.init(config);
+                    config.connectionManager.init({"peer": peer, "storage": storage, "messageHandler": config.messageHandler, "onConnectivityChange": gui.updateConnectivityInfo});
+                    config.documentManager.init(config);
+
                     peerWeb.log("Waiting for Connections.", "info");
                     setGUICallbacks();
                     gui.peerReady();
                 }
             };
+
+            config = config || {};
+            config.messageHandler        = config.messageHandler        || peerWeb.MessageHandler;
+            config.networkMessageHandler = config.networkMessageHandler || peerWeb.MessageHandler.Network;
+            config.publicMessageHandler  = config.publicMessageHandler  || peerWeb.MessageHandler.Public;
+            conMng  = config.connectionManager     = config.connectionManager     || peerWeb.ConnectionManager;
+            docMng  = config.documentManager       = config.documentManager       || peerWeb.DocumentManager;
+            storage = config.storage               = config.storage               || peerWeb.Storage;
+            config.peer = peer;
 
             gui = new peerWeb.GUI();
             peerWeb.log("Initialisiere Peer.", "info");
@@ -121,7 +128,7 @@
                 peerWeb.log("indexedDB: "+supportFor.indexeddb, "info");
                 peerWeb.log("WebSockets: "+!!peerWeb.Connection.WebSocket, "info");
                 peerWeb.log("WebRTC (with DataChannel): "+supportFor.webrtc, "info");
-                storage = new peerWeb.Storage({onReady:continueInit});
+                storage.init({"onReady":continueInit});
                 peer.id = storage.getPeerID();
                 if(peer.id === null){
                     generateID(continueInit);

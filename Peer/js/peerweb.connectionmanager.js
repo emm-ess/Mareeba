@@ -4,17 +4,14 @@
     /**
      * Verwaltet Verbindungen und behandelt Anfragen
      * @author Marten Schälicke
-     * @constructor
-     * @param {peerWeb.Peer} peer Referenz auf den lokalen Peer
-     * @param {peerWeb.Storage} storage Speichermodul von peerWeb
      */
-    peerWeb.ConnectionManager = function(config){
-        var that = this,
-        peer = config.peer, storage = config.storage,
+    peerWeb.ConnectionManager = (function(){
+        var
+        peer, storage, peerDescription,
         defaultConfig = {}, l = 6,
         leafSet = {left: [], right: []}, rConnections = [], superPeers = [], friends = [], newConnections = [],
         amountConPeers = 0, amountConSuperPeers = 0,
-        buildConnection = peerWeb.ConnectionFactory.buildConnection,
+        buildConnection = peerWeb.ConnectionFactory.buildConnection, onConnectivityChange,
         networkMsgHndl,
 
         /**
@@ -52,7 +49,7 @@
          */
         updateConInfo = function(){
             var connections = leafSet.left.length+leafSet.right.length+rConnections.length+friends.length;
-            config.onConnectivityChange(connections, superPeers.length, newConnections.length);
+            onConnectivityChange(connections, superPeers.length, newConnections.length);
         },
 
         /**
@@ -73,58 +70,9 @@
             else if(leafSet.right.length < l/2){
                 //TODO
             }
-        };
+        },
 
-        /**
-         * Routing-Algorithmus.
-         * Wählt den nächsten passenden Peer aus und schickt die Nachricht an diesen.
-         * @param {Object} msg weiterzuleitende Nachricht
-         * @param {peerWeb.Connection} con Verbindung über die die Nachricht geschickt wurde
-         * @param {Function} callback Funktion die im Falle einer Antwort aufgerufen werden soll
-         */
-        this.route = function(msg){
-            var closestCon, closestDist, targetID, allCon, couldSend = false;
-            targetID = BigInteger.parse(msg.head.to, 16);
-            if(msg.head.from === peer.id){
-                closestDist = peerWeb.BIGGESTID;
-            }
-            else{
-                closestDist = targetID.subtract(peer.numID).abs();
-            }
-            allCon = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
-            closestCon = that.getNearestConnection(targetID, allCon, closestDist);
-            if(closestCon !== undefined){
-                couldSend = closestCon.send(msg);
-            }
-            return couldSend;
-        };
-
-        /**
-         * erster Schritt des Routings wenn der lokale Peer der Sender ist.
-         * schickt die Nachricht an den nächsten SuperPeer
-         * @param {Object} msg weiterzuleitende Nachricht
-         * @param {Function} callback Funktion die im Falle einer Antwort aufgerufen werden soll
-         */
-        this.send = function(msg){
-            var closestCon, targetID = BigInteger.parse(msg.head.to, 16), allCon, couldSend = false;
-            closestCon = that.getNearestConnection(targetID, superPeers);
-            if(closestCon !== undefined){
-                couldSend = closestCon.send(msg);
-            }
-            if(!couldSend){
-                allCon = leafSet.left.concat(leafSet.right, rConnections, friends);
-                closestCon = that.getNearestConnection(targetID, allCon);
-                if(closestCon !== undefined){
-                    couldSend = closestCon.send(msg);
-                }
-                else{
-                    peerWeb.log("couldn't send Message towards ID: "+msg.head.to, "log");
-                }
-            }
-            return couldSend;
-        };
-
-        this.getNearestConnection = function(targetID, connections, currentDistance){
+        getNearestConnection = function(targetID, connections, currentDistance){
             var tempDist, closestDist, closestCon;
             if(typeof targetID === BigInteger){
                 targetID = BigInteger.parse(targetID, 16);
@@ -146,14 +94,55 @@
                 }
             });
             return closestCon;
-        };
+        },
 
-        this.getNearestPeer = function(targetID){
-            var peerArr = that.getNearestPeers(targetID, null, 1);
-            return peerArr[0];
-        };
+        /**
+         * Routing-Algorithmus.
+         * Wählt den nächsten passenden Peer aus und schickt die Nachricht an diesen.
+         * @param {Object} msg weiterzuleitende Nachricht
+         */
+        route = function(msg){
+            var closestCon, closestDist, targetID, allCon, couldSend = false;
+            targetID = BigInteger.parse(msg.head.to, 16);
+            if(msg.head.from === peer.id){
+                closestDist = peerWeb.BIGGESTID;
+            }
+            else{
+                closestDist = targetID.subtract(peer.numID).abs();
+            }
+            allCon = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
+            closestCon = getNearestConnection(targetID, allCon, closestDist);
+            if(closestCon !== undefined){
+                couldSend = closestCon.send(msg);
+            }
+            return couldSend;
+        },
 
-        this.getNearestPeers = function(targetID, resultList, amount){
+        /**
+         * erster Schritt des Routings wenn der lokale Peer der Sender ist.
+         * schickt die Nachricht an den nächsten SuperPeer
+         * @param {Object} msg weiterzuleitende Nachricht
+         */
+        send = function(msg){
+            var closestCon, targetID = BigInteger.parse(msg.head.to, 16), allCon, couldSend = false;
+            closestCon = getNearestConnection(targetID, superPeers);
+            if(closestCon !== undefined){
+                couldSend = closestCon.send(msg);
+            }
+            if(!couldSend){
+                allCon = leafSet.left.concat(leafSet.right, rConnections, friends);
+                closestCon = getNearestConnection(targetID, allCon);
+                if(closestCon !== undefined){
+                    couldSend = closestCon.send(msg);
+                }
+                else{
+                    peerWeb.log("couldn't send Message towards ID: "+msg.head.to, "log");
+                }
+            }
+            return couldSend;
+        },
+
+        getNearestPeers = function(targetID, resultList, amount){
             var temp, tempResult = [], result = [], i, l, tempDist;
             targetID = BigInteger.parse(targetID, 16);
             temp = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
@@ -196,9 +185,14 @@
                 result.push(element[1]);
             });
             return result;
-        };
+        },
 
-        this.newPeerDiscovered = function(peerDesc){
+        getNearestPeer = function(targetID){
+            var peerArr = getNearestPeers(targetID, null, 1);
+            return peerArr[0];
+        },
+
+        newPeerDiscovered = function(peerDesc){
             var tempConnection;
             if(!isConnectedTo(peerDesc.id)){
                 //check if it is possible to connect
@@ -206,15 +200,15 @@
                     peerWeb.log("new SuperPeer discovered (has ID: "+peerDesc.id+")", "info");
                     tempConnection = buildConnection(peerDesc, defaultConfig);
                     newConnections.push(tempConnection);
-                } else if(!!peerDesc.webrtc && !!that.peerDescription.webrtc){
+                } else if(!!peerDesc.webrtc && !!peerDescription.webrtc){
                     peerWeb.log("new Peer discovered (has ID: "+peerDesc.id+")", "info");
                     tempConnection = buildConnection(peerDesc, defaultConfig);
                     newConnections.push(tempConnection);
                 }
             }
-        };
+        },
 
-        this.peerDescriptionRecieved = function(peerDesc, con){
+        peerDescriptionRecieved = function(peerDesc, con){
             var dist, removedCon,
                 numID = BigInteger.parse(peerDesc.id, 16);
             con.setDescription(peerDesc, numID);
@@ -260,9 +254,9 @@
             newConnections = peerWeb.removeFromArray(con, newConnections);
             checkMinimumConnections();
             updateConInfo();
-        };
+        },
 
-        this.pcDescriptionRecieved = function(fPeerID, PCDesc){
+        pcDescriptionRecieved = function(fPeerID, PCDesc){
             var config, peerDesc, tempConnection;
             if(isConnectedTo(fPeerID) && PCDesc.type === "answer"){//self initiated
                 getConnectionTo(fPeerID).gotAnswer(PCDesc);
@@ -277,18 +271,18 @@
                 tempConnection = buildConnection(peerDesc, config);
                 newConnections.push(tempConnection);
             }
-        };
+        },
 
-        this.iceProcess = function(fPeerID, ICEmsg){
+        iceProcess = function(fPeerID, ICEmsg){
             getConnectionTo(fPeerID).gotIceMsg(ICEmsg);
-        };
+        },
 
         /**
          * entfernt geschlossene oder sich in dem Prozess der Schließung befindene Verbindungen aus der Routing-Tabelle.
          * Anschließend wird checkMinimumConnections aufgerufen, um ein entsprechendes Defizit auszugeleichen.
          * @see checkMinimumConnections
          */
-        this.connectionClosed = function(){
+        connectionClosed = function(){
             var i,
             checkConnections = function(part, partname){
                 var i, removed = 0;
@@ -313,12 +307,9 @@
             peerWeb.log("Remainig Connections to Peers: "+amountConPeers+", remaining Connections to SuperPeers: "+amountConSuperPeers, "log");
             updateConInfo();
             checkMinimumConnections();
-        };
+        },
 
-        /**
-         * Initierungscode
-         */
-        (function(){
+        init = function(config){
             var initSuperPeersConnections = function(superPeers){
                 peerWeb.log("got all saved SuperPeers ("+superPeers.length+")", "info");
                 var tempConnection, i;
@@ -329,22 +320,35 @@
                 updateConInfo();
                 peerWeb.log("allready started trying to connect to to all saved SuperPeers", "info");
             };
-
-            that.peerDescription = {
+            peer = config.peer;
+            storage = config.storage;
+            onConnectivityChange = config.onConnectivityChange;
+            peerDescription = {
                 "id" : peer.id
             };
-            if(peerWeb.supportFor.webrtc){
-                that.peerDescription.webrtc = true;
+            if(!!peerWeb.Connection.WebRTC){
+                peerDescription.webrtc = true;
             }
-            defaultConfig.connectionManager = that;
             defaultConfig.messageHandler = config.messageHandler;
-            config.messageHandler.setConnectionManager(that);
+            defaultConfig.peerDescription = peerDescription;
+            defaultConfig.connectionClosed = connectionClosed;
             networkMsgHndl = config.messageHandler.getServiceHandler("network");
-            networkMsgHndl.setConnectionManager(that);
             leafSet.longDistLeft = (BigInteger.ZERO).subtract(peer.numID);
             leafSet.longDistRight = (peerWeb.BIGGESTID).subtract(peer.numID);
             peerWeb.log("request all saved SuperPeers", "info");
             storage.getAllSuperPeers(initSuperPeersConnections);
-        }());
-    };
+        };
+
+        return {
+            "iceProcess" : iceProcess,
+            "pcDescriptionRecieved" : pcDescriptionRecieved,
+            "peerDescriptionRecieved" : peerDescriptionRecieved,
+            "newPeerDiscovered" : newPeerDiscovered,
+            "getNearestPeers" : getNearestPeers,
+            "getNearestPeer" : getNearestPeer,
+            "send" : send,
+            "route" : route,
+            "init" : init
+        };
+    }());
 }(peerWeb, BigInteger));

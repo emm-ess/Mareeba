@@ -33,13 +33,12 @@
                     message: "no config Element"
                 };
             }
-            conManager = __config.connectionManager;
             this.msgHndl = __config.messageHandler;
             __config.onerror = function(err){peerWeb.log(err, "error");};
 
             __config.onclose = function(e){
                 peerWeb.log(e, "log");
-                conManager.connectionClosed();
+                __config.connectionClosed();
             };
 
             __config.onmessage = function(msg){
@@ -56,7 +55,7 @@
                         "action": "peerDescription"
                     },
                     body: {
-                        "peerDescription": conManager.peerDescription
+                        "peerDescription": __config.peerDescription
                     }
                 };
                 that.msgHndl.send(descriptionMsg, null, that);

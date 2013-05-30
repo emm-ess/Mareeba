@@ -4,16 +4,12 @@
     /**
      * Main Class for Handling Messages
      * @author Marten Schälicke
-     * @constructor
-     * @param {Object} config
      */
-    peerWeb.MessageHandler = function(config){
-        var serviceHndl = {}, conMng,
-        peerID = peerWeb.Peer.id,
+    peerWeb.MessageHandler = (function(){
+        var serviceHndl = {}, conMng, peerID,
         protocolVersion = "0.1",
         responseCallbacks = {},
-        storeMsg = config.storeMessage,
-        deleteMsg = config.deleteMessage,
+        storeMsg, deleteMsg,
 
         /**
          * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
@@ -85,10 +81,6 @@
             return serviceHndl[service];
         },
 
-        setConnectionManager = function(tempConMng){
-            conMng = tempConMng;
-        },
-
         getCallback = function(refCode){
             return responseCallbacks[refCode];
         },
@@ -99,19 +91,28 @@
             }
         },
 
-        that = {
+        deleteMessage = function(refCode){
+            deleteMsg(refCode);
+        },
+
+        init = function(config){
+            peerID = config.peer.id;
+            conMng = config.connectionManager || peerWeb.ConnectionManager;
+            storeMsg = config.storeMessage;
+            deleteMsg = config.deleteMessage;
+        };
+
+        return {
             "setServiceHandler" : setServiceHandler,
             "getServiceHandler" : getServiceHandler,
-            "setConnectionManager" : setConnectionManager,
             "handleMessage" : handleMessage,
             "answer" : answer,
             "forward" : forward,
             "send" : send,
-            "deleteMessage" : deleteMsg,
+            "deleteMessage" : deleteMessage,
             "getCallback" : getCallback,
-            "deleteCallback" : deleteCallback
+            "deleteCallback" : deleteCallback,
+            "init": init
         };
-
-        return that;
-    };
+    }());
 }(peerWeb));

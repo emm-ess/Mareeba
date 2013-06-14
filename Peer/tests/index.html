@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Jasmine Spec Runner</title>
+
+  <link rel="shortcut icon" type="image/png" href="jasmine/jasmine_favicon.png">
+  <link rel="stylesheet" type="text/css" href="jasmine/jasmine.css">
+  <script type="text/javascript" src="jasmine/jasmine.js"></script>
+  <script type="text/javascript" src="jasmine/jasmine-html.js"></script>
+
+  <!-- include source files here... -->
+
+	<script src="../lib/jquery-1.8.2.js"></script>
+	<script src="../lib/biginteger.js"></script>
+	<script src="../lib/cryptojs/rollups/sha1.js"></script>
+	<script src="../lib/swfobject.js"></script>
+
+	<script src="../mareeba.js"></script>
+	<script src="../mareeba.peer.js"></script>
+
+	<script src="../mareeba.messagehandler.js"></script>
+	<script src="../mareeba.messagehandler.network.js"></script>
+	<script src="../mareeba.messagehandler.public.js"></script>
+
+	<script src="../mareeba.connection.js"></script>
+	<script src="../mareeba.connection.webrtc.js"></script>
+	<script src="../mareeba.connection.flash.js"></script>
+	<script src="../mareeba.connection.websocket.js"></script>
+	<script src="../mareeba.connectionfactory.js"></script>
+	<script src="../mareeba.connectionmanager.js"></script>
+
+	<script src="../mareeba.document.js"></script>
+	<script src="../mareeba.documentmanager.js"></script>
+
+	<script src="../mareeba.storage.js"></script>
+
+  <!-- include spec files here... -->
+
+  <script type="text/javascript">
+    (function() {
+      var jasmineEnv = jasmine.getEnv();
+      jasmineEnv.updateInterval = 1000;
+
+      var htmlReporter = new jasmine.HtmlReporter();
+
+      jasmineEnv.addReporter(htmlReporter);
+
+      jasmineEnv.specFilter = function(spec) {
+        return htmlReporter.specFilter(spec);
+      };
+
+      var currentWindowOnload = window.onload;
+
+      window.onload = function() {
+        if (currentWindowOnload) {
+          currentWindowOnload();
+        }
+        execJasmine();
+      };
+
+      function execJasmine() {
+        jasmineEnv.execute();
+      }
+
+    })();
+  </script>
+
+</head>
+
+<body>
+</body>
+</html>

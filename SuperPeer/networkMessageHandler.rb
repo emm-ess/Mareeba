@@ -39,12 +39,12 @@ class NetworkMessageHandler
   end
   
   def nodeLookupResponse(msg, con)
-    
+    @msgHndl.forward(msg)
   end
   
   def nodeLookup(msg, con)
     if(msg["head"].has_key? "code")
-      @msgHndl.forward(msg)
+      nodeLookupResponse(msg, con)
     else
       nodeLookupRequest(msg, con)
     end

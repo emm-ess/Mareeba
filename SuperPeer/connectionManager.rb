@@ -95,7 +95,6 @@ class ConnectionManager
         end
       end
     end
-    @logger.debug "closest Peer has : "+closestCon.description["id"]+" with distance: "+closestDistance.to_s
     return closestCon
   end
 
@@ -106,7 +105,7 @@ class ConnectionManager
     closestCon = getNearestConnection(targetID, closestDistance)
     couldSend = false
     if(closestCon != nil)
-      @logger.debug "forward message to peer "
+      @logger.debug "forward message to peer: "+closestCon.description["id"]
       couldSend = closestCon.send msg 
     else
       @logger.debug "I'm the closest one"

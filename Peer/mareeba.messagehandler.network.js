@@ -29,12 +29,16 @@
             Mareeba.log("recieved nodeLookupResponse Message for: "+msg.body.id, "log");
             var i, l,
             resultList = msg.body.resultList,
-            peerDesc;
+            peerDesc, callback;
             for(i = 0, l = resultList.length; i < l; i += 1){
                 peerDesc = resultList[i];
                 if(peerDesc.id !== peerID){
                     conMng.newPeerDiscovered(peerDesc);
                 }
+            }
+            callback = msgHndl.getCallback(msg.head.refCode);
+            if(typeof(callback) ===  "function"){
+                callback(msg);
             }
             msgHndl.deleteMessage(msg.head.refCode);
         },

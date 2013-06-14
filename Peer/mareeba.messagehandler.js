@@ -92,6 +92,7 @@
         },
 
         deleteMessage = function(refCode){
+        	deleteCallback(refCode);
             deleteMsg(refCode);
         },
 

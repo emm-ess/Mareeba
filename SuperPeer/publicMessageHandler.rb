@@ -26,7 +26,7 @@ class PublicMessageHandler
   
   def valueStoreRequest(msg, con)
     @logger.info "store Document: "+msg["body"].to_s
-    @docManager.saveFile(msg["body"]["titleID"], msg["body"])
+    @docMng.saveFile(msg["body"]["titleID"], msg["body"])
     if(msg["head"].has_key? "to" and msg["head"]["to"].eql? @peerID)
       @msgHndl.forward(msg)
     else

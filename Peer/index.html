@@ -8,10 +8,10 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-		<title>peerWeb</title>
-		<meta name="description" content="" />
+		<title>Petrogale</title>
+		<meta name="description" content="Petrogale is an aproach to bring p2p into browsers." />
 		<meta name="author" content="Marten Schälicke" />
-
+documentSearch
         <meta name="viewport" content="width=device-width">
 		<link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css' />
 		<link rel="stylesheet" type="text/css" href="css/normalize.css" media="screen">
@@ -20,17 +20,17 @@
 	</head>
 
 	<body>
-		
+
 		<!--[if lt IE 7]>
-            <p class="chromeframe">Du benutzt einen <strong>veralteten</strong> Browser. Bitte <a href="http://browsehappy.com/">besorge dir einen neuen</a> oder <a href="http://www.google.com/chromeframe/?redirect=true">aktiviere Google Chrome Frame</a>.</p>
+            <p class="chromeframe">You are using an <strong>outdated</strong> Browser. Please <a href="http://browsehappy.com/">get a new one</a>.</p>
         <![endif]-->
-		
+
 		<header>
-			<h1><a href="home" title="Startseite">peerWeb</a></h1>
+			<h1><a href="home" title="Home">Petrogale</a></h1>
 			<form id="document-search">
-				<h2 class="visuallyhidden"><label for="search-document-title">Suche</label></h2>
-				<input type="search" name="search-document-title" id="search-document-title" placeholder="Titel" />
-				<input type="submit" id="document-search-button" value="suchen" />
+				<h2 class="visuallyhidden"><label for="search-document-title">Search</label></h2>
+				<input type="search" name="search-document-title" id="search-document-title" placeholder="Title" />
+				<input type="submit" id="document-search-button" value="search" />
 			</form>
 			<nav>
 				<ul>
@@ -38,7 +38,7 @@
 						<a href="a-z" title="A-Z">A-Z</a>
 					</li>
 					<li>
-						<a href="new-document" title="neues Dokument">neues Dokument</a>
+						<a href="new-document" title="neues Dokument">new Document</a>
 					</li>
 				</ul>
 			</nav>
@@ -46,7 +46,7 @@
 
 		<div id="main">
 			<section id="home-screen">
-				<h2>Willkommen bei PeerWeb</h2>
+				<h2>Welcome to Petrogale</h2>
 				<p class="description">peerWeb ist ein browserbasiertes Peer-to-Peer-Netzwerk und womöglich ein Einstieg in das Web 3.0. Zunächst wirkt es sicherlich nicht so. Es scheint ein Wiki oder eine Art soziales Netzwerk zu sein, was es schon mehr als einmal gibt. Die Besonderheit von peerWeb liegt in der Technik. Alle Inhalte innerhalb von peerWeb werden dezentral abgelegt und zwar bei den Nutzern der Seite! Große Server sind damit nicht mehr notwendig. Wie das ganze dennoch funktioniert steht im Wiki. Somit kann einer Zensur des Internets - durch Sperren von Internetseiten - entgegengewirkt werden. Außerdem sparrt es große Rechenzentren, da die Nutzer den Speicherplatz bereitstellen. Und es kann keine zentrale Stelle das Verhalten eines Nutzers analysieren.</p>
 
 <p>Noch ist das Ganze in den Kinderschuhen, wenn nicht gar in Babyschuhen. Noch ist nicht einmal der öffentliche Teil vollständig umgesetzt. Auch wenn es in Grundzügen schon benutzbar ist, so fehlen doch noch wichtige Funktionen, die zum Beispiel einen Missbrauch verhindern. Von dem späteren sozialen Aspekt - dem Netzwerk im Netzwerk - ganz zu schweigen. Zur Zeit ist ebenso die Verbindungsstruktur auf gleichbleibende Verhältnisse ausgelegt, so dass unter Umständen nicht alles funktioniert wie es sollte. Das liegt einfach daran, dass es sich hierbei um eine Bachelorarbeit handelt, deren Fokus auf der Spezifizierung des Gesamtsystems mit allen zukünftigen Möglichkeiten lag. Diese Umsetzung ist eben nur der Beginn davon, quasi die Machbarkeitsstudie, welche nun nach und nach vervollständigt wird.
@@ -58,44 +58,44 @@
 
 			<section id="a-z-screen">
 				<h2>A-Z</h2>
-				<p class="description">Hier finden sich die Einträge im Index Ihres Knotens. Die hier aufgeführten Artikel müssen dabei nicht in diesem gespeichert sein,
-					außerdem handelt es sich hierbei um keine vollständige Liste der in peerWeb verfügbaren Dokumente. Falls die Liste leer ist, legen Sie doch einfach
-					einen Artikel an.</p>
-				<div id="a-z-result">lade Indexeinträge</div>
+				<p class="description">Here are the entries of your local index shown. The corresponding document haven't to be stored in your browser, neither it's a full list
+					of available documents in Petrogale. If you want to find a document, search for it and if the list is empty or you can't find the document you are looking for,
+					just crate one!</p>
+				<div id="a-z-result">load local indecies</div>
 			</section>
-			
+
 			<section id="search-screen">
-				
+
 			</section>
-			
+
 			<section id="document-screen">
-				
+
 			</section>
 
 			<section id="new-document-screen">
-				<h2>neues Dokument</h2>
-				<p class="description">An dieser Stelle können neue Dokumente angelegt werden. Da zur Zeit noch keine Versionierung stattfindet, werden bei Angabe gleicher
-					Titel der ältere überschrieben.</p>
+				<h2>New Document</h2>
+				<p class="description">It would be nice, if you create a new document. But please be aware, due to it's the early days of Petrogale and Mareeba, there are no
+					versioning. So you can overwrite an existing document easily.</p>
 				<form id="new-document">
 					<div>
-						<label for="new-document-title">Titel</label>
+						<label for="new-document-title">Title</label>
 						<div><input type="text" name="new-document-title" id="new-document-title" spellcheck="true" /></div>
 					</div>
 					<div>
-						<label for="new-document-content">Inhalt</label>
+						<label for="new-document-content">Content</label>
 						<div><textarea name="new-document-content" id="new-document-content" spellcheck="true" rows="10" cols="50"></textarea></div>
 					</div>
 					<div>
-						<div><input type="submit" id="new-document-button" value="speichern" /></div>
+						<div><input type="submit" id="new-document-button" value="save" /></div>
 					</div>
 				</form>
 			</section>
 		</div>
-		
+
 		<div id="overlay">
 			<div id="inner-overlay">
 				<h2>Loading</h2>
-				<noscript>Sie müssen JavaScript aktiviert haben, um diese Seite nutzen zu können.</noscript>
+				<noscript>You have to enable JavaScript to be able to use Petrogale.</noscript>
 			</div>
 		</div>
 
@@ -104,34 +104,29 @@
 		</footer>
 
 		<script src="js/lib/jquery-1.8.2.js"></script>
-		<script src="js/lib/jquery-ui-1.8.21.custom.min.js"></script>
 		<script src="js/lib/biginteger.js"></script>
 		<script src="js/lib/cryptojs/rollups/sha1.js"></script>
 		<script src="js/lib/swfobject.js"></script>
-		
-		<script src="js/peerweb.js"></script>
-		<script src="js/peerweb.peer.js"></script>
-		
-		<script src="js/peerweb.messagehandler.js"></script>
-		<script src="js/peerweb.messagehandler.network.js"></script>
-		<script src="js/peerweb.messagehandler.public.js"></script>
-		
-		<script src="js/peerweb.connection.js"></script>
-		<script src="js/peerweb.connection.webrtc.js"></script>
-		<script src="js/peerweb.connection.flash.js"></script>
-		<script src="js/peerweb.connection.websocket.js"></script>
-		<script src="js/peerweb.connectionfactory.js"></script>
-		<script src="js/peerweb.connectionmanager.js"></script>
-		
-		<script src="js/peerweb.document.js"></script>
-		<script src="js/peerweb.documentmanager.js"></script>
-		
-		<script src="js/peerweb.storage.js"></script>
-		
-		<script src="js/peerweb.gui.js"></script>
-		
-		<script type="text/javascript">
-			peerWeb.baseURL = "http://localhost/peerWeb/development/Peer/";
-		</script>
+
+		<script src="js/mareeba.js"></script>
+		<script src="js/mareeba.peer.js"></script>
+
+		<script src="js/mareeba.messagehandler.js"></script>
+		<script src="js/mareeba.messagehandler.network.js"></script>
+		<script src="js/mareeba.messagehandler.public.js"></script>
+
+		<script src="js/mareeba.connection.js"></script>
+		<script src="js/mareeba.connection.webrtc.js"></script>
+		<script src="js/mareeba.connection.flash.js"></script>
+		<script src="js/mareeba.connection.websocket.js"></script>
+		<script src="js/mareeba.connectionfactory.js"></script>
+		<script src="js/mareeba.connectionmanager.js"></script>
+
+		<script src="js/mareeba.document.js"></script>
+		<script src="js/mareeba.documentmanager.js"></script>
+
+		<script src="js/mareeba.storage.js"></script>
+
+		<script src="js/petrogale.js"></script>
 	</body>
 </html>

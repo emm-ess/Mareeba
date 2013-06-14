@@ -1,0 +1,26 @@
+(function(Mareeba){
+    "use strict";
+    Mareeba.namespace("ConnectionFactory");
+
+    Mareeba.ConnectionFactory.buildConnection = function(peerDesc, config){
+        var type, connection;
+        if(!!peerDesc.webrtc){
+            type = "WebRTC";
+        }
+        else if(!!peerDesc.ws){
+            type = "WebSocket";
+        }
+        else{
+            throw {
+                name: "Error",
+                message: "No usable connectiontype specified"
+            };
+        }
+        if(typeof Mareeba.Connection[type].prototype.send !== "function"){
+            Mareeba.Connection[type].prototype.__proto__ = new Mareeba.Connection();
+            Mareeba.Connection[type].prototype.constructor = Mareeba.Connection[type];
+        }
+        connection = new Mareeba.Connection[type](peerDesc, config);
+        return connection;
+    };
+}(Mareeba));

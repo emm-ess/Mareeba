@@ -29,10 +29,10 @@ class NetworkMessageHandler
   def nodeLookupRequest(msg, con)
     @logger.info "recieved nodeLookup Request Message for: "+msg["body"]["id"]
     nearestPeers = @conMng.getNearestPeers(msg["body"]["id"], msg["body"]["resultList"], 6)
-    
+    @logger.debug "nearest Peers for: "+msg["body"]["id"]+" : "+nearestPeers.to_s
     msg["body"]["resultList"] = nearestPeers;
-    if(nearestPeers[0].eql? @peerID)
-        @msgHndl.answer(msg, con)
+    if(nearestPeers[0]["id"].eql? @peerID)
+        @msgHndl.answer(msg, con, 200)
     else
         @msgHndl.forward(msg)
     end

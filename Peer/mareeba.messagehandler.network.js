@@ -64,7 +64,7 @@
          * @param {Mareeba.Connection} con Verbindung über die die Nachricht geschickt wurd
          */
         nodeLookup = function(msg, con){
-            if(msg.head.code !== undefined){
+            if(msg.head.code === undefined && msg.head.to !== peerID){
                 nodeLookupRequest(msg, con);
             }
             else{

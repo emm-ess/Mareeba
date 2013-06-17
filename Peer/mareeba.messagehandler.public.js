@@ -122,7 +122,7 @@
          * @param {Mareeba.Connection} con Verbindung über die diese geschickt wurde
          */
         valueLookup = function(msg, con){
-            if(msg.head.action === undefined){
+            if(msg.head.code === undefined){
                 valueLookupRequest(msg, con);
             }
             else{

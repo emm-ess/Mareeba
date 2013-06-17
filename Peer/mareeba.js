@@ -1,15 +1,16 @@
 /**
- * Die Mareeba Bibliothek.
- * Diese hängt die Variable Mareeba an das globale Objekt und stellt einige Grundfunktionen zur Verfügung.
- * @param {Object} window das globale Objekt
+ * The Mareeba Library.
+ * Offers some basic functions.
+ * @author Marten Schälicke
+ * @param {window} window global object
+ * @param {jQuery} jQuery
+ * @param {BigInteger} BigInteger 
  */
 (function(window, $, BigInteger){
     "use strict";
     var Mareeba = window.Mareeba || {},
     logDisplay;
 
-    //define functions of Mareeba
-    //
     /**
      * namespace function taken from Stoyan Stefanov: "JavaScript Patterns", O'Reilly, 2010, deutschsprachige Ausgabe, Seite 91
      * bietet die Möglichkeit Module/Klassen an das Objekt Mareeba zu hängen und so eine Paketstruktur aufzubauen
@@ -33,13 +34,10 @@
     };
 
     /**
-     * in dieses Objekt definieren die Module ihre Abhängigkeiten
-     */
-    Mareeba.supportFor = {};
-
-    /**
-     * Logging Funktion
-     * Ist das logging aktiviert werden Nachrichten in die Konsole und in den angegebenen Bereich im DOM geschrieben.
+     * Logging function
+     * central point for logging.
+     * Provides different severity-levels (info, warn, error, log) and can be disabled completly.
+     * Logs to console and/or to a provided function.
      * @param {Object} msg
      * @param {Object} level
      */
@@ -62,18 +60,17 @@
     };
 
     /**
-     * Gibt die Möglichkeit die Ausgabe der Log-Nachrichten im DOM zu steuern
-     * @param {Function} display Funktion die Log-Nachrichten weiterverarbeitet
+     * Sets the function if not only logging to the console should be used.
+     * @param {Function} display function which writes logging messages into the DOM.
      */
     Mareeba.setLogDisplay = function(display){
         logDisplay = display;
     };
 
     /**
-     * Erzeugt einen zufälligen Hex-String der gewünschten Länge.
-     * die Länge wird in Zeichen angegeben. So entsprechen 2 Zeichen einem Byte.
-     * @param {int} length gewünschte Länge der Zahl
-     * @return {String} number die erzeugte Zahl als String
+     * Creates a random Hex-String of given length. 
+     * @param {int} length in digits (not Bytes)
+     * @return {String} number a random number
      */
     Mareeba.getRandomHexNumber = function(length){
         var hex = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'],
@@ -85,10 +82,10 @@
     };
 
     /**
-     * Entfernt eine Nadel aus einem Heuhaufen.
-     * @param {Object} needle das zu entfernende Objekt
-     * @param {Array} stack Array aus dem entfernt werden soll
-     * @return {Array} stack das geänderte Array
+     * removes any given object out of an array.
+     * @param {Object} needle object to be removed
+     * @param {Array} stack array where object have to be removed from
+     * @return {Array} stack changed array
      * @throws {FalseArgument} if stack is not an array
      */
     Mareeba.removeFromArray = function(needle, stack){
@@ -105,12 +102,15 @@
         return stack;
     };
 
+	/**
+	 * inits Mareeba (NOT USED at the moment!)
+	 */
     Mareeba.init = function(config){
         new Mareeba.Peer();
     };
 
     /**
-     * beschreibt die größte mögliche ID und somit auch Entfernung in Mareeba (2^160)
+     * biggest possible ID (and distance) in Mareeba (2^160)
      * @constant
      */
     Mareeba.BIGGESTID = BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16);

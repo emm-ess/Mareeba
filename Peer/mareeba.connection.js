@@ -2,11 +2,9 @@
     "use strict";
     Mareeba.namespace("Connection");
     /**
-     * Verwaltet Verbindungen und behandelt Anfragen
+     * Connection (Wrapper) to hide differences between used connections.
+     * Provides functionalities which are the same for all kinds of connections. 
      * @author Marten Schälicke
-     * @constructor
-     * @param {Object} conManager Referenz auf den ConnectionManager um Nachrichten weitergeben zu können
-     * @param {Object} config Konfigurationsobjekt, welches u.A. den Verbindungspartner enthält
      */
     Mareeba.Connection = function(){
         return this;
@@ -15,6 +13,10 @@
     Mareeba.Connection.prototype = (function(){
         var conManager,
 
+		/**
+		 * @param {String} Message to be send
+		 * @return {Bool}
+		 */
         send = function(msg){
             var couldSend = false;
             if(typeof msg !== String){

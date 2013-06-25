@@ -1,14 +1,12 @@
 #Mareeba#
-A framework for building browserbased peer-to-peer-networks build and used by [Petrogale](http://www.petrogale.org/)
 
-=
-The idea behind Mareeba is to build a highly flexible framework as a good starting point to build complex p2p-networks like it is done in Petrogale, where Mareeba is used to create a distributed hash table. 
-So it is intended to be able to:
+Mareeba is a framework for browserbased peer-to-peer networks developed by and for [Petrogale](http://www.petrogale.org). Per default it creates a distributed hash table using a hybrid p2p-network structure. The use of WebRTC’s peer-to-peer-connections makes the hybrid network design necessary, but just for connecting to the network.
+
+Like "per default" suggests other networks are possible. One fundamental design goal of Mareeba is to be highly felexible, making it easy to change different modules and adding stuff. Already in those very early days you could:
 * change the routing-table and routing
 * add own services and corresponding messages
-* send/receive text-based documents (binary isn't possible yet)
+* send/receive text-based document
 
+Mareeba (or better just parts of it) can make building server/client-applications easier by using Mareeba's connections. In that way you can use WebSocket based connections if available and AJAX as a fallback.
 
-But you can also use only parts out of Mareeba, for example to have a server connection which is based on WebSockets if available and otherwise on AJAX.
-
-Website: http://mareeba.petrogale.org/
+More info can be found on http://mareeba.petrogale.org

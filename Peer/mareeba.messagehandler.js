@@ -2,7 +2,7 @@
     "use strict";
     Mareeba.namespace("MessageHandler");
     /**
-     * Main Class for Handling Messages
+     * main object for handling messages
      * @author Marten Schälicke
      */
     Mareeba.MessageHandler = (function(){
@@ -12,9 +12,9 @@
         storeMsg, deleteMsg,
 
         /**
-         * prüft eine Nachricht auf erforderliche Felder und setzt diese bei Fehlen
-         * @param {Object} msg zu verschickende Nachricht
-         * @param {Function} callback Funktion, die bei Antwort aufgerufen werden soll
+         * checks mandatory fields of messages and creates them if needed.
+         * @param {object} msg message to be send
+         * @returns {object} verified message
          */
         buildMandatoryFields = function(msg){
             if(msg.head.protocolVersion === undefined){
@@ -32,6 +32,11 @@
             return msg;
         },
 
+        /**
+         * forwards messages based on service-field in message header to corresponding message (service) handler
+         * @param {object} msg incoming message
+         * @param {Mareeba.Connection} con connection which received the message
+         */
         handleMessage = function(msg, con){
             if(!!serviceHndl[msg.head.service]){
                 serviceHndl[msg.head.service].handleMessage(msg, con);
@@ -41,19 +46,37 @@
             }
         },
 
+        /**
+         * answers request by sending them directly back on the incoming connection.
+         * @param {object} msg answer
+         * @param {Mareeba.Connection} con connection on which message will be send
+         * @param {number} code answercode
+         * @returns {boolean} could message be send
+         */
         answer = function(msg, con, code){
             msg.head.code = code;
             msg.head.to = msg.head.from;
             msg.head.from = peerID;
             msg = buildMandatoryFields(msg);
-            con.send(msg);
+            return con.send(msg);
         },
 
+        /**
+         * forwards message to next peer.
+         * @param {object} msg message to be send
+         * @returns {boolean} could message be send
+         */
         forward = function(msg){
             msg = buildMandatoryFields(msg);
-            conMng.route(msg);
+            return conMng.route(msg);
         },
 
+        /**
+         * sends message.
+         * @param {object} msg message to be send
+         * @param {function} [callback] function to be called when response is received
+         * @param {Mareeba.Connection} [con] used if message should be send via certain connection
+         */
         send = function(msg, callback, con){
             var save, refCode;
             save = msg.head.refCode === undefined;
@@ -73,29 +96,56 @@
             }
         },
 
+        /**
+         * register serviceHandler for certain service
+         * @param {object} handler handler for messages on this service
+         * @param {string} service name of service
+         */
         setServiceHandler = function(handler, service){
             serviceHndl[service] = handler;
         },
 
+        /**
+         * returns the handler of given servicename
+         * @param {string} service servicename
+         * @returns {object} servicehandler
+         */
         getServiceHandler = function(service){
             return serviceHndl[service];
         },
 
+        /**
+         * returns the callback corresponding to given refCode
+         * @param {string} refCode referenzcode identifying request message
+         * @returns {function} corresponding callback
+         */
         getCallback = function(refCode){
             return responseCallbacks[refCode];
         },
 
+        /**
+         * deletes a registered callback
+         * @param {string} refCode referenzcode identifying request message
+         */
         deleteCallback = function(refCode){
             if(typeof(responseCallbacks[refCode]) ===  "function"){
                 delete responseCallbacks[refCode];
             }
         },
 
+        /**
+         * deletes message
+         * @param {string} refCode referenzcode identifying message
+         */
         deleteMessage = function(refCode){
         	deleteCallback(refCode);
             deleteMsg(refCode);
         },
 
+        /**
+         * initializes message handler
+         * @param {object} config configurationobject
+         */
         init = function(config){
             peerID = config.peer.id;
             conMng = config.connectionManager || Mareeba.ConnectionManager;

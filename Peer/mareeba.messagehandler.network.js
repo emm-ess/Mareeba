@@ -2,13 +2,19 @@
     "use strict";
     Mareeba.namespace("MessageHandler.Network");
     /**
-     *
+     * message handler for network service.
+     * handles messages of/for connection manager and for establishing and  maintaining connections.
      * @author Marten Schälicke
      */
     Mareeba.MessageHandler.Network = (function(){
         var
         conMng, msgHndl, peerID,
 
+        /**
+         * initializes a nodeLookup
+         * @param {string} id ID to look for
+         * @param {function} [callback]
+         */
         initNodeLookup = function(id, callback){
             var nearestPeers = conMng.getNearestPeers(id, null, 6),
             msg = {
@@ -25,6 +31,11 @@
             msgHndl.send(msg, callback);
         },
 
+        /**
+         * handles responses of nodeLookups
+         * @param {object} msg nodeLookup response
+         * @param {Mareeba.Connection} con connection via which the message was received
+         */
         nodeLookupResponse = function(msg, con){
             Mareeba.log("recieved nodeLookupResponse Message for: "+msg.body.id, "log");
             var i, l,
@@ -43,6 +54,11 @@
             msgHndl.deleteMessage(msg.head.refCode);
         },
 
+        /**
+         * answers nodeLookups
+         * @param {object} msg nodeLookup request
+         * @param {Mareeba.Connection} con connection via which the message was received
+         */
         nodeLookupRequest = function(msg, con){
             Mareeba.log("recieved nodeLookup Request Message for: "+msg.body.id, "log");
             var nearestPeers = conMng.getNearestPeers(msg.body.id, msg.body.resultList, 6);
@@ -57,11 +73,9 @@
         },
 
         /**
-         * Suche nach nächsten Peers zur gesuchten ID (wird im Body der Nachricht übergeben)
-         * ordnet alle Peers und die in der Nachricht übergebenen nach Entfernung zum Datum und schreibt die nächsten 6 Peers in die Liste im Body der Nachricht.
-         * Ist der lokale Peer der nähste Peer wird die Nachricht an den Absender zurück geschickt, andernfalls wird sie weitergeroutet @see routeMessage
-         * @param {Object} msg nodeLookup-Nachricht, welche behandelt wird
-         * @param {Mareeba.Connection} con Verbindung über die die Nachricht geschickt wurd
+         * decides whether message is a nodeLookup request or response
+         * @param {object} msg nodeLookup message
+         * @param {Mareeba.Connection} con connection via which the message was received
          */
         nodeLookup = function(msg, con){
             if(msg.head.code === undefined && msg.head.to !== peerID){
@@ -73,10 +87,9 @@
         },
 
         /**
-         * verarbeitet peerDesciption-Nachrichten verbundener Knoten.
-         * ordnet den Sender entsprechend seiner Entfernung bzw. ob er ein SuperPeer oder Freund ist, in den entsprechenden Teil der Routing-Tabelle ein.
-         * @param {Object} msg peerDescription-Nachricht, welche behandelt wird
-         * @param {Mareeba.Connection} con Verbindung über die die Nachricht geschickt wurde
+         * handles peerDescription messages
+         * @param {object} msg peerDescription message
+         * @param {Mareeba.Connection} con connection via which the message was received
          */
         peerDescription = function(msg, con){
             if(msg.head.code === undefined){
@@ -91,6 +104,11 @@
             }
         },
 
+        /**
+         * handles peerConnectionDescription messages (gives them to connectionmanager or forwards them)
+         * @param {object} msg peerConnectionDescription message
+         * @param {Mareeba.Connection} con connection via which the message was received
+         */
         pcDescription = function(msg){
             if(msg.head.to === peerID){
                 conMng.pcDescriptionRecieved(msg.head.from, msg.body);
@@ -100,6 +118,11 @@
             }
         },
 
+        /**
+         * handles iceProcess messages (gives them to connectionmanager or forwards them)
+         * @param {object} msg iceProcess message
+         * @param {Mareeba.Connection} con connection via which the message was received
+         */
         iceProcess = function(msg){
             if(msg.head.to === peerID){
                 conMng.iceProcess(msg.head.from, msg.body);
@@ -110,10 +133,9 @@
         },
 
         /**
-         * leitet die Nachricht an die entsprechende Methode weiter.
-         * verwendet dafür das "action"-Feld im Header der Nachricht
-         * @param {Object} msg eingegangene Nachricht
-         * @param {Mareeba.Connection} con Verbindung über die diese geschickt wurde
+         * forwards message to the corresponding handler method based on action-field in message header
+         * @param {object} msg received network service message
+         * @param {Mareeba.Connection} con connection via which the message was received
          */
         handleMessage = function(msg, con){
             switch(msg.head.action){
@@ -136,6 +158,10 @@
             }
         },
 
+        /**
+         * initializes the network message handler
+         * @param {object} config configurationobject
+         */
         init = function(config){
             peerID = config.peer.id;
             conMng = config.connectionManager || Mareeba.ConnectionManager;

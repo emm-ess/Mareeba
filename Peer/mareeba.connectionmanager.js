@@ -2,7 +2,7 @@
     "use strict";
     Mareeba.namespace("ConnectionManager");
     /**
-     * Verwaltet Verbindungen und behandelt Anfragen
+     * manages connections and routing of messages.
      * @author Marten Schälicke
      */
     Mareeba.ConnectionManager = (function(){
@@ -16,6 +16,8 @@
 
         /**
          * checks if peer is already connected to a certain other peer
+         * @param {string} fPeerID ID of far peer
+         * @returns {boolean} is already connected
          */
         isConnectedTo = function(fPeerID){
             var i, j, tempDesc, connections = [newConnections, leafSet.left, leafSet.right, superPeers, rConnections];
@@ -30,6 +32,11 @@
             return false;
         },
 
+        /**
+         * returns the connection to a specific peer. returns null if not connected.
+         * @param {string} fPeerID ID of far peer
+         * @returns {(Mareeba.Connection|null)}
+         */
         getConnectionTo = function(fPeerID){
             var i, j, tempDesc, tempCon, connections = [newConnections, leafSet.left, leafSet.right, superPeers, rConnections];
             for(i = 0; i < connections.length; i += 1){
@@ -53,9 +60,8 @@
         },
 
         /**
-         * prüft, wie viele freie Verbindungen verfügbar sind und versucht gegebenenfalls entsprechende Knoten zu finden.
-         * führt daher u.U. zu einem nodeLookup
-         * @see nodeLookup
+         * checks if number of connections is enough. otherwise initiates nodeLookup.
+         * @see Mareeba.MessageHandler.Network.initNodeLookup
          */
         checkMinimumConnections = function(){
             if(amountConPeers === 0 && amountConSuperPeers === 0){
@@ -71,9 +77,16 @@
                 //TODO
             }
         },
-
+        
+        /**
+         * returns the connection which endpoint is closest to given ID or null.
+         * @param {(BigInteger|string)} targetID
+         * @param {array} [connections=leafset+rConnections+superPeers+friends] array of connection in which to search
+         * @param {BigInteger} [currentDistance=Mareeba.BIGGESTID]
+         * @returns {(Mareeba.Connection|null)} nearest connection
+         */
         getNearestConnection = function(targetID, connections, currentDistance){
-            var tempDist, closestDist, closestCon;
+            var tempDist, closestDist, closestCon = null;
             if(typeof targetID === BigInteger){
                 targetID = BigInteger.parse(targetID, 16);
             }
@@ -97,9 +110,10 @@
         },
 
         /**
-         * Routing-Algorithmus.
-         * Wählt den nächsten passenden Peer aus und schickt die Nachricht an diesen.
-         * @param {Object} msg weiterzuleitende Nachricht
+         * routing algorithm.
+         * selects next peer and send him the message. returns whether the message could be send or not (no connection or already nearest).
+         * @param {object} msg message to be send
+         * @returns {boolean} could message be send
          */
         route = function(msg){
             var closestCon, closestDist, targetID, allCon, couldSend = false;
@@ -112,16 +126,18 @@
             }
             allCon = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
             closestCon = getNearestConnection(targetID, allCon, closestDist);
-            if(closestCon !== undefined){
+            if(closestCon !== null){
                 couldSend = closestCon.send(msg);
             }
             return couldSend;
         },
 
         /**
-         * erster Schritt des Routings wenn der lokale Peer der Sender ist.
-         * schickt die Nachricht an den nächsten SuperPeer
-         * @param {Object} msg weiterzuleitende Nachricht
+         * first routing step if local peer is sender.
+         * sends the message to closest connected SuperPeer. If none is available the message is forwarded to the closest connected peer.
+         * returns whether the message could be send or not (no connection or already nearest).
+         * @param {object} msg message to be send
+         * @returns {boolean} could message be send
          */
         send = function(msg){
             var closestCon, targetID = BigInteger.parse(msg.head.to, 16), allCon, couldSend = false;
@@ -142,6 +158,13 @@
             return couldSend;
         },
 
+        /**
+         * returns the peerdescriptions (as an array) of the closest connected peers and SuperPeers.
+         * @param {(string|BigInteger)} targetID ID to which peers should be close
+         * @param {PeerDescription[]} [resultList] list of already known close peers
+         * @param {number} [amount=l] number of peers to be returned
+         * @returns {PeerDescription[]} known closest peers to targetID
+         */
         getNearestPeers = function(targetID, resultList, amount){
             var temp, tempResult = [], result = [], i, l, tempDist;
             targetID = BigInteger.parse(targetID, 16);
@@ -187,11 +210,21 @@
             return result;
         },
 
+        /**
+         * returns the closest known peer to a given ID.
+         * @param {(string|BigInteger)} targetID ID to which peer should be close
+         * @returns {PeerDescription} known closest peer to targetID
+         */
         getNearestPeer = function(targetID){
             var peerArr = getNearestPeers(targetID, null, 1);
             return peerArr[0];
         },
 
+        /**
+         * callback if a new peer is discovered.
+         * connects to peer if possible.
+         * @param {PeerDescription} peerDesc peerDescription of discovered peer.
+         */
         newPeerDiscovered = function(peerDesc){
             var tempConnection;
             if(!isConnectedTo(peerDesc.id)){
@@ -208,6 +241,12 @@
             }
         },
 
+        /**
+         * sets the peerDescription to the corresponding connection to peer.
+         * sorts the connection in the routing table.
+         * @param {PeerDescription} peerDesc received peerDescription
+         * @param {Mareeba.Connection} con connection to peer (sender of peerConnection)
+         */
         peerDescriptionRecieved = function(peerDesc, con){
             var dist, removedCon,
                 numID = BigInteger.parse(peerDesc.id, 16);
@@ -256,6 +295,14 @@
             updateConInfo();
         },
 
+        /**
+         * handles received peerconnection descriptions.
+         * Initializes a new peer connection if peerconnection description is a offer (initialzed by sender) and new connection possible
+         * or
+         * forwards the answer (send by farpeer as reaction of sended offer by local peer) to the corresponding webRTC connection.
+         * @param {string} fPeerID ID of peerconnection description sender
+         * @param {object} PCDesc received peerconnection description
+         */
         pcDescriptionRecieved = function(fPeerID, PCDesc){
             var config, peerDesc, tempConnection;
             if(isConnectedTo(fPeerID) && PCDesc.type === "answer"){//self initiated
@@ -278,8 +325,8 @@
         },
 
         /**
-         * entfernt geschlossene oder sich in dem Prozess der Schließung befindene Verbindungen aus der Routing-Tabelle.
-         * Anschließend wird checkMinimumConnections aufgerufen, um ein entsprechendes Defizit auszugeleichen.
+         * removes closed or closing connections from the routing table.
+         * calls checkMinimumConnections for creating new connections is needed.
          * @see checkMinimumConnections
          */
         connectionClosed = function(){
@@ -309,6 +356,11 @@
             checkMinimumConnections();
         },
 
+        /**
+         * initialzes the connection manager.
+         * sets default PeerDescription for local peer and callbacks.
+         * @param {object} config configurationobject
+         */
         init = function(config){
             var initSuperPeersConnections = function(superPeers){
                 Mareeba.log("got all saved SuperPeers ("+superPeers.length+")", "info");

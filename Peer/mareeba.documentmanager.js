@@ -2,20 +2,17 @@
     "use strict";
     Mareeba.namespace("DocumentManager");
     /**
-     * Verwaltet im lokalen Knoten gespeicherte Dokumente, sowie die vom Nutzer im Netzwerk abgelegten Dokumente.
+     * Manages documents stored at local peer and answers requests regarding documents of user and other peers.
      * @author Marten Schälicke
-     * @constructor
-     * @param {Mareeba.Peer} peer Referenz auf den lokalen Peer
-     * @param {Mareeba.Storage} storage Speichermodul von Mareeba
      */
-    Mareeba.DocumentManager = (function(config){
+    Mareeba.DocumentManager = (function(){
         var
         peer, storage,
         docMsgHndl,
 
         /**
-         * nimmt ein Document entgegen und speichert dies lokal sowie im Netzwerk
-         * @param {Mareeba.Document} doc zu verwaltendes Dokument
+         * saves document locally and in network.
+         * @param {Mareeba.Document} doc document to be saved
          */
         addOwnDocument = function(doc){
             var data = doc.getDataObject();
@@ -24,16 +21,29 @@
             storage.saveDocument(data);
         },
 
+        /**
+         * saves document locally
+         * @param {Mareeba.Document} doc document to be saved
+         */
         addDocument = function(doc){
             var data = doc.getDataObject();
             storage.saveDocument(data);
         },
 
+        /**
+         * creates new document and saves it locally and in network.
+         * @param {object} documentData new document's data
+         */
         newDocument = function(documentData){
             var document = new Mareeba.Document(documentData);
             addOwnDocument(document);
         },
 
+        /**
+         * returns document for given id to the given callback
+         * @param {string} id ID of document
+         * @param {getDocCallback} callback function for getting result
+         */
         getDocument = function(id, callback){
             storage.getDocument(id, function(doc){
                 if(doc !== undefined){
@@ -47,10 +57,9 @@
         },
 
         /**
-         * initiert die Suche nach einem Dokument mit bestimmter ID.
-         * schaut, ob eine lokale Kopie vorhanden ist und schickt andernfalls eine valueLookup-Nachricht
-         * @param {String} id ID nach der gesucht wird.
-         * @param {Function} callback Methode die bei Fund oder Nichtfund aufgerufen wird.
+         * looks for document (ID given) locally and in the network.
+         * @param {string} id ID of document
+         * @param {getDocCallback} callback function for getting result
          */
         searchDocumentByID = function(id, callback){
             getDocument(id, function(doc){
@@ -64,16 +73,25 @@
         },
 
         /**
-         * initiert die Suche nach einem Dokument mit bestimmten Titel.
-         * bildet die potentielle ID des Artikels, schaut, ob eine lokale Kopie vorhanden ist und schickt andernfalls eine valueLookup-Nachricht
-         * @param {String} title Titel nach dem gesucht wird.
-         * @param {Function} callback Methode die bei Fund oder Nichtfund aufgerufen wird.
+         * looks for a document (title given) locally and in the network
+         * @param {string} title title of document
+         * @param {getDocCallback} callback function for getting result
          */
         searchDocument = function(title, callback){
             var potID = CryptoJS.SHA1(title).toString(CryptoJS.enc.Hex);
             searchDocumentByID(potID, callback);
         },
 
+        /**
+         * Callback for requested documents
+         * @callback getDocCallback
+         * @param {?Mareeba.Document} requested document
+         */
+
+        /**
+         * initialzes document manager
+         * @param {object} config configurationobject
+         */
         init = function(config){
             peer = config.peer;
             storage = config.storage;

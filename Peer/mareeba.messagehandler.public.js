@@ -2,7 +2,8 @@
     "use strict";
     Mareeba.namespace("MessageHandler.Public");
     /**
-     * Wrapper für WebRTC basierte p2p-Verbindungen
+     * message handler for public service.
+     * handles messages of/for document manager (sending, receiving documents)
      * @author Marten Schälicke
      */
     Mareeba.MessageHandler.Public = (function(){
@@ -10,9 +11,8 @@
         docMng, netMsgHndl, msgHndl, peerID,
 
         /**
-         * löst einen nodeLookupvorgang aus, dem sich ein valueStore anschließt.
-         * Speichert somit ein Datum im Netzwerk.
-         * @param {Object} doc das zu speichernde Dokument
+         * stores documents in network
+         * @param {object} doc document to be saved
          */
         initValueStore = function(doc){
             var nodeLookupCallback = function(msg){
@@ -32,6 +32,11 @@
             netMsgHndl.initNodeLookup(doc.titleID, nodeLookupCallback);
         },
 
+        /**
+         * handles valueStore requests
+         * @param {object} msg valueStore request
+         * @param {Mareeba.Connection} con connection via which the message was received
+         */
         valueStoreRequest = function(msg, con){
             Mareeba.log("recieved valueStore Request Message", "log");
             var doc = JSON.parse(msg.body);
@@ -41,16 +46,21 @@
             msgHndl.answer(msg, con);
         },
 
+        /**
+         * handles valueStores reponses
+         * @param {object} msg valueStore response
+         * @param {Mareeba.Connection} con connection via which the message was received
+         */
         valueStoreResponse = function(msg, con){
             Mareeba.log("recieved valueStore Response Message", "log");
             msgHndl.deleteMessage(msg.head.refCode);
         },
 
         /**
-         * verarbeitet valueStore-Nachrichten,
-         * speichert deren Body in der Datenbank
-         * @param {Object} msg eingegangene Nachricht
-         * @param {Mareeba.Connection} con Verbindung über die diese geschickt wurde
+         * handles valueStore messages.
+         * decides whether local peer is responsible or is to forward
+         * @param {object} msg valueStore message
+         * @param {Mareeba.Connection} con connection via which the message was received
          */
         valueStore = function(msg, con){
             if(msg.head.to === peerID){
@@ -67,9 +77,9 @@
         },
 
         /**
-         * sucht die übergebene ID im Netzwerk, ruft den callback auf, wenn gefunden (mit document) oder nicht (mit undefined).
-         * @param {String} id
-         * @param {Function} callback
+         * searches for a given ID in the network. If not found calls the callback with undefined.
+         * @param {string} id ID of document to look for
+         * @param {function} callback
          */
         initValueLookup = function(id, callback){
             var msg = {
@@ -86,6 +96,11 @@
             msgHndl.send(msg, callback);
         },
 
+        /**
+         * handles valueLookup requests
+         * @param {object} msg valueLookup request
+         * @param {Mareeba.Connection} con connection via which the message was received
+         */
         valueLookupRequest = function(msg, con){
             Mareeba.log("recieved valueLookup Request Message", "log");
             var storageResult = function(doc){
@@ -100,6 +115,11 @@
             docMng.getDocument(msg.body.id, storageResult);
         },
 
+        /**
+         * handles valueLookup responses
+         * @param {object} msg valueLookup response
+         * @param {Mareeba.Connection} con connection via which the message was received
+         */
         valueLookupResponse = function(msg, con){
             Mareeba.log("recieved valueLookup Response Message", "log");
             var refCode = msg.head.refCode, doc,
@@ -116,10 +136,9 @@
         },
 
         /**
-         * verarbeitet valueLookup-Nachrichten
-         * antwortet mit 200 und dem dokument im body, falls dies vorhanden ist; sonst mit 404
-         * @param {Object} msg eingegangene Nachricht
-         * @param {Mareeba.Connection} con Verbindung über die diese geschickt wurde
+         * handles valueLookup messages.
+         * @param {object} valueLookup message
+         * @param {Mareeba.Connection} con connection via which the message was received
          */
         valueLookup = function(msg, con){
             if(msg.head.code === undefined){
@@ -130,6 +149,11 @@
             }
         },
 
+        /**
+         * forwards message to the corresponding handler method based on action-field in message header
+         * @param {object} msg received public service message
+         * @param {Mareeba.Connection} con connection via which the message was received
+         */
         handleMessage = function(msg, con){
             switch(msg.head.action){
                 case "valueStore":
@@ -145,6 +169,10 @@
             }
         },
 
+        /**
+         * initializes the public message handler
+         * @param {object} config configurationobject
+         */
         init = function(config){
             peerID = config.peer.id;
             docMng = config.documentManager || Mareeba.DocumentManager;

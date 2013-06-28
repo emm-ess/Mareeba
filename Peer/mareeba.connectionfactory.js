@@ -2,6 +2,13 @@
     "use strict";
     Mareeba.namespace("ConnectionFactory");
 
+    /**
+	 * builds a connection regarding to the given peer description
+     * @param {PeerDescription} peerDescription of far peer
+     * @param {object} configurationobject
+     * @returns {(Mareeba.Connection.WebSocket|Mareeba.Connection.WebRTC)} created connection
+     * @throws No usable connectiontype specified
+     */
     Mareeba.ConnectionFactory.buildConnection = function(peerDesc, config){
         var type, connection;
         if(!!peerDesc.webrtc){

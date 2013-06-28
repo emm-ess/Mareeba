@@ -2,10 +2,10 @@
     "use strict";
     Mareeba.namespace("Document");
     /**
-     * In Mareeba genutzte Dokumente
+     * Documents.
      * @author Marten Schälicke
-     * @constructor
-     * @param {Object} data schon vorhandene Daten des Dokuments
+     * @class
+     * @param {(object|string)} data title and content of document
      * @throws {InvalidArgument} if data or data.title or data.content is undefined
      */
     Mareeba.Document = function(data){
@@ -42,16 +42,16 @@
         }());
 
         /**
-         * Getter der TitleID
-         * @return {Strin} titleID die TitelID als String
+         * Getter for titleID
+         * @returns {string} titleID titleID as string
          */
         this.getTitleID = function(){
             return titleID;
         };
 
         /**
-         * gibt die grundlegenden Daten des Dokuments zurück
-         * @return {Object} data Data-Objekt des Dokuments
+         * returns document as JS-object
+         * @returns {object} data document as JS-object
          */
         this.getDataObject = function(){
             var data = {
@@ -64,8 +64,9 @@
         };
 
         /**
-         * Erzeugt ein HTML-Snippet aus dem Dokument und gibt dieses zurück
-         * @return {String} DOMString Dokument mit HTML-Tags
+         * creates HTML-snippet of document
+         * @deprecated
+         * @returns {string} HTML-snippet of document
          */
         this.toHTML = function(){
             var html = "<h2>"+title+"</h2>"+
@@ -74,8 +75,8 @@
         };
 
         /**
-         * Erzeugt aus dem Dokument einen JSON-String und gibt diesen zurück.
-         * @return {String} documentString das Dokument mit allen IDs als JSON-String
+         * returns document as JSON-string
+         * @returns {JSON} document as JSON-string
          */
         this.toJSON = function(){
             var data = that.getDataObject();

@@ -1,17 +1,15 @@
-(function(Mareeba, window){
+(function(Mareeba, window, $){
     "use strict";
     if(!!window.WebSocket){
         Mareeba.namespace("Connection.WebSocket");
         /**
-         * Implementierung der Connection für WebSocket-Verbindungen
+         * Wrapper for WebSocket based connections
          * @author Marten Schälicke
-         * @constructor
-         * @param {Object} config Konfigurationsobjekt enthält Eventhandler
+         * @class
+         * @param {PeerDescription} peerDescription of far peer
+         * @param {object} configurationobject
          */
         Mareeba.Connection.WebSocket = function(__peerDesc, __config){
-            /**
-             * Initierungscode
-             */
             Mareeba.Connection.WebSocket.parent.init.call(this, __peerDesc, __config);
             Mareeba.log("Trying to connect to: "+this._peerDesc.ws, "info");
             this._connection = new WebSocket(this._peerDesc.ws);
@@ -19,27 +17,32 @@
             this._connection.onclose = this._config.onclose;
             this._connection.onmessage = $.proxy(this._config.onmessage, this);
             this._connection.onopen = $.proxy(this._config.onopen, this);
-
         };
+        
         Mareeba.Connection.WebSocket.parent = Mareeba.Connection.prototype;
+        
         Mareeba.Connection.WebSocket.prototype = (function(){
             var
             /**
-             * verschickt Nachrichten an den Verbindungspartner
-             * @param {String} msg zu verschickende Nachricht als JSON-String
+             * sends the given message via websocket.
+             * @param {string} msg message to be send
+             * @returns {boolean} could message be send
              */
             send = function(msg){
                 return this._connection.send(msg);
             },
 
             /**
-             * gibt den aktuellen Status der zu grundeliegenden Verbindung wieder
-             * @return {int} readyState Status der Verbindung
+             * returns the readyState of the underlying connection.
+             * @returns {number} readyState
              */
             getReadyState = function(){
                 return this._connection.readyState;
             },
 
+            /**
+             * closes the connection and frees ressources.
+             */
             close = function(){
                 this._connection.onclose = function(){};
                 this._connection.close();
@@ -54,4 +57,4 @@
             }
         }());
     }
-}(Mareeba, window));
+}(Mareeba, window, jQuery));

@@ -5,6 +5,7 @@
      * Connection (Wrapper) to hide differences between used connections.
      * Provides functionalities which are the same for all kinds of connections. 
      * @author Marten Schälicke
+     * @class
      */
     Mareeba.Connection = function(){
         return this;
@@ -14,8 +15,9 @@
         var conManager,
 
 		/**
-		 * @param {String} Message to be send
-		 * @return {Bool}
+		 * Strinigfies the message if necessary and sends it
+		 * @param {String} msg message to be send
+		 * @return {Boolean} could message be send
 		 */
         send = function(msg){
             var couldSend = false;
@@ -26,7 +28,12 @@
             Mareeba.log("Message send to Peer: "+this._peerDesc.id+" --- "+msg, "debug");
             return couldSend;
         },
-
+		
+		/**
+		 * initializing the connection. sets callbacks
+		 * @param {PeerDescription} __peerDesc Description of far Peer if already known
+		 * @param {Object} __config Configurationobject containing callbacks
+		 */
         init = function(__peerDesc, __config){
             var that = this;
             if(__config === null || __config === undefined){
@@ -68,10 +75,9 @@
         },
 
         /**
-         * setzt die Beschreibung des Verbindungspartners.
-         * Aus Performanzgründen kann auch die nummerische Version der ID angegeben werden, bei Nichtangabe wird diese sonst generiert.
-         * @param {Object} desc peerDescription des Verbindungspartners
-         * @param {BigInteger} numID nummerische Variante der ID des Verbindungspartners (optional)
+         * sets the description of far peer.
+         * @param {PeerDescription} __peerDesc Description of far peer
+         * @param {BigInteger} numID numerical ID of far Peer [optional]
          */
         setDescription = function(__peerDesc, __NumID){
             this._peerDesc = __peerDesc;
@@ -84,16 +90,16 @@
         },
 
         /**
-         * gibt die peerDescription des Verbindungspartners zurück
-         * @return {Object} description peerDescription des Verbindungspartners
+         * returns the description of the far peer
+         * @return {PeerDescription} peer description of far peer
          */
         getDescription = function(){
             return this._peerDesc;
         },
 
         /**
-         * gibt die nummerische Version der ID des Verbindungspartners zurück
-         * @return {BigInteger} numID nummerische Variante der ID des Verbindungspartners
+         * returns the numerical ID of the far peer
+         * @return {BigInteger} numID numerical ID of far peer
          */
         getNumID = function(){
             return this._numID;

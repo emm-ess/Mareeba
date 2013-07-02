@@ -1,4 +1,4 @@
-(function(Mareeba, window, $){
+(function(Mareeba, window){
     "use strict";
     if(!!window.WebSocket){
         Mareeba.namespace("Connection.WebSocket");
@@ -15,8 +15,8 @@
             this._connection = new WebSocket(this._peerDesc.ws);
             this._connection.onerror = this._config.onerror;
             this._connection.onclose = this._config.onclose;
-            this._connection.onmessage = $.proxy(this._config.onmessage, this);
-            this._connection.onopen = $.proxy(this._config.onopen, this);
+            this._connection.onmessage = this.proxy(this._config.onmessage);
+            this._connection.onopen = this.proxy(this._config.onopen);
         };
         
         Mareeba.Connection.WebSocket.parent = Mareeba.Connection.prototype;
@@ -30,6 +30,17 @@
              */
             send = function(msg){
                 return this._connection.send(msg);
+            },
+            
+            /**
+             * proxies functions
+             * @param  {function} func function to be proxied
+             */
+            proxy = function(func){
+            	var self = this;
+            	return function(){
+            		return func.apply(self, arguments);
+            	};
             },
 
             /**
@@ -52,9 +63,10 @@
 
             return {
                 _send: send,
+                proxy: proxy,
                 getReadyState: getReadyState,
                 close: close
             }
         }());
     }
-}(Mareeba, window, jQuery));
+}(Mareeba, window));

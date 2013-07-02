@@ -47,6 +47,7 @@
     /**
      * simple AJAX get.
      * @param {object} param parameters.
+     * @returns {string} result as string
      */
     Mareeba.ajaxGet = function(param){
     	var xmlhttp;
@@ -68,6 +69,23 @@
     		}
     	};
     	xmlhttp.send();
+    };
+    
+    /**
+     * gets an JSON via ajax.
+     * @see Mareeba.ajaxGet
+     * @param {object} param parameters.
+     * @returns {object} result as JS object
+     */
+    Mareeba.ajaxGetJSON = function(param){
+    	var _param = {};
+    	_param.url = param.url;
+    	_param.error = param.error;
+    	_param.success = function(result){
+    		result = JSON.parse(result);
+    		param.success(result);
+    	};
+    	Mareeba.ajaxGet(_param);
     };
 
     /**
@@ -126,7 +144,7 @@
      * @throws {FalseArgument} if stack is not an array
      */
     Mareeba.removeFromArray = function(needle, stack){
-        if(stack.isArray(stack)){
+        if(!Array.isArray(stack)){
             throw{
                 name: "FalseArgument",
                 message: "stack isn't an Array"

@@ -2,11 +2,9 @@
     "use strict";
     Mareeba.namespace("Peer");
     /**
-     * Hauptklasse von Mareeba.
-     * Diese implementiert den lokalen Peer und steuert übergreifende Logik.
-     * Als Singleton implementiert, so dass sich nur ein Peer pro BrowserTab erzeugen lässt.
+     * Mainclass of Mareeba
      * @author Marten Schälicke
-     * @constructor
+     * @class
      */
     Mareeba.Peer = function(config){
         var conMng, docMng, storage, peer = this,
@@ -14,15 +12,15 @@
         generateID;
 
         /**
-         * Dient der Erzeugung und Speicherung der PeerID.
-         * Versucht die ID über random.org zu Erzeugen, andernfalls wird die Methode "getRandomHexNumber" der Mareeba Bibliothek verwendet.
-         * @param {Function} callback die zum Ende des Vorgangs aufzurufende Methode
+         * creates ID for local peer.
+         * uses random.org if available (quota) or a Mareeba.getRandomHexNumber()
+         * @param {function} callback
          */
         generateID = function(callback){
             var getIDFromRandomOrg, chooseRandomID, setID;
 
             /**
-             * Fragt 20 Bytes von dem Dienst random.org per AJAX ab und nutzt diese als PeerID
+             * get 20 random bytes from random.org
              */
             getIDFromRandomOrg = function(){
                 Mareeba.ajaxGet({
@@ -36,7 +34,7 @@
             };
 
             /**
-             * Erzeugt die ID mittels der Mareeba-Bibliothek.
+             * create ID via Mareeba
              */
             chooseRandomID = function(){
                 var id = Mareeba.getRandomHexNumber(40);
@@ -44,8 +42,8 @@
             };
 
             /**
-             * Speichert die erzeugte PeerID und ruft den Callback auf.
-             * @param {String} id die erzeugte PeerID
+             * save ID and call the callback
+             * @param {string} id created ID
              */
             setID = function(id){
                 Mareeba.log("Peer ID is set to: "+id, "info");
@@ -73,9 +71,7 @@
 
 
         /**
-         * Initierungscode
-         *
-         * prüft die Mindestanforderungen an den Browser und erzeugt alle nötigen Objekte.
+         * initializes the peer
          */
         (function(){
             var

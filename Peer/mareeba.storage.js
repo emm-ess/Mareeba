@@ -248,7 +248,7 @@
                     };
 
                     Mareeba.log("Checking IndexedDB storage.", "info");
-                    Mareeba.ajaxGet({
+                    Mareeba.ajaxGetJSON({
                         "url": config.defaultHelper,
                         "success": function(data){
                             var trans = db.transaction(["peers", "iceServers"]),

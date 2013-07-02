@@ -6,10 +6,21 @@
  * @param {jQuery} jQuery
  * @param {BigInteger} BigInteger 
  */
-(function(window, $, BigInteger){
+(function(window, console, BigInteger){
     "use strict";
     var Mareeba = window.Mareeba || {},
     logDisplay;
+    
+    /**
+     * compatibility functions defined here 
+     */
+    (function(){
+    	if(!Array.isArray) {
+    		Array.isArray = function (vArg) {
+    			return Object.prototype.toString.call(vArg) === "[object Array]";
+    		};
+    	}
+    }());
 
     /**
      * namespace function taken from Stoyan Stefanov: "JavaScript Patterns", O'Reilly, 2010, deutschsprachige Ausgabe, Seite 91
@@ -31,6 +42,32 @@
             parent = parent[parts[i]];
         }
         return parent;
+    };
+    
+    /**
+     * simple AJAX get.
+     * @param {object} param parameters.
+     */
+    Mareeba.ajaxGet = function(param){
+    	var xmlhttp;
+    	if(window.XMLHttpRequest){// code for IE7+, Firefox, Chrome, Opera, Safari
+    		xmlhttp=new XMLHttpRequest();
+    	}
+    	else{// code for IE6, IE5
+    		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    	}
+    	xmlhttp.open("GET", param.url,true);
+    	xmlhttp.onreadystatechange=function(){
+    		if (xmlhttp.readyState==4){
+    			if(xmlhttp.status==200){
+    				param.success(xmlhttp.responseText);
+    			}
+    			else {
+    				param.error(xmlhttp.responseText);
+    			}
+    		}
+    	};
+    	xmlhttp.send();
     };
 
     /**
@@ -89,7 +126,7 @@
      * @throws {FalseArgument} if stack is not an array
      */
     Mareeba.removeFromArray = function(needle, stack){
-        if(!$.isArray(stack)){
+        if(stack.isArray(stack)){
             throw{
                 name: "FalseArgument",
                 message: "stack isn't an Array"
@@ -104,6 +141,7 @@
 
 	/**
 	 * inits Mareeba (NOT USED at the moment!)
+	 * @deprecated
 	 */
     Mareeba.init = function(config){
         new Mareeba.Peer();
@@ -116,4 +154,4 @@
     Mareeba.BIGGESTID = BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16);
 
     window.Mareeba = Mareeba;
-}(window, jQuery, BigInteger));
+}(window, window.console, BigInteger));

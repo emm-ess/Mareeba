@@ -248,10 +248,8 @@
                     };
 
                     Mareeba.log("Checking IndexedDB storage.", "info");
-                    $.ajax({
+                    Mareeba.ajaxGet({
                         "url": config.defaultHelper,
-                        "dataType": "json",
-                        "cache": false,
                         "success": function(data){
                             var trans = db.transaction(["peers", "iceServers"]),
                             peerStore = trans.objectStore("peers"),
@@ -261,7 +259,7 @@
                             peerStore.openCursor().onsuccess = loadDefaultPeers;
                             turnStunStore.openCursor().onsuccess = loadDefaultTurnStun;
                         },
-                        "error": function(jqXHR, textStatus, errorThrown){
+                        "error": function(textStatus){
                             Mareeba.log("Couldn't load defaultHelpers: "+textStatus, "info");
                         }
                     });

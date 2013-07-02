@@ -1,4 +1,4 @@
-(function(Mareeba, $, BigInteger){
+(function(Mareeba, BigInteger){
     "use strict";
     Mareeba.namespace("Peer");
     /**
@@ -25,7 +25,7 @@
              * Fragt 20 Bytes von dem Dienst random.org per AJAX ab und nutzt diese als PeerID
              */
             getIDFromRandomOrg = function(){
-                $.ajax({
+                Mareeba.ajaxGet({
                     "url": "http://www.random.org/integers/?num=20&min=0&max=255&col=1&base=16&format=plain&rnd=new",
                     "success": function(data){
                         var id = data.replace(/\s/g, "");
@@ -55,7 +55,7 @@
             };
 
             //check Quota of current IP at random.org
-            $.ajax({
+            Mareeba.ajaxGet({
                 "url": "http://www.random.org/quota/?format=plain",
                 "success": function(data){
                     var quota = parseInt(data, 10);
@@ -132,4 +132,4 @@
         Mareeba.Peer = peer;
         return peer;
     };
-}(Mareeba, jQuery, BigInteger));
+}(Mareeba, BigInteger));

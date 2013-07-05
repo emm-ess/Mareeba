@@ -260,6 +260,7 @@
                             turnStunStore.openCursor().onsuccess = loadDefaultTurnStun;
                         },
                         "error": function(textStatus){
+                        	ready();
                             Mareeba.log("Couldn't load defaultHelpers: "+textStatus, "info");
                         }
                     });

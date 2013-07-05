@@ -25,8 +25,8 @@
             if(typeof data === String){
                 data = JSON.parse(data);
             }
-            title = data.title;
-            content = data.content;
+            title = data.title.replace(/(<([^>]+)>)/ig,"");
+            content = data.content.replace(/(<([^>]+)>)/ig,"");
             if(data.titleID !== undefined){
                 titleID = data.titleID;
             }
@@ -61,17 +61,6 @@
                 "versionID": versionID
             };
             return data;
-        };
-
-        /**
-         * creates HTML-snippet of document
-         * @deprecated
-         * @returns {string} HTML-snippet of document
-         */
-        this.toHTML = function(){
-            var html = "<h2>"+title+"</h2>"+
-                       "<div>"+content+"</div>";
-            return html;
         };
 
         /**

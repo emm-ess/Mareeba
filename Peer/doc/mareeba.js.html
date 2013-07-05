@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: mareeba.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: mareeba.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>/**
+ * The Mareeba Library.
+ * Offers some basic functions.
+ * @author Marten Schälicke
+ * @param {window} window global object
+ * @param {jQuery} jQuery
+ * @param {BigInteger} BigInteger 
+ */
+(function(window, console, BigInteger){
+    "use strict";
+    var Mareeba = window.Mareeba || {},
+    logDisplay;
+    
+    /**
+     * compatibility functions defined here 
+     */
+    (function(){
+    	if(!Array.isArray) {
+    		Array.isArray = function (vArg) {
+    			return Object.prototype.toString.call(vArg) === "[object Array]";
+    		};
+    	}
+    }());
+
+    /**
+     * namespace function taken from Stoyan Stefanov: "JavaScript Patterns", O'Reilly, 2010, deutschsprachige Ausgabe, Seite 91
+     * bietet die Möglichkeit Module/Klassen an das Objekt Mareeba zu hängen und so eine Paketstruktur aufzubauen
+     * @param {String} ns_string namespace
+     */
+    Mareeba.namespace = function(ns_string){
+        var parts = ns_string.split('.'),
+            parent = Mareeba,
+            i;
+
+        if(parts[0] === "Mareeba"){
+            parts = parts.slice(1);
+        }
+        for(i = 0; i &lt; parts.length; i += 1){
+            if(typeof parent[parts[i]] === "undefined"){
+                parent[parts[i]] = {};
+            }
+            parent = parent[parts[i]];
+        }
+        return parent;
+    };
+    
+    /**
+     * simple AJAX get.
+     * @param {object} param parameters.
+     * @returns {string} result as string
+     */
+    Mareeba.ajaxGet = function(param){
+    	var xmlhttp;
+    	if(window.XMLHttpRequest){// code for IE7+, Firefox, Chrome, Opera, Safari
+    		xmlhttp=new XMLHttpRequest();
+    	}
+    	else{// code for IE6, IE5
+    		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    	}
+    	xmlhttp.open("GET", param.url,true);
+    	xmlhttp.onreadystatechange=function(){
+    		if (xmlhttp.readyState==4){
+    			if(xmlhttp.status==200){
+    				param.success(xmlhttp.responseText);
+    			}
+    			else {
+    				param.error(xmlhttp.responseText);
+    			}
+    		}
+    	};
+    	xmlhttp.send();
+    };
+    
+    /**
+     * gets an JSON via ajax.
+     * @see Mareeba.ajaxGet
+     * @param {object} param parameters.
+     * @returns {object} result as JS object
+     */
+    Mareeba.ajaxGetJSON = function(param){
+    	var _param = {};
+    	_param.url = param.url;
+    	_param.error = param.error;
+    	_param.success = function(result){
+    		result = JSON.parse(result);
+    		param.success(result);
+    	};
+    	Mareeba.ajaxGet(_param);
+    };
+
+    /**
+     * Logging function
+     * central point for logging.
+     * Provides different severity-levels (info, warn, error, log) and can be disabled completly.
+     * Logs to console and/or to a provided function.
+     * @param {Object} msg
+     * @param {Object} level
+     */
+    Mareeba.log = function(msg, level){
+        switch(level){
+            case "info": console.info(msg);
+                break;
+            case "warn": console.warn(msg);
+                break;
+            case "error": console.warn(msg);
+                break;
+            case "log":
+            default:
+                console.log(msg);
+                break;
+        }
+        if(typeof logDisplay === "function"){
+            logDisplay(msg);
+        }
+    };
+
+    /**
+     * Sets the function if not only logging to the console should be used.
+     * @param {Function} display function which writes logging messages into the DOM.
+     */
+    Mareeba.setLogDisplay = function(display){
+        logDisplay = display;
+    };
+
+    /**
+     * Creates a random Hex-String of given length. 
+     * @param {int} length in digits (not Bytes)
+     * @return {String} number a random number
+     */
+    Mareeba.getRandomHexNumber = function(length){
+        var hex = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'],
+        number = "", i;
+        for (i = 0; i &lt; length; i+=1){
+            number += hex[Math.round(Math.random()*15)];
+        }
+        return number;
+    };
+
+    /**
+     * removes any given object out of an array.
+     * @param {Object} needle object to be removed
+     * @param {Array} stack array where object have to be removed from
+     * @return {Array} stack changed array
+     * @throws {FalseArgument} if stack is not an array
+     */
+    Mareeba.removeFromArray = function(needle, stack){
+        if(!Array.isArray(stack)){
+            throw{
+                name: "FalseArgument",
+                message: "stack isn't an Array"
+            };
+        }
+        var idx = stack.indexOf(needle); // Find the index
+        if(idx !== -1){
+           stack.splice(idx, 1);
+        }
+        return stack;
+    };
+
+	/**
+	 * inits Mareeba (NOT USED at the moment!)
+	 * @deprecated
+	 */
+    Mareeba.init = function(config){
+        new Mareeba.Peer();
+    };
+
+    /**
+     * biggest possible ID (and distance) in Mareeba (2^160)
+     * @constant
+     */
+    Mareeba.BIGGESTID = BigInteger.parse("ffffffffffffffffffffffffffffffffffffffff", 16);
+
+    window.Mareeba = Mareeba;
+}(window, window.console, BigInteger));</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Mareeba.Connection.html">Connection</a></li><li><a href="Mareeba.Connection.Flash.html">Flash</a></li><li><a href="Mareeba.Connection.WebRTC.html">WebRTC</a></li><li><a href="Mareeba.Connection.WebSocket.html">WebSocket</a></li><li><a href="Mareeba.Document.html">Document</a></li><li><a href="Mareeba.Peer.html">Peer</a></li><li><a href="Mareeba.Storage.FileSystem.html">FileSystem</a></li><li><a href="Mareeba.User.html">User</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Jul 02 2013 14:29:57 GMT+0200 (MESZ)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

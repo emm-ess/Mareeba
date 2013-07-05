@@ -20,9 +20,9 @@
          * @returns {boolean} is already connected
          */
         isConnectedTo = function(fPeerID){
-            var i, j, tempDesc, connections = [newConnections, leafSet.left, leafSet.right, superPeers, rConnections];
-            for(i = 0; i < connections.length; i += 1){
-                for(j = 0; j < connections[i].length; j += 1){
+            var i, j, length, tempDesc, connections = [newConnections, leafSet.left, leafSet.right, superPeers, rConnections];
+            for(i = 0; i < 5; i += 1){
+                for(j = 0, length = connections[i].length; j < length; j += 1){
                     tempDesc = connections[i][j].getDescription();
                     if(tempDesc !== undefined && tempDesc.id === fPeerID){
                         return true;
@@ -38,9 +38,9 @@
          * @returns {(Mareeba.Connection|null)}
          */
         getConnectionTo = function(fPeerID){
-            var i, j, tempDesc, tempCon, connections = [newConnections, leafSet.left, leafSet.right, superPeers, rConnections];
-            for(i = 0; i < connections.length; i += 1){
-                for(j = 0; j < connections[i].length; j += 1){
+            var i, j, length, tempDesc, tempCon, connections = [newConnections, leafSet.left, leafSet.right, superPeers, rConnections];
+            for(i = 0; i < 5; i += 1){
+                for(j = 0, length = connections[i].length; j < length; j += 1){
                     tempCon = connections[i][j];
                     tempDesc = tempCon.getDescription();
                     if(tempDesc !== undefined && tempDesc.id === fPeerID){
@@ -166,16 +166,16 @@
          * @returns {PeerDescription[]} known closest peers to targetID
          */
         getNearestPeers = function(targetID, resultList, amount){
-            var temp, tempResult = [], result = [], i, l, tempDist;
+            var temp, tempResult = [], result = [], i, length, tempDist;
             targetID = BigInteger.parse(targetID, 16);
             temp = leafSet.left.concat(leafSet.right, rConnections, superPeers, friends);
-            for(i = 0, l = temp.length; i < l; i += 1){
+            for(i = 0, length = temp.length; i < length; i += 1){
                 tempDist = targetID.subtract(temp[i].getNumID());
                 result.push( [tempDist, temp[i].getDescription()] );
             }
 
             if(typeof resultList === Array){
-                for(i = 0, l = resultList.length; i < l; i += 1){
+                for(i = 0, length = resultList.length; i < length; i += 1){
                     temp = BigInteger.parse(resultList[i].id, 16);
                     tempDist = targetID.subtract(temp).abs();
                     result.push( [tempDist, resultList[i]] );
@@ -184,7 +184,7 @@
 
             //let's have only unique values
             temp = {};
-            for(i = 0, l = result.length; i < l; i += 1){
+            for(i = 0, length = result.length; i < length; i += 1){
                 if(temp.hasOwnProperty(result[i][1].id)) {
                     continue;
                 }
@@ -260,7 +260,7 @@
                 //check if connection belongs to leafset, is a friend or just a connection of part R
                 dist =  numID.subtract(peer.numID);
                 //check left leafset
-                if(dist > leafSet.longDistleft && dist < 0){
+                if(leafSet.longDistleft < dist && dist < 0){
                     leafSet.left.push(con);
                     if(leafSet.left.length > l/2){
                         leafSet.left.sort(function(a, b){
@@ -272,7 +272,7 @@
                     }
                     Mareeba.log("recieved peerDescription Message, moved connection to left leafSet.", "log");
                 }
-                else if(dist > 0 && dist < leafSet.longDistRight ){
+                else if(0 < dist && dist < leafSet.longDistRight ){
                     leafSet.right.push(con);
                     if(leafSet.right.length > l/2){
                         leafSet.right.sort(function(a, b){
@@ -332,13 +332,13 @@
         connectionClosed = function(){
             var i,
             checkConnections = function(part, partname){
-                var i, removed = 0;
-                for(i = 0, l = part.length; i < l; i += 1){
+                var i, length, removed = 0;
+                for(i = 0, length = part.length; i < length; i += 1){
                     if(part[i].getReadyState() === 2 || part[i].getReadyState() === 3){
                         part[i].close();
                         part.splice(i, 1);
                         i -= 1;
-                        l -= 1;
+                        length -= 1;
                         removed += 1;
                         Mareeba.log("Connection removed from "+partname+", remaining: "+part.length, "log");
                     }
@@ -364,8 +364,8 @@
         init = function(config){
             var initSuperPeersConnections = function(superPeers){
                 Mareeba.log("got all saved SuperPeers ("+superPeers.length+")", "info");
-                var tempConnection, i;
-                for(i = 0; i < superPeers.length; i += 1){
+                var tempConnection, i, length;
+                for(i = 0, length = superPeers.length; i < length; i += 1){
                     tempConnection = buildConnection({ws: superPeers[i].wsAddress}, defaultConfig);
                     newConnections.push(tempConnection);
                 }

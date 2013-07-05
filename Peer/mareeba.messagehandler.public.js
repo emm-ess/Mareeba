@@ -39,8 +39,7 @@
          */
         valueStoreRequest = function(msg, con){
             Mareeba.log("recieved valueStore Request Message", "log");
-            var doc = JSON.parse(msg.body);
-            doc = new Mareeba.Document(doc);
+            var doc = new Mareeba.Document(msg.body);
             docMng.adddDocument(doc);
             msg.body = "";
             msgHndl.answer(msg, con);

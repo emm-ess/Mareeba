@@ -8,7 +8,7 @@
     Mareeba.ConnectionManager = (function(){
         var
         peer, storage, peerDescription,
-        defaultConfig = {}, l = 6,
+        defaultConfig = {}, l, l2,
         leafSet = {left: [], right: []}, rConnections = [], superPeers = [], friends = [], newConnections = [],
         amountConPeers = 0, amountConSuperPeers = 0,
         buildConnection = Mareeba.ConnectionFactory.buildConnection, onConnectivityChange,
@@ -70,12 +70,12 @@
             if(leafSet.left.length === 0 && leafSet.right.length === 0){
                 networkMsgHndl.initNodeLookup(peer.id);
             }
-            else if(leafSet.left.length < l/2){
+           /* else if(leafSet.left.length < l2){
                 //TODO
             }
-            else if(leafSet.right.length < l/2){
+            else if(leafSet.right.length < l2){
                 //TODO
-            }
+            }*/
         },
         
         /**
@@ -262,25 +262,25 @@
                 //check left leafset
                 if(leafSet.longDistleft < dist && dist < 0){
                     leafSet.left.push(con);
-                    if(leafSet.left.length > l/2){
+                    if(leafSet.left.length > l2){
                         leafSet.left.sort(function(a, b){
                             return a.getNumID().compare(b.getNumID()) * -1;
                         });
-                        removedCon = leafSet.left.splice(l/2, 1)[0];
+                        removedCon = leafSet.left.splice(l2, 1)[0];
                         rConnections.push(removedCon);
-                        leafSet.longDistLeft = leafSet.left[l/2].getNumID().substract(peer.numID);
+                        leafSet.longDistLeft = leafSet.left[l2].getNumID().substract(peer.numID);
                     }
                     Mareeba.log("recieved peerDescription Message, moved connection to left leafSet.", "log");
                 }
                 else if(0 < dist && dist < leafSet.longDistRight ){
                     leafSet.right.push(con);
-                    if(leafSet.right.length > l/2){
+                    if(leafSet.right.length > l2){
                         leafSet.right.sort(function(a, b){
                             return a.getNumID().compare(b.getNumID());
                         });
-                        removedCon = leafSet.right.splice(l/2, 1)[0];
+                        removedCon = leafSet.right.splice(l2, 1)[0];
                         rConnections.push(removedCon);
-                        leafSet.longDistRight = leafSet.right[l/2].getNumID().subtract(peer.numID);
+                        leafSet.longDistRight = leafSet.right[l2].getNumID().subtract(peer.numID);
                     }
                     Mareeba.log("recieved peerDescription Message, moved connection to right leafSet.", "log");
                 }
@@ -375,6 +375,8 @@
             peer = config.peer;
             storage = config.storage;
             onConnectivityChange = config.onConnectivityChange;
+            l = config.l || 6;
+            l2 = l >> 2;
             peerDescription = {
                 "id" : peer.id
             };

@@ -8,7 +8,11 @@
         "includePattern": ".+\\.js(doc)?$",
         "excludePattern": "(^|\\/|\\\\)_"
     },
-    "plugins": [],
+    "plugins": ["plugins/markdown"],
+    "markdown": {
+	    "parser": "gfm",
+    	"hardwrap": true
+	},
     "templates": {
         "cleverLinks": true,
         "monospaceLinks": false,

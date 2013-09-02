@@ -1,0 +1,13 @@
+/**
+ * JavaScript BigInteger library version 0.9
+ * @see http://silentmatt.com/biginteger/
+ * @external BigInteger
+ */
+
+/**
+ * CryptoJS v3.1.2
+ * @see http://code.google.com/p/crypto-js
+ * @copyright (c) 2009-2013 by Jeff Mott. All rights reserved.
+ * @license {@link http://code.google.com/p/crypto-js/wiki/License}
+ * @external CryptoJS
+ */

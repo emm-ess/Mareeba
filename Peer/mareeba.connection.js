@@ -3,21 +3,26 @@
     Mareeba.namespace("Connection");
     /**
      * Connection (Wrapper) to hide differences between used connections.
-     * Provides functionalities which are the same for all kinds of connections. 
-     * @author Marten Schälicke
-     * @class
+     * Provides functionalities which are the same for all kinds of connections.
+     * @class Mareeba.Connection
      */
     Mareeba.Connection = function(){
         return this;
     };
 
     Mareeba.Connection.prototype = (function(){
-        var conManager,
+        var 
+        /**
+         * @memberOf Mareeba.Connection~
+         * @default {Mareeba.ConnectionManager}
+         */
+        conManager,
 
 		/**
-		 * Strinigfies the message if necessary and sends it
-		 * @param {String} msg message to be send
+		 * Stringifies the message if necessary and sends it
+		 * @param {(String|Mareeba.Message)} msg message to be send
 		 * @return {Boolean} could message be send
+		 * @memberOf Mareeba.Connection#
 		 */
         send = function(msg){
             var couldSend = false;
@@ -31,8 +36,9 @@
 		
 		/**
 		 * initializing the connection. sets callbacks
-		 * @param {PeerDescription} __peerDesc Description of far Peer if already known
+		 * @param {Mareeba.PeerDescription} __peerDesc Description of far Peer if already known
 		 * @param {Object} __config Configurationobject containing callbacks
+         * @memberOf Mareeba.Connection#
 		 */
         init = function(__peerDesc, __config){
             var that = this;
@@ -76,8 +82,9 @@
 
         /**
          * sets the description of far peer.
-         * @param {PeerDescription} __peerDesc Description of far peer
-         * @param {BigInteger} numID numerical ID of far Peer [optional]
+         * @param {Mareeba.PeerDescription} __peerDesc Description of far peer
+         * @param {external:BigInteger} [__NumID] numerical ID of far Peer
+         * @memberOf Mareeba.Connection#
          */
         setDescription = function(__peerDesc, __NumID){
             this._peerDesc = __peerDesc;
@@ -91,7 +98,8 @@
 
         /**
          * returns the description of the far peer
-         * @return {PeerDescription} peer description of far peer
+         * @return {Mareeba.PeerDescription} peer description of far peer
+         * @memberOf Mareeba.Connection#
          */
         getDescription = function(){
             return this._peerDesc;
@@ -99,7 +107,8 @@
 
         /**
          * returns the numerical ID of the far peer
-         * @return {BigInteger} numID numerical ID of far peer
+         * @return {external:BigInteger} numID numerical ID of far peer
+         * @memberOf Mareeba.Connection#
          */
         getNumID = function(){
             return this._numID;

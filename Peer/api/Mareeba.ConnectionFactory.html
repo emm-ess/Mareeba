@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>API: Namespace: ConnectionFactory | Mareeba</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+<div id="main">
+	<nav>
+	    <h2><a href="index.html">Index</a></h2><h3>Externals</h3><ul><li><a href="external-BigInteger.html">BigInteger</a></li><li><a href="external-CryptoJS.html">CryptoJS</a></li></ul><h3>Classes</h3><ul><li><a href="Mareeba.Connection.html">Connection</a></li><li><a href="Mareeba.Connection.Flash.html">Flash</a></li><li><a href="Mareeba.Connection.WebRTC.html">WebRTC</a></li><li><a href="Mareeba.Connection.WebSocket.html">WebSocket</a></li><li><a href="Mareeba.Document.html">Document</a></li><li><a href="Mareeba.Friend.html">Friend</a></li><li><a href="Mareeba.Peer.html">Peer</a></li><li><a href="Mareeba.User.html">User</a></li></ul><h3>Namespaces</h3><ul><li><a href="Mareeba.html">Mareeba</a></li><li><a href="Mareeba.ConnectionFactory.html">ConnectionFactory</a></li><li><a href="Mareeba.ConnectionManager.html">ConnectionManager</a></li><li><a href="Mareeba.DocumentManager.html">DocumentManager</a></li><li><a href="Mareeba.MessageHandler.html">MessageHandler</a></li><li><a href="Mareeba.MessageHandler.Network.html">Network</a></li><li><a href="Mareeba.MessageHandler.Public.html">Public</a></li><li><a href="Mareeba.Storage.html">Storage</a></li><li><a href="Mareeba.Storage.FileSystem.html">FileSystem</a></li></ul>
+	</nav>
+    <div id="content">
+    	<h1 class="page-title">Namespace: ConnectionFactory</h1>
+    	
+
+
+
+<section>
+    
+<header>
+    <h2>
+        <span class="ancestors"><a href="Mareeba.html">Mareeba</a>.</span>
+    
+    ConnectionFactory
+    </h2>
+    
+</header>  
+
+<article>
+    <div class="container-overview">
+    
+    
+    
+        
+        
+        
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mareeba.connectionfactory.js.html">mareeba.connectionfactory.js</a>, <a href="mareeba.connectionfactory.js.html#line3">line 3</a>
+    </li></ul></dd>
+    
+</dl>
+
+        
+        
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        <h3 class="subsection-title">Methods</h3>
+        
+        <dl>
+            
+<dt>
+    <h4 class="name" id="buildConnection"><span class="type-signature">&lt;static> </span>buildConnection<span class="signature">(peerDescription, configurationobject)</span><span class="type-signature"> &rarr; {<a href="Mareeba.Connection.WebSocket.html">Mareeba.Connection.WebSocket</a>|<a href="Mareeba.Connection.WebRTC.html">Mareeba.Connection.WebRTC</a>}</span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        builds a connection regarding to the given peer description
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>peerDescription</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Mareeba.html#PeerDescription">Mareeba.PeerDescription</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">of far peer</td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>configurationobject</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    <h5>Throws:</h5>
+    
+            
+
+    <div class="param-desc">
+    
+        No usable connectiontype specified
+    
+    </div>
+
+
+        
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+	
+<span class="param-type"><a href="Mareeba.Connection.WebSocket.html">Mareeba.Connection.WebSocket</a></span>
+|
+
+<span class="param-type"><a href="Mareeba.Connection.WebRTC.html">Mareeba.Connection.WebRTC</a></span>
+
+ 
+
+
+	- 
+
+
+    created connection
+
+        
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.connectionfactory.js.html">mareeba.connectionfactory.js</a>, <a href="mareeba.connectionfactory.js.html#line13">line 13</a>
+    
+</dd>
+
+        </dl>
+    
+    
+    
+    
+    
+</article>
+
+</section>  
+
+
+
+
+    </div>
+	<br clear="both">
+	<footer>
+		API of <a href="http://mareeba.petrogale.org">Mareeba</a><br />
+	    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Sep 02 2013 12:38:12 GMT+0200 (MESZ)
+	</footer>
+</div>
+<script>
+prettyPrint();
+(function() {
+    var c = 0, num, s = document.getElementsByClassName('prettyprint source');
+    if (s && s[0]) {
+        s = s[0].getElementsByTagName('code')[0];
+        num = s.innerHTML.split('\n');
+        num = num.map(function(item) {c++;return '<span id="line' + c + '"></span>' + item;});
+        s.innerHTML = num.join('\n');
+    }
+}());
+</script>
+</body>
+</html>

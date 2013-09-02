@@ -3,24 +3,43 @@
     Mareeba.namespace("Peer");
     /**
      * Mainclass of Mareeba
-     * @author Marten Schälicke
-     * @class
+     * @class Mareeba.Peer
+     * @param {Object} config
      */
     Mareeba.Peer = function(config){
-        var conMng, docMng, storage, peer = this,
-        //private Methods
-        generateID;
+        var 
+        /**
+         * @type {Mareeba.ConnectionManager}
+         * @memberOf Mareeba.Peer~ */
+        conMng, 
+        
+        /**
+         * @type {Mareeba.DocumentManager}
+         * @memberOf Mareeba.Peer~ */
+        docMng, 
+        
+        /**
+         * @type {Mareeba.Storage}
+         * @memberOf Mareeba.Peer~ */
+        storage, 
+        
+        /**
+         * @type {Mareeba.Peer}
+         * @memberOf Mareeba.Peer~ */
+        peer = this,
 
         /**
          * creates ID for local peer.
          * uses random.org if available (quota) or a Mareeba.getRandomHexNumber()
-         * @param {function} callback
+         * @param {Function} callback
+         * @memberOf Mareeba.Peer~
          */
         generateID = function(callback){
             var getIDFromRandomOrg, chooseRandomID, setID;
 
             /**
              * get 20 random bytes from random.org
+             * @memberOf Mareeba.Peer.generateID
              */
             getIDFromRandomOrg = function(){
                 Mareeba.ajaxGet({
@@ -43,7 +62,7 @@
 
             /**
              * save ID and call the callback
-             * @param {string} id created ID
+             * @param {String} id created ID
              */
             setID = function(id){
                 Mareeba.log("Peer ID is set to: "+id, "info");

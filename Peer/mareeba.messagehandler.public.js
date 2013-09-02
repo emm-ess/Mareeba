@@ -4,15 +4,35 @@
     /**
      * message handler for public service.
      * handles messages of/for document manager (sending, receiving documents)
-     * @author Marten Schälicke
+     * @namespace Mareeba.MessageHandler.Public
+     * @type {Mareeba.MessageHandler}
      */
     Mareeba.MessageHandler.Public = (function(){
         var
-        docMng, netMsgHndl, msgHndl, peerID,
+        /**
+         * @type {Mareeba.DocumentManager}
+         * @memberOf Mareeba.MessageHandler.Public~ */
+        docMng, 
+        
+        /**
+         * @type {Mareeba.MessageHandler.Network}
+         * @memberOf Mareeba.MessageHandler.Public~ */
+        netMsgHndl, 
+        
+        /**
+         * @type {Mareeba.MessageHandler}
+         * @memberOf Mareeba.MessageHandler.Public~ */
+        msgHndl, 
+        
+        /**
+         * @type {Mareeba.ID}
+         * @memberOf Mareeba.MessageHandler.Public~ */
+        peerID,
 
         /**
          * stores documents in network
-         * @param {object} doc document to be saved
+         * @param {Object} doc document to be saved
+         * @memberOf Mareeba.MessageHandler.Public
          */
         initValueStore = function(doc){
             var nodeLookupCallback = function(msg){
@@ -34,8 +54,9 @@
 
         /**
          * handles valueStore requests
-         * @param {object} msg valueStore request
+         * @param {Mareeba.PublicMessage} msg valueStore request
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Public~
          */
         valueStoreRequest = function(msg, con){
             Mareeba.log("recieved valueStore Request Message", "log");
@@ -47,8 +68,9 @@
 
         /**
          * handles valueStores reponses
-         * @param {object} msg valueStore response
+         * @param {Mareeba.PublicMessage} msg valueStore response
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Public~
          */
         valueStoreResponse = function(msg, con){
             Mareeba.log("recieved valueStore Response Message", "log");
@@ -58,8 +80,9 @@
         /**
          * handles valueStore messages.
          * decides whether local peer is responsible or is to forward
-         * @param {object} msg valueStore message
+         * @param {Mareeba.PublicMessage} msg valueStore message
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Public~
          */
         valueStore = function(msg, con){
             if(msg.head.to === peerID){
@@ -77,8 +100,9 @@
 
         /**
          * searches for a given ID in the network. If not found calls the callback with undefined.
-         * @param {string} id ID of document to look for
-         * @param {function} callback
+         * @param {String} id ID of document to look for
+         * @param {Function} callback
+         * @memberOf Mareeba.MessageHandler.Public
          */
         initValueLookup = function(id, callback){
             var msg = {
@@ -97,8 +121,9 @@
 
         /**
          * handles valueLookup requests
-         * @param {object} msg valueLookup request
+         * @param {Mareeba.PublicMessage} msg valueLookup request
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Public~
          */
         valueLookupRequest = function(msg, con){
             Mareeba.log("recieved valueLookup Request Message", "log");
@@ -116,8 +141,9 @@
 
         /**
          * handles valueLookup responses
-         * @param {object} msg valueLookup response
+         * @param {Mareeba.PublicMessage} msg valueLookup response
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Public~
          */
         valueLookupResponse = function(msg, con){
             Mareeba.log("recieved valueLookup Response Message", "log");
@@ -136,8 +162,9 @@
 
         /**
          * handles valueLookup messages.
-         * @param {object} valueLookup message
+         * @param {Mareeba.PublicMessage} valueLookup message
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Public~
          */
         valueLookup = function(msg, con){
             if(msg.head.code === undefined){
@@ -150,8 +177,9 @@
 
         /**
          * forwards message to the corresponding handler method based on action-field in message header
-         * @param {object} msg received public service message
+         * @param {Mareeba.PublicMessage} msg received public service message
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Public
          */
         handleMessage = function(msg, con){
             switch(msg.head.action){
@@ -170,7 +198,8 @@
 
         /**
          * initializes the public message handler
-         * @param {object} config configurationobject
+         * @param {Object} config configurationobject
+         * @memberOf Mareeba.MessageHandler.Public
          */
         init = function(config){
             peerID = config.peer.id;

@@ -4,16 +4,31 @@
     /**
      * message handler for network service.
      * handles messages of/for connection manager and for establishing and  maintaining connections.
-     * @author Marten Schälicke
+     * @namespace Mareeba.MessageHandler.Network
+     * @type {Mareeba.MessageHandler}
      */
     Mareeba.MessageHandler.Network = (function(){
         var
-        conMng, msgHndl, peerID,
+        /**
+         * @type {Mareeba.ConnectionManager}
+         * @memberOf Mareeba.MessageHandler.Network~ */
+        conMng, 
+        
+        /**
+         * @type {Mareeba.MessageHandler}
+         * @memberOf Mareeba.MessageHandler.Network~ */
+        msgHndl, 
+        
+        /**
+         * @type {Mareeba.ID}
+         * @memberOf Mareeba.MessageHandler.Network~ */
+        peerID,
 
         /**
          * initializes a nodeLookup
-         * @param {string} id ID to look for
-         * @param {function} [callback]
+         * @param {String} id ID to look for
+         * @param {Function} [callback]
+         * @memberOf Mareeba.MessageHandler.Network
          */
         initNodeLookup = function(id, callback){
             var nearestPeers = conMng.getNearestPeers(id, null, 6),
@@ -33,8 +48,9 @@
 
         /**
          * handles responses of nodeLookups
-         * @param {object} msg nodeLookup response
+         * @param {Mareeba.NetworkMessage} msg nodeLookup response
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Network~
          */
         nodeLookupResponse = function(msg, con){
             Mareeba.log("recieved nodeLookupResponse Message for: "+msg.body.id, "log");
@@ -56,8 +72,9 @@
 
         /**
          * answers nodeLookups
-         * @param {object} msg nodeLookup request
+         * @param {Mareeba.NetworkMessage} msg nodeLookup request
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Network~
          */
         nodeLookupRequest = function(msg, con){
             Mareeba.log("recieved nodeLookup Request Message for: "+msg.body.id, "log");
@@ -74,8 +91,9 @@
 
         /**
          * decides whether message is a nodeLookup request or response
-         * @param {object} msg nodeLookup message
+         * @param {Mareeba.NetworkMessage} msg nodeLookup message
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Network~
          */
         nodeLookup = function(msg, con){
             if(msg.head.code === undefined && msg.head.to !== peerID){
@@ -88,8 +106,9 @@
 
         /**
          * handles peerDescription messages
-         * @param {object} msg peerDescription message
+         * @param {Mareeba.NetworkMessage} msg peerDescription message
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Network~
          */
         peerDescription = function(msg, con){
             if(msg.head.code === undefined){
@@ -106,8 +125,9 @@
 
         /**
          * handles peerConnectionDescription messages (gives them to connectionmanager or forwards them)
-         * @param {object} msg peerConnectionDescription message
+         * @param {Mareeba.NetworkMessage} msg peerConnectionDescription message
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Network~
          */
         pcDescription = function(msg){
             if(msg.head.to === peerID){
@@ -120,8 +140,9 @@
 
         /**
          * handles iceProcess messages (gives them to connectionmanager or forwards them)
-         * @param {object} msg iceProcess message
+         * @param {Mareeba.NetworkMessage} msg iceProcess message
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Network~
          */
         iceProcess = function(msg){
             if(msg.head.to === peerID){
@@ -134,8 +155,9 @@
 
         /**
          * forwards message to the corresponding handler method based on action-field in message header
-         * @param {object} msg received network service message
+         * @param {Mareeba.NetworkMessage} msg received network service message
          * @param {Mareeba.Connection} con connection via which the message was received
+         * @memberOf Mareeba.MessageHandler.Network
          */
         handleMessage = function(msg, con){
             switch(msg.head.action){
@@ -160,7 +182,8 @@
 
         /**
          * initializes the network message handler
-         * @param {object} config configurationobject
+         * @param {Object} config configurationobject
+         * @memberOf Mareeba.MessageHandler.Network
          */
         init = function(config){
             peerID = config.peer.id;

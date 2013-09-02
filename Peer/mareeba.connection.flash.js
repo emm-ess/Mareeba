@@ -4,12 +4,11 @@
         Mareeba.namespace("Connection.Flash");
         /**
          * Wrapper für Flash p2p-Verbindungen
-         * @author Marten Schälicke
-         * @constructor
+         * @class Mareeba.Connection.Flash
+         * @extends Mareeba.Connection
          * @param {Object} config
          */
         Mareeba.Connection.Flash = function(config){
-
         };
     }
 }(Mareeba, swfobject));

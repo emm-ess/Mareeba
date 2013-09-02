@@ -3,7 +3,7 @@
     Mareeba.namespace("Friend");
     /**
      * should managa information about a friend like peerdescription, key...
-     * @author Marten Schälicke
+     * @class Mareeba.Friend
      */
     Mareeba.Friend = function(){
     };

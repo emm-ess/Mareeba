@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>API: Source: mareeba.documentmanager.js | Mareeba</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+<div id="main">
+	<nav>
+	    <h2><a href="index.html">Index</a></h2><h3>Externals</h3><ul><li><a href="external-BigInteger.html">BigInteger</a></li><li><a href="external-CryptoJS.html">CryptoJS</a></li></ul><h3>Classes</h3><ul><li><a href="Mareeba.Connection.html">Connection</a></li><li><a href="Mareeba.Connection.Flash.html">Flash</a></li><li><a href="Mareeba.Connection.WebRTC.html">WebRTC</a></li><li><a href="Mareeba.Connection.WebSocket.html">WebSocket</a></li><li><a href="Mareeba.Document.html">Document</a></li><li><a href="Mareeba.Friend.html">Friend</a></li><li><a href="Mareeba.Peer.html">Peer</a></li><li><a href="Mareeba.User.html">User</a></li></ul><h3>Namespaces</h3><ul><li><a href="Mareeba.html">Mareeba</a></li><li><a href="Mareeba.ConnectionFactory.html">ConnectionFactory</a></li><li><a href="Mareeba.ConnectionManager.html">ConnectionManager</a></li><li><a href="Mareeba.DocumentManager.html">DocumentManager</a></li><li><a href="Mareeba.MessageHandler.html">MessageHandler</a></li><li><a href="Mareeba.MessageHandler.Network.html">Network</a></li><li><a href="Mareeba.MessageHandler.Public.html">Public</a></li><li><a href="Mareeba.Storage.html">Storage</a></li><li><a href="Mareeba.Storage.FileSystem.html">FileSystem</a></li></ul>
+	</nav>
+    <div id="content">
+    	<h1 class="page-title">Source: mareeba.documentmanager.js</h1>
+    	
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>(function(Mareeba, CryptoJS){
+    "use strict";
+    Mareeba.namespace("DocumentManager");
+    /**
+     * Manages documents stored at local peer and answers requests regarding documents of user and other peers.
+     * @namespace Mareeba.DocumentManager
+     * @type {Mareeba.DocumentManager}
+     */
+    Mareeba.DocumentManager = (function(){
+        var
+        /**
+         * @memberOf Mareeba.DocumentManager~
+         * @type {Mareeba.Peer} */ 
+        peer,
+        
+        /**
+         * @memberOf Mareeba.DocumentManager~
+         * @type {Mareeba.Storage} */ 
+        storage,
+        
+        /**
+         * @memberOf Mareeba.DocumentManager~
+         * @type {Mareeba.MessageHandler.Public} */ 
+        docMsgHndl,
+
+        /**
+         * saves document locally and in network.
+         * @param {Mareeba.Document} doc document to be saved
+         * @memberOf Mareeba.DocumentManager 
+         */
+        addOwnDocument = function(doc){
+            var data = doc.getDataObject();
+            Mareeba.log("should manage new users document with titleID: "+data.titleID, "log");
+            docMsgHndl.initValueStore(data);
+            storage.saveDocument(data);
+        },
+
+        /**
+         * saves document locally
+         * @param {Mareeba.Document} doc document to be saved
+         * @memberOf Mareeba.DocumentManager 
+         */
+        addDocument = function(doc){
+            var data = doc.getDataObject();
+            storage.saveDocument(data);
+        },
+
+        /**
+         * creates new document and saves it locally and in network.
+         * @param {Object} documentData new document's data
+         * @memberOf Mareeba.DocumentManager 
+         */
+        newDocument = function(documentData){
+            var document = new Mareeba.Document(documentData);
+            addOwnDocument(document);
+        },
+
+        /**
+         * returns document for given id to the given callback
+         * @param {Mareeba.ID} id ID of document
+         * @param {getDocCallback} callback function for getting result
+         * @memberOf Mareeba.DocumentManager 
+         */
+        getDocument = function(id, callback){
+            storage.getDocument(id, function(doc){
+                if(doc !== undefined){
+                    doc = new Mareeba.Document(doc);
+                    callback(doc);
+                }
+                else {
+                    callback(undefined);
+                }
+            });
+        },
+
+        /**
+         * looks for document (ID given) locally and in the network.
+         * @param {Mareeba.ID} id ID of document
+         * @param {getDocCallback} callback function for getting result
+         * @memberOf Mareeba.DocumentManager 
+         */
+        searchDocumentByID = function(id, callback){
+            getDocument(id, function(doc){
+                if(doc !== undefined){
+                    callback(doc);
+                }
+                else{
+                    docMsgHndl.initValueLookup(id, callback);
+                }
+            });
+        },
+
+        /**
+         * looks for a document (title given) locally and in the network
+         * @param {String} title title of document
+         * @param {getDocCallback} callback function for getting result
+         * @memberOf Mareeba.DocumentManager 
+         */
+        searchDocument = function(title, callback){
+            var potID = CryptoJS.SHA1(title).toString(CryptoJS.enc.Hex);
+            searchDocumentByID(potID, callback);
+        },
+
+        /**
+         * Callback for requested documents
+         * @callback getDocCallback
+         * @param {?Mareeba.Document} requested document
+         * @memberOf Mareeba.DocumentManager 
+         */
+
+        /**
+         * initialzes document manager
+         * @param {Object} config configurationobject
+         * @memberOf Mareeba.DocumentManager 
+         */
+        init = function(config){
+            peer = config.peer;
+            storage = config.storage;
+            docMsgHndl = config.messageHandler.getServiceHandler("public");
+            Mareeba.newDocument        = Mareeba.newDocument        || newDocument;
+            Mareeba.searchDocument     = Mareeba.searchDocument     || searchDocument;
+            Mareeba.searchDocumentByID = Mareeba.searchDocumentByID || searchDocumentByID;
+        };
+
+        return {
+            "addOwnDocument" : addOwnDocument,
+            "addDocument" : addDocument,
+            "getDocument" : getDocument,
+            "searchDocumentByID" : searchDocumentByID,
+            "searchDocument" : searchDocument,
+            "init" : init
+        };
+    }());
+}(Mareeba, CryptoJS));</code></pre>
+        </article>
+    </section>
+
+
+
+
+    </div>
+	<br clear="both">
+	<footer>
+		API of <a href="http://mareeba.petrogale.org">Mareeba</a><br />
+	    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Sep 02 2013 12:38:11 GMT+0200 (MESZ)
+	</footer>
+</div>
+<script>
+prettyPrint();
+(function() {
+    var c = 0, num, s = document.getElementsByClassName('prettyprint source');
+    if (s && s[0]) {
+        s = s[0].getElementsByTagName('code')[0];
+        num = s.innerHTML.split('\n');
+        num = num.map(function(item) {c++;return '<span id="line' + c + '"></span>' + item;});
+        s.innerHTML = num.join('\n');
+    }
+}());
+</script>
+</body>
+</html>

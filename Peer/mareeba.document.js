@@ -1,17 +1,64 @@
 (function(Mareeba, CryptoJS){
     "use strict";
+    /** @namespace Mareeba.Document */
     Mareeba.namespace("Document");
     /**
      * Documents.
-     * @author Marten Schälicke
-     * @class
-     * @param {(object|string)} data title and content of document
+     * @class Mareeba.Document
+     * @param {(Object|String)} data title and content of document
      * @throws {InvalidArgument} if data or data.title or data.content is undefined
      */
     Mareeba.Document = function(data){
         var that = this,
-        title, content, titleID, versionID;
+        /** @type {String}
+         * @memberOf Mareeba.Document~ */ 
+        title,
+        
+        /** @type {String}
+         * @memberOf Mareeba.Document~ */ 
+        content,
+        
+        /** @type {Mareeba.ID}
+         * @memberOf Mareeba.Document~ */ 
+        titleID,
+        
+        /** @type {Mareeba.ID}
+         * @memberOf Mareeba.Document~ */ 
+        versionID,
+        
+        /**
+         * Getter for titleID
+         * @returns {Mareeba.ID} titleID titleID as string
+         * @memberOf Mareeba.Document#
+         */
+        getTitleID = function(){
+            return titleID;
+        },
 
+        /**
+         * returns document as JS-object
+         * @returns {Object} data document as JS-object
+         * @memberOf Mareeba.Document#
+         */
+        getDataObject = function(){
+            var data = {
+                "title": title,
+                "titleID": titleID,
+                "content": content,
+                "versionID": versionID
+            };
+            return data;
+        },
+
+        /**
+         * returns document as JSON-string
+         * @returns {String} document as JSON-string
+         * @memberOf Mareeba.Document#
+         */
+        toJSON = function(){
+            var data = that.getDataObject();
+            return JSON.stringify(data);
+        };
         /**
          * Initierungscode
          */
@@ -41,35 +88,10 @@
             }
         }());
 
-        /**
-         * Getter for titleID
-         * @returns {string} titleID titleID as string
-         */
-        this.getTitleID = function(){
-            return titleID;
-        };
-
-        /**
-         * returns document as JS-object
-         * @returns {object} data document as JS-object
-         */
-        this.getDataObject = function(){
-            var data = {
-                "title": title,
-                "titleID": titleID,
-                "content": content,
-                "versionID": versionID
-            };
-            return data;
-        };
-
-        /**
-         * returns document as JSON-string
-         * @returns {JSON} document as JSON-string
-         */
-        this.toJSON = function(){
-            var data = that.getDataObject();
-            return JSON.stringify(data);
+        return {
+            getTitleID : getTitleID,
+            getDataObject : getDataObject,
+            toJSON : toJSON
         };
     };
 }(Mareeba, CryptoJS));

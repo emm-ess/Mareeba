@@ -1,0 +1,36 @@
+/**
+ * 40 digits long hexadecimal String representing a 160 bit number
+ * @typedef {String} Mareeba.ID
+ */
+
+/**
+ * @typedef {Object} Mareeba.Message
+ * @property {Object} head
+ * @property {String} head.service
+ * @property {String} head.action
+ * @property {Mareeba.ID} head.from
+ * @property {Mareeba.ID} head.refcode
+ * @property {String} head.date
+ * @property {String} head.protocolVersion
+ * @property {Object} body
+ * @see http://mareeba.petrogale.org/wiki/messages/
+ */
+ 
+/**
+ * @typedef {Mareeba.Message} Mareeba.NetworkMessage
+ * @extends Mareeba.Message
+ * @see http://mareeba.petrogale.org/wiki/messages/network-level-messages/
+ */
+  
+/**
+ * @typedef {Mareeba.Message} Mareeba.PublicMessage
+ * @augments Mareeba.Message
+ * @see http://mareeba.petrogale.org/wiki/messages/public-level-messages/
+ */
+ 
+ /**
+  * @typedef {Object} Mareeba.PeerDescription
+  * @property {Mareeba.ID} ID
+  * @property {?String} ws
+  * @property {?Boolean} webrtc
+  */

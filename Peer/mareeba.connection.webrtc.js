@@ -2,9 +2,9 @@
     "use strict";
     var supported = false,
     //used to have only one interface
-    RTCPeerConnection = window.RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection,
+    RTCPeerConnection     = window.RTCPeerConnection     = window.RTCPeerConnection     || window.webkitRTCPeerConnection     || window.mozRTCPeerConnection,
     RTCSessionDescription = window.RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription,
-    RTCIceCandidate = window.RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate;
+    RTCIceCandidate       = window.RTCIceCandidate       = window.RTCIceCandidate       || window.webkitRTCIceCandidate       || window.mozRTCIceCandidate;
 
     (function(){
         if(!!window.webkitRTCPeerConnection){
@@ -29,10 +29,10 @@
         Mareeba.namespace("Connection.WebRTC");
         /**
          * Wrapper for WebRTC based p2p Connections
-         * @author Marten Schälicke
-         * @class
-         * @param {PeerDescription} peerDescription of far peer
-         * @param {object} configurationobject
+         * @class Mareeba.Connection.WebRTC
+         * @extends Mareeba.Connection
+         * @param {Mareeba.PeerDescription} peerDescription of far peer
+         * @param {Object} configurationobject
          */
         Mareeba.Connection.WebRTC = function(__peerDesc, __config){
             (function(that){
@@ -55,12 +55,17 @@
         Mareeba.Connection.WebRTC.parent = Mareeba.Connection.prototype;
         
         Mareeba.Connection.WebRTC.prototype = (function(){
+            /* TODO:
+             * - use proxy function (like in Mareeba.Connection.WebSocket) (move proxy function to Mareeba) instead of passing "that"
+             */
             var
             
             /**
              * callback for creating the local description (as offer) in first step to create WebRTC p2p connection.
              * Sets localDescription (offer) to underlying connection and sends it also to far peer.
-             * @param {Object} peerConnection Description of far peer
+             * @param {RTCSessionDescription} peerConnection Description of far peer
+             * @param {Mareeba.Connection.WebRTC} that instance itself
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             gotOffer = function(pcDesc, that){
                 var msg = {
@@ -77,6 +82,9 @@
 
             /**
              * inits underlying connection and sets callbacks
+             * @method _initConnection
+             * @private
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             initConnection = function(){
                 var that = this;
@@ -91,7 +99,9 @@
             /**
              * callback for creating the local description (as answer) to create WebRTC p2p connection.
              * Sets localDescription (answer) to underlying connection and sends it also to far peer.
-             * @param {Object} peerConnection Description of far peer
+             * @param {RTCSessionDescription} peerConnection Description of far peer
+             * @param {Mareeba.Connection.WebRTC} that instance itself
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             gotAnswer = function(pcDesc, that){
                 var msg = {
@@ -110,6 +120,8 @@
              * callback if data channel between peers is created.
              * sets callbacks for the given data channel
              * @param {Event} event containing data channel
+             * @param {Mareeba.Connection.WebRTC} that instance itself
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             onDataChannel = function(e, that){
                 that._dataChannel = e.channel;
@@ -121,6 +133,9 @@
 
             /**
              * sets the given offer as remote description and creates an answer.
+             * @method _answer
+             * @private
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             answer = function(){
                 var that = this;
@@ -131,7 +146,8 @@
 
             /**
              * sets the received answer as remote description.
-             * @param {object} answer answer of far peer
+             * @param {RTCSessionDescription} answer answer of far peer
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             gotAnswerMsg = function(answer){
                 this._connection.setRemoteDescription(new RTCSessionDescription(answer));
@@ -140,10 +156,13 @@
             /**
              * callback for iceProcess.
              * handles event and build an iceProcess-Message to be send to far peer.
-             * @param {event} e
+             * @method _iceCallback
+             * @private
+             * @param {Event} e
              * @param {Mareeba.Connection.WebRTC} that own instance
+             * @memberOf Mareeba.Connection.WebRTC#
              */
-            iceCallback = function(e,that){
+            iceCallback = function(e, that){
                 if(e.candidate){
                     var msg = {
                         "head": {
@@ -159,7 +178,8 @@
 
             /**
              * adds the given ice candidate to the underlying connection.
-             * @param {object} ice of far peer
+             * @param {RTCIceCandidate} ice of far peer
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             gotIceMsg = function(ice){
                 this._connection.addIceCandidate(new RTCIceCandidate({sdpMLineIndex:ice.label, candidate:ice.candidate}));
@@ -167,8 +187,11 @@
 
             /**
              * sends the given message via dataChannel.
-             * @param {string} msg message to be send
-             * @returns {boolean} could message be send
+             * @method _send
+             * @private
+             * @param {String} msg message to be send
+             * @returns {Boolean} could message be send
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             send = function(msg){
                 return this._dataChannel.send(msg);
@@ -177,7 +200,8 @@
             /**
              * returns the readyState of the underlying connection.
              * Readystates are the same as used for WebSockets.
-             * @returns {number} readyState
+             * @returns {Number} readyState
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             getReadyState = function(){
                 var intRState;
@@ -197,6 +221,7 @@
 
             /**
              * closes the connection and frees ressources.
+             * @memberOf Mareeba.Connection.WebRTC#
              */
             close = function(){
                 this._dataChannel.onclose = function(){};

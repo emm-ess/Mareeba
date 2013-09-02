@@ -4,19 +4,24 @@
         Mareeba.namespace("Connection.WebSocket");
         /**
          * Wrapper for WebSocket based connections
-         * @author Marten Schälicke
-         * @class
-         * @param {PeerDescription} peerDescription of far peer
-         * @param {object} configurationobject
+         * @class Mareeba.Connection.WebSocket
+         * @extends Mareeba.Connection
+         * @param {Mareeba.PeerDescription} peerDescription of far peer
+         * @param {Object} configurationobject
          */
         Mareeba.Connection.WebSocket = function(__peerDesc, __config){
             Mareeba.Connection.WebSocket.parent.init.call(this, __peerDesc, __config);
             Mareeba.log("Trying to connect to: "+this._peerDesc.ws, "info");
+            /**
+             * @private
+             * @type {WebSocket}
+             * @memberOf Mareeba.Connection.WebSocket#
+             */
             this._connection = new WebSocket(this._peerDesc.ws);
             this._connection.onerror = this._config.onerror;
             this._connection.onclose = this._config.onclose;
-            this._connection.onmessage = this.proxy(this._config.onmessage);
-            this._connection.onopen = this.proxy(this._config.onopen);
+            this._connection.onmessage = this._proxy(this._config.onmessage);
+            this._connection.onopen = this._proxy(this._config.onopen);
         };
         
         Mareeba.Connection.WebSocket.parent = Mareeba.Connection.prototype;
@@ -25,8 +30,11 @@
             var
             /**
              * sends the given message via websocket.
-             * @param {string} msg message to be send
-             * @returns {boolean} could message be send
+             * @method _send
+             * @private
+             * @param {String} msg message to be send
+             * @returns {Boolean} could message be send
+             * @memberOf Mareeba.Connection.WebSocket#
              */
             send = function(msg){
                 return this._connection.send(msg);
@@ -34,18 +42,22 @@
             
             /**
              * proxies functions
-             * @param  {function} func function to be proxied
+             * @method _proxy
+             * @private
+             * @param  {Function} func function to be proxied
+             * @memberOf Mareeba.Connection.WebSocket#
              */
             proxy = function(func){
-            	var self = this;
-            	return function(){
-            		return func.apply(self, arguments);
-            	};
+                var self = this;
+                return function(){
+                    return func.apply(self, arguments);
+                };
             },
 
             /**
              * returns the readyState of the underlying connection.
-             * @returns {number} readyState
+             * @returns {Number} readyState
+             * @memberOf Mareeba.Connection.WebSocket#
              */
             getReadyState = function(){
                 return this._connection.readyState;
@@ -53,6 +65,7 @@
 
             /**
              * closes the connection and frees ressources.
+             * @memberOf Mareeba.Connection.WebSocket#
              */
             close = function(){
                 this._connection.onclose = function(){};
@@ -63,7 +76,7 @@
 
             return {
                 _send: send,
-                proxy: proxy,
+                _proxy: proxy,
                 getReadyState: getReadyState,
                 close: close
             }

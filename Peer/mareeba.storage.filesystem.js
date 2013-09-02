@@ -3,10 +3,9 @@
     Mareeba.namespace("Storage.FileSystem");
     /**
      * Wrapper zur Kommunikation mit der File System API
-     * @author Marten Schälicke
-     * @constructor
-     * @param {Object} config
+     * @namespace Mareeba.Storage.FileSystem
+     * @type {Mareeba.Storage.FileSystem}
      */
-    Mareeba.Storage.FileSystem = function(config){
-    };
+    Mareeba.Storage.FileSystem = (function(){
+    }());
 }(Mareeba));

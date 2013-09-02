@@ -3,18 +3,51 @@
     Mareeba.namespace("MessageHandler");
     /**
      * main object for handling messages
-     * @author Marten Schälicke
+     * @namespace Mareeba.MessageHandler
+     * @type {Mareeba.MessageHandler}
      */
     Mareeba.MessageHandler = (function(){
-        var serviceHndl = {}, conMng, peerID,
+        var 
+        /**
+         * @type {Object}
+         * @memberOf Mareeba.MessageHandler~ */
+        serviceHndl = {}, 
+        
+        /**
+         * @type {Mareeba.ConnectionManager}
+         * @memberOf Mareeba.MessageHandler~ */
+        conMng, 
+        
+        /**
+         * @type {Mareeba.ID}
+         * @memberOf Mareeba.MessageHandler~ */
+        peerID,
+        
+        /**
+         * @type {String}
+         * @memberOf Mareeba.MessageHandler~ */
         protocolVersion = "0.1",
+        
+        /**
+         * @type {Object}
+         * @memberOf Mareeba.MessageHandler~ */
         responseCallbacks = {},
-        storeMsg, deleteMsg,
+        
+        /**
+         * @type {Function}
+         * @memberOf Mareeba.MessageHandler~ */
+        storeMsg, 
+        
+        /**
+         * @type {Function}
+         * @memberOf Mareeba.MessageHandler~ */
+        deleteMsg,
 
         /**
          * checks mandatory fields of messages and creates them if needed.
-         * @param {object} msg message to be send
-         * @returns {object} verified message
+         * @param {Mareeba.Message} msg message to be send
+         * @returns {Mareeba.Message} verified message
+         * @memberOf Mareeba.MessageHandler~
          */
         buildMandatoryFields = function(msg){
             if(msg.head.protocolVersion === undefined){
@@ -34,8 +67,9 @@
 
         /**
          * forwards messages based on service-field in message header to corresponding message (service) handler
-         * @param {object} msg incoming message
+         * @param {Mareeba.Message} msg incoming message
          * @param {Mareeba.Connection} con connection which received the message
+         * @memberOf Mareeba.MessageHandler
          */
         handleMessage = function(msg, con){
             if(!!serviceHndl[msg.head.service]){
@@ -48,10 +82,11 @@
 
         /**
          * answers request by sending them directly back on the incoming connection.
-         * @param {object} msg answer
+         * @param {Mareeba.Message} msg answer
          * @param {Mareeba.Connection} con connection on which message will be send
-         * @param {number} code answercode
-         * @returns {boolean} could message be send
+         * @param {Number} code answercode
+         * @returns {Boolean} could message be send
+         * @memberOf Mareeba.MessageHandler
          */
         answer = function(msg, con, code){
             msg.head.code = code;
@@ -63,8 +98,9 @@
 
         /**
          * forwards message to next peer.
-         * @param {object} msg message to be send
-         * @returns {boolean} could message be send
+         * @param {Mareeba.Message} msg message to be send
+         * @returns {Boolean} could message be send
+         * @memberOf Mareeba.MessageHandler
          */
         forward = function(msg){
             msg = buildMandatoryFields(msg);
@@ -73,9 +109,10 @@
 
         /**
          * sends message.
-         * @param {object} msg message to be send
-         * @param {function} [callback] function to be called when response is received
+         * @param {Mareeba.Message} msg message to be send
+         * @param {Function} [callback] function to be called when response is received
          * @param {Mareeba.Connection} [con] used if message should be send via certain connection
+         * @memberOf Mareeba.MessageHandler
          */
         send = function(msg, callback, con){
             var save, refCode;
@@ -98,8 +135,9 @@
 
         /**
          * register serviceHandler for certain service
-         * @param {object} handler handler for messages on this service
-         * @param {string} service name of service
+         * @param {Mareeba.MessageHandler} handler handler for messages on this service
+         * @param {String} service name of service
+         * @memberOf Mareeba.MessageHandler
          */
         setServiceHandler = function(handler, service){
             serviceHndl[service] = handler;
@@ -107,8 +145,9 @@
 
         /**
          * returns the handler of given servicename
-         * @param {string} service servicename
-         * @returns {object} servicehandler
+         * @param {String} service servicename
+         * @returns {Mareeba.MessageHandler} servicehandler
+         * @memberOf Mareeba.MessageHandler
          */
         getServiceHandler = function(service){
             return serviceHndl[service];
@@ -116,8 +155,9 @@
 
         /**
          * returns the callback corresponding to given refCode
-         * @param {string} refCode referenzcode identifying request message
-         * @returns {function} corresponding callback
+         * @param {String} refCode referencecode identifying request message
+         * @returns {Function} corresponding callback
+         * @memberOf Mareeba.MessageHandler
          */
         getCallback = function(refCode){
             return responseCallbacks[refCode];
@@ -125,7 +165,8 @@
 
         /**
          * deletes a registered callback
-         * @param {string} refCode referenzcode identifying request message
+         * @param {String} refCode referenxwcode identifying request message 
+         * @memberOf Mareeba.MessageHandler
          */
         deleteCallback = function(refCode){
             if(typeof(responseCallbacks[refCode]) ===  "function"){
@@ -135,16 +176,18 @@
 
         /**
          * deletes message
-         * @param {string} refCode referenzcode identifying message
+         * @param {String} refCode referenxwcode identifying message
+         * @memberOf Mareeba.MessageHandler
          */
         deleteMessage = function(refCode){
-        	deleteCallback(refCode);
+            deleteCallback(refCode);
             deleteMsg(refCode);
         },
 
         /**
          * initializes message handler
-         * @param {object} config configurationobject
+         * @param {Object} config configurationobject
+         * @memberOf Mareeba.MessageHandler
          */
         init = function(config){
             peerID = config.peer.id;

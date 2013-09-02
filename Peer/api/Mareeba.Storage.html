@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>API: Namespace: Storage | Mareeba</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+<div id="main">
+	<nav>
+	    <h2><a href="index.html">Index</a></h2><h3>Externals</h3><ul><li><a href="external-BigInteger.html">BigInteger</a></li><li><a href="external-CryptoJS.html">CryptoJS</a></li></ul><h3>Classes</h3><ul><li><a href="Mareeba.Connection.html">Connection</a></li><li><a href="Mareeba.Connection.Flash.html">Flash</a></li><li><a href="Mareeba.Connection.WebRTC.html">WebRTC</a></li><li><a href="Mareeba.Connection.WebSocket.html">WebSocket</a></li><li><a href="Mareeba.Document.html">Document</a></li><li><a href="Mareeba.Friend.html">Friend</a></li><li><a href="Mareeba.Peer.html">Peer</a></li><li><a href="Mareeba.User.html">User</a></li></ul><h3>Namespaces</h3><ul><li><a href="Mareeba.html">Mareeba</a></li><li><a href="Mareeba.ConnectionFactory.html">ConnectionFactory</a></li><li><a href="Mareeba.ConnectionManager.html">ConnectionManager</a></li><li><a href="Mareeba.DocumentManager.html">DocumentManager</a></li><li><a href="Mareeba.MessageHandler.html">MessageHandler</a></li><li><a href="Mareeba.MessageHandler.Network.html">Network</a></li><li><a href="Mareeba.MessageHandler.Public.html">Public</a></li><li><a href="Mareeba.Storage.html">Storage</a></li><li><a href="Mareeba.Storage.FileSystem.html">FileSystem</a></li></ul>
+	</nav>
+    <div id="content">
+    	<h1 class="page-title">Namespace: Storage</h1>
+    	
+
+
+
+<section>
+    
+<header>
+    <h2>
+        <span class="ancestors"><a href="Mareeba.html">Mareeba</a>.</span>
+    
+    Storage
+    </h2>
+    
+</header>  
+
+<article>
+    <div class="container-overview">
+    
+    
+    
+        
+            <div class="description">Wrapps up all storage functions.</div>
+        
+        
+        
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line9">line 9</a>
+    </li></ul></dd>
+    
+</dl>
+
+        
+        
+    
+    </div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        <h3 class="subsection-title">Namespaces</h3>
+        
+        <dl>
+            <dt><a href="namespaces.html#Mareeba.Storage.FileSystem"><a href="Mareeba.Storage.FileSystem.html">FileSystem</a></a></dt>
+            <dd></dd>
+        </dl>
+    
+    
+    
+        <h3 class="subsection-title">Members</h3>
+        
+        <dl>
+            
+<dt>
+    <h4 class="name" id="readwrite"><span class="type-signature">&lt;inner, constant> </span>readwrite<span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    <div class="description">
+        used as fallback for old API-Version
+    </div>
+    
+    
+    
+
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line22">line 22</a>
+    
+</dd>
+
+        </dl>
+    
+    
+    
+        <h3 class="subsection-title">Methods</h3>
+        
+        <dl>
+            
+<dt>
+    <h4 class="name" id="deleteMessage"><span class="type-signature">&lt;static> </span>deleteMessage<span class="signature">(key)</span><span class="type-signature"> &rarr; {String}</span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        löscht die zu dem gegebenen Referenzcode gehörende Nachricht
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Mareeba.html#ID">Mareeba.ID</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">ReferenzCode der Nachricht</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+	
+<span class="param-type">String</span>
+
+ 
+
+
+	- 
+
+
+    msg die Nachricht
+
+        
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line75">line 75</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getAllIndexEntries"><span class="type-signature">&lt;static> </span>getAllIndexEntries<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        lädt alle lokalen Indexeinträge und übergibt diese dem callback
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line177">line 177</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getAllPeers"><span class="type-signature">&lt;static> </span>getAllPeers<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        gibt alle gespeicherten Peers an den Callback
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">die aufzurufende Funktion</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line106">line 106</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getAllSuperPeers"><span class="type-signature">&lt;static> </span>getAllSuperPeers<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        gibt alle gespeicherten SuperPeers an den Callback
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">die aufzurufende Funktion</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line127">line 127</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getDocument"><span class="type-signature">&lt;static> </span>getDocument<span class="signature">(id, callback)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        lädt das Dokument mit der gegebenen ID aus der IndexedDB.
+übergibt undefined wenn Dokument nicht gefunden wurde.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Mareeba.html#ID">Mareeba.ID</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">Funktion, welche anschließend aufgerufen wird.</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line164">line 164</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getMessage"><span class="type-signature">&lt;static> </span>getMessage<span class="signature">(key)</span><span class="type-signature"> &rarr; {String}</span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        gibt für einen Referenzcode die abgelegte Nachricht zurück.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Mareeba.html#ID">Mareeba.ID</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">ReferenzCode der Nachricht</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+	
+<span class="param-type">String</span>
+
+ 
+
+
+	- 
+
+
+    msg die Nachricht
+
+        
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line66">line 66</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getPeerID"><span class="type-signature">&lt;static> </span>getPeerID<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="Mareeba.html#ID">Mareeba.ID</a>}</span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        Getter für die lokale PeerID
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+	
+<span class="param-type"><a href="Mareeba.html#ID">Mareeba.ID</a></span>
+
+ 
+
+
+	- 
+
+
+    peerID die ID des lokalen Peers
+
+        
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line38">line 38</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="getPeers"><span class="type-signature">&lt;static> </span>getPeers<span class="signature">(filter, callback)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        gibt eine gefilterte Liste von Peers an den Callback
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>filter</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">Filterfunktion zum aussortieren nicht benötigter Peers</td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Function</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">die aufzurufende Funktion</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line85">line 85</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="init"><span class="type-signature">&lt;static> </span>init<span class="signature">(config)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        Initialierungscode
+öffnet die IndexedDB und richtet die benötigten Speicher ein. Prüft zudem, ob es neue Einträge in der Datei defaultHelpers.json gibt.
+setzt das Flag, ob die erforderlichen Speicherorte und somit das Speichermodul von Mareeba genutzt werden kann.
+ruft zudem den in dem Konfigurationsobjekt gespeicherten Callback für onReady auf.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>config</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last"></td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line201">line 201</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="isUsable"><span class="type-signature">&lt;static> </span>isUsable<span class="signature">()</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        gibt zurück, ob alle gebrauchten Speichermöglichkeiten geladen werden konnten und das Speichermodul nutzbar ist.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+	
+<span class="param-type">Boolean</span>
+
+ 
+
+
+	- 
+
+
+    usable Benutzbarkeit des Storagemoduls
+
+        
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line29">line 29</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="saveDocument"><span class="type-signature">&lt;static> </span>saveDocument<span class="signature">(doc)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        speichert das gegebene Objekt in die Datenbank und fügt einen Eintrag in den Index hinzu.
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>doc</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">Data-Objekt des Dokuments</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line141">line 141</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="setPeerID"><span class="type-signature">&lt;static> </span>setPeerID<span class="signature">(peerID)</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        schreibt den gegebenen String als lokale PeerID in die Datenbank
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>peerID</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Mareeba.html#ID">Mareeba.ID</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">lokale PeerID</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+            
+
+
+	
+<span class="param-type">Boolean</span>
+
+ 
+
+
+	- 
+
+
+    couldSave
+
+        
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line47">line 47</a>
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="storeMessage"><span class="type-signature">&lt;static> </span>storeMessage<span class="signature">(key, value)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd class="method">
+    
+    
+    <div class="description">
+        schreibt die gegebene Nachricht in den SessionStorage
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Mareeba.html#ID">Mareeba.ID</a></span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">ReferenzCode der Nachricht</td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">die Nachricht selber</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    	<h5>Source:</h5>
+        <a href="mareeba.storage.js.html">mareeba.storage.js</a>, <a href="mareeba.storage.js.html#line57">line 57</a>
+    
+</dd>
+
+        </dl>
+    
+    
+    
+    
+    
+</article>
+
+</section>  
+
+
+
+
+    </div>
+	<br clear="both">
+	<footer>
+		API of <a href="http://mareeba.petrogale.org">Mareeba</a><br />
+	    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Sep 02 2013 12:38:15 GMT+0200 (MESZ)
+	</footer>
+</div>
+<script>
+prettyPrint();
+(function() {
+    var c = 0, num, s = document.getElementsByClassName('prettyprint source');
+    if (s && s[0]) {
+        s = s[0].getElementsByTagName('code')[0];
+        num = s.innerHTML.split('\n');
+        num = num.map(function(item) {c++;return '<span id="line' + c + '"></span>' + item;});
+        s.innerHTML = num.join('\n');
+    }
+}());
+</script>
+</body>
+</html>

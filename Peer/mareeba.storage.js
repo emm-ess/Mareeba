@@ -7,17 +7,24 @@
     if(!!window.indexedDB && !!window.indexedDB){
         Mareeba.namespace("Storage");
         /**
-         * StorageWrapper der einen einfachen Zugriff auf alle Speichermöglichkeiten schafft.
-         * @author Marten Schälicke
+         * Wrapps up all storage functions.
+         * @namespace Mareeba.Storage
          */
         Mareeba.Storage = (function(){
             var db, usable = false,
             indexedDB = window.indexedDB,
-            readwrite =  window.IDBTransaction.READ_WRITE || "readwrite", //used as fallback for old API-Version
+            
+            /** 
+             * used as fallback for old API-Version
+             * @memberOf Mareeba.Storage~
+             * @constant 
+             */
+            readwrite =  window.IDBTransaction.READ_WRITE || "readwrite",
 
             /**
              * gibt zurück, ob alle gebrauchten Speichermöglichkeiten geladen werden konnten und das Speichermodul nutzbar ist.
-             * @return {bool} usable Benutzbarkeit des Storagemoduls
+             * @return {Boolean} usable Benutzbarkeit des Storagemoduls
+             * @memberOf Mareeba.Storage
              */
             isUsable = function(){
                 return usable;
@@ -25,16 +32,17 @@
 
             /**
              * Getter für die lokale PeerID
-             * @return {String} peerID die ID des lokalen Peers
-             * @return null wenn keine PeerID gefunden werden konnte
+             * @return {?Mareeba.ID} peerID die ID des lokalen Peers
+             * @memberOf Mareeba.Storage
              */
             getPeerID = function(){
                 return localStorage.getItem("peerID");
             },
             /**
              * schreibt den gegebenen String als lokale PeerID in die Datenbank
-             * @param {String} peerID lokale PeerID
-             * @return {bool} couldSave
+             * @param {Mareeba.ID} peerID lokale PeerID
+             * @return {Boolean} couldSave
+             * @memberOf Mareeba.Storage
              */
             setPeerID = function(id){
                 return localStorage.setItem("peerID", id);
@@ -42,25 +50,27 @@
 
             /**
              * schreibt die gegebene Nachricht in den SessionStorage
-             * @param {String} key ReferenzCode der Nachricht
+             * @param {Mareeba.ID} key ReferenzCode der Nachricht
              * @param {String} value die Nachricht selber
+             * @memberOf Mareeba.Storage
              */
             storeMessage = function(key, value){
                 return sessionStorage.setItem("msg-"+key, value);
             },
             /**
              * gibt für einen Referenzcode die abgelegte Nachricht zurück.
-             * @param {String} key ReferenzCode der Nachricht
-             * @return {String} msg die Nachricht
-             * @return null wenn kein Eintrag gefunden werden konnte
+             * @param {Mareeba.ID} key ReferenzCode der Nachricht
+             * @return {?String} msg die Nachricht
+             * @memberOf Mareeba.Storage
              */
             getMessage = function(key){
                 return sessionStorage.getItem("msg-"+key);
             },
             /**
              * löscht die zu dem gegebenen Referenzcode gehörende Nachricht
-             * @param {String} key ReferenzCode der Nachricht
+             * @param {Mareeba.ID} key ReferenzCode der Nachricht
              * @return {String} msg die Nachricht
+             * @memberOf Mareeba.Storage
              */
             deleteMessage = function(key){
                 return sessionStorage.removeItem("msg-"+key);
@@ -70,6 +80,7 @@
              * gibt eine gefilterte Liste von Peers an den Callback
              * @param {Function} filter Filterfunktion zum aussortieren nicht benötigter Peers
              * @param {Function} callback die aufzurufende Funktion
+             * @memberOf Mareeba.Storage
              */
             getPeers = function(filter, callback){
                 var peerStore = db.transaction("peers").objectStore("peers"),
@@ -90,6 +101,7 @@
             /**
              * gibt alle gespeicherten Peers an den Callback
              * @param {Function} callback die aufzurufende Funktion
+             * @memberOf Mareeba.Storage
              */
             getAllPeers = function(callback){
                 var peerStore = db.transaction("peers").objectStore("peers"),
@@ -110,6 +122,7 @@
             /**
              * gibt alle gespeicherten SuperPeers an den Callback
              * @param {Function} callback die aufzurufende Funktion
+             * @memberOf Mareeba.Storage
              */
             getAllSuperPeers = function(callback){
                 var filter = function(curValue, resultSet){
@@ -123,6 +136,7 @@
             /**
              * speichert das gegebene Objekt in die Datenbank und fügt einen Eintrag in den Index hinzu.
              * @param {Object} doc Data-Objekt des Dokuments
+             * @memberOf Mareeba.Storage
              */
             saveDocument = function(doc){
                 var trans = db.transaction(["index", "pubDocuments"], readwrite),
@@ -143,8 +157,9 @@
             /**
              * lädt das Dokument mit der gegebenen ID aus der IndexedDB.
              * übergibt undefined wenn Dokument nicht gefunden wurde.
-             * @param {String} id
+             * @param {Mareeba.ID} id
              * @param {Function} callback Funktion, welche anschließend aufgerufen wird.
+             * @memberOf Mareeba.Storage
              */
             getDocument = function(id, callback){
                 var request = db.transaction("pubDocuments").objectStore("pubDocuments").get(id);
@@ -157,6 +172,7 @@
             /**
              * lädt alle lokalen Indexeinträge und übergibt diese dem callback
              * @param {Function} callback
+             * @memberOf Mareeba.Storage
              */
             getAllIndexEntries = function(callback){
                 var indexStore = db.transaction("index").objectStore("index"),
@@ -179,6 +195,8 @@
              * öffnet die IndexedDB und richtet die benötigten Speicher ein. Prüft zudem, ob es neue Einträge in der Datei defaultHelpers.json gibt.
              * setzt das Flag, ob die erforderlichen Speicherorte und somit das Speichermodul von Mareeba genutzt werden kann.
              * ruft zudem den in dem Konfigurationsobjekt gespeicherten Callback für onReady auf.
+             * @param {Object} config
+             * @memberOf Mareeba.Storage
              */
             init = function(config){
                 var
@@ -260,7 +278,7 @@
                             turnStunStore.openCursor().onsuccess = loadDefaultTurnStun;
                         },
                         "error": function(textStatus){
-                        	ready();
+                            ready();
                             Mareeba.log("Couldn't load defaultHelpers: "+textStatus, "info");
                         }
                     });

@@ -3,16 +3,30 @@
     Mareeba.namespace("DocumentManager");
     /**
      * Manages documents stored at local peer and answers requests regarding documents of user and other peers.
-     * @author Marten Schälicke
+     * @namespace Mareeba.DocumentManager
+     * @type {Mareeba.DocumentManager}
      */
     Mareeba.DocumentManager = (function(){
         var
-        peer, storage,
+        /**
+         * @memberOf Mareeba.DocumentManager~
+         * @type {Mareeba.Peer} */ 
+        peer,
+        
+        /**
+         * @memberOf Mareeba.DocumentManager~
+         * @type {Mareeba.Storage} */ 
+        storage,
+        
+        /**
+         * @memberOf Mareeba.DocumentManager~
+         * @type {Mareeba.MessageHandler.Public} */ 
         docMsgHndl,
 
         /**
          * saves document locally and in network.
          * @param {Mareeba.Document} doc document to be saved
+         * @memberOf Mareeba.DocumentManager 
          */
         addOwnDocument = function(doc){
             var data = doc.getDataObject();
@@ -24,6 +38,7 @@
         /**
          * saves document locally
          * @param {Mareeba.Document} doc document to be saved
+         * @memberOf Mareeba.DocumentManager 
          */
         addDocument = function(doc){
             var data = doc.getDataObject();
@@ -32,7 +47,8 @@
 
         /**
          * creates new document and saves it locally and in network.
-         * @param {object} documentData new document's data
+         * @param {Object} documentData new document's data
+         * @memberOf Mareeba.DocumentManager 
          */
         newDocument = function(documentData){
             var document = new Mareeba.Document(documentData);
@@ -41,8 +57,9 @@
 
         /**
          * returns document for given id to the given callback
-         * @param {string} id ID of document
+         * @param {Mareeba.ID} id ID of document
          * @param {getDocCallback} callback function for getting result
+         * @memberOf Mareeba.DocumentManager 
          */
         getDocument = function(id, callback){
             storage.getDocument(id, function(doc){
@@ -58,8 +75,9 @@
 
         /**
          * looks for document (ID given) locally and in the network.
-         * @param {string} id ID of document
+         * @param {Mareeba.ID} id ID of document
          * @param {getDocCallback} callback function for getting result
+         * @memberOf Mareeba.DocumentManager 
          */
         searchDocumentByID = function(id, callback){
             getDocument(id, function(doc){
@@ -74,8 +92,9 @@
 
         /**
          * looks for a document (title given) locally and in the network
-         * @param {string} title title of document
+         * @param {String} title title of document
          * @param {getDocCallback} callback function for getting result
+         * @memberOf Mareeba.DocumentManager 
          */
         searchDocument = function(title, callback){
             var potID = CryptoJS.SHA1(title).toString(CryptoJS.enc.Hex);
@@ -86,11 +105,13 @@
          * Callback for requested documents
          * @callback getDocCallback
          * @param {?Mareeba.Document} requested document
+         * @memberOf Mareeba.DocumentManager 
          */
 
         /**
          * initialzes document manager
-         * @param {object} config configurationobject
+         * @param {Object} config configurationobject
+         * @memberOf Mareeba.DocumentManager 
          */
         init = function(config){
             peer = config.peer;

@@ -1,0 +1,29 @@
+{
+    "tags": {
+        "allowUnknownTags": true
+    },
+    "source": {
+        "include": [],
+        "exclude": [],
+        "includePattern": ".+\\.js(doc)?$",
+        "excludePattern": "(^|\\/|\\\\)_"
+    },
+    "plugins": [],
+    "templates": {
+        "cleverLinks": true,
+        "monospaceLinks": false,
+        "default": {
+            "outputSourceFiles": true
+        }
+    },
+    "opts": {
+        "template": "jsdoc_template",
+        "encoding": "utf8",
+        "destination": "Peer/api",
+        "recurse": true,
+        "tutorials": "",
+        "query": "",
+        "private": true,
+        "lenient": true
+    }
+}

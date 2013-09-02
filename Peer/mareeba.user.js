@@ -2,11 +2,9 @@
     "use strict";
     Mareeba.namespace("User");
     /**
-     * Verwaltet Freunde des Nutzers und seine Daten.
-     * @author Marten Schälicke
-     * @constructor
-     * @param {Object} config
+     * Manages a user and his friends.
+     * @class Mareeba.User
      */
-    Mareeba.User = function(config){
+    Mareeba.User = function(){
     };
 }(Mareeba));

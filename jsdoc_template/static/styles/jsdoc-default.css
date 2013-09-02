@@ -1,0 +1,430 @@
+/*! normalize.css v2.1.3 | MIT License | git.io/normalize */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+nav,
+section,
+summary {
+    display: block;
+}
+
+audio,
+canvas,
+video {
+    display: inline-block;
+}
+
+audio:not([controls]) {
+    display: none;
+    height: 0;
+}
+
+[hidden],
+template {
+    display: none;
+}
+
+html {
+    font-family: sans-serif; /* 1 */
+    -ms-text-size-adjust: 100%; /* 2 */
+    -webkit-text-size-adjust: 100%; /* 2 */
+}
+
+body {
+    margin: 0;
+}
+
+a {
+    background: transparent;
+}
+
+a:focus {
+    outline: thin dotted;
+}
+
+a:active,
+a:hover {
+    outline: 0;
+}
+
+h1 {
+    font-size: 2em;
+    margin: 0.67em 0;
+}
+
+abbr[title] {
+    border-bottom: 1px dotted;
+}
+
+b,
+strong {
+    font-weight: bold;
+}
+
+dfn {
+    font-style: italic;
+}
+
+hr {
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    height: 0;
+}
+
+mark {
+    background: #ff0;
+    color: #000;
+}
+
+code,
+kbd,
+pre,
+samp {
+    font-family: monospace, serif;
+    font-size: 1em;
+}
+
+pre {
+    white-space: pre-wrap;
+}
+q {
+    quotes: "\201C" "\201D" "\2018" "\2019";
+}
+
+small {
+    font-size: 80%;
+}
+
+sub,
+sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+sup {
+    top: -0.5em;
+}
+
+sub {
+    bottom: -0.25em;
+}
+
+img {
+    border: 0;
+}
+
+svg:not(:root) {
+    overflow: hidden;
+}
+
+figure {
+    margin: 0;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/*
+ * Start own
+ */
+
+html {
+    overflow: auto;
+    background-color: #fff;
+}
+
+body {
+	font: 0.9em/1.3em "DejaVu Sans Condensed", "Liberation Sans", "Nimbus Sans L", Tahoma, Geneva, "Helvetica Neue", Helvetica, Arial, sans serif;
+	color: #000;
+	background-color: #fff;
+	padding: 1em;
+}
+
+a, a:visited, a:active {
+    color: #444;
+}
+
+.class-description {
+    font-style: italic;
+	font-family: Palatino, 'Palatino Linotype', serif;
+	font-size: 130%;
+	line-height: 140%;
+	margin-bottom: 1em;
+	margin-top: 1em;
+}
+
+#main {
+    width: 100%;
+    max-width: 960px;
+}
+
+#main>#content {
+	margin-left: 15em;
+	margin-top: 1em;
+	min-height: 80%;
+}
+
+section {
+	background-color: #fff;
+	padding: 12px 24px;
+    border-bottom: 1px solid #ccc;
+}
+
+.variation {
+    display: none;
+}
+
+.optional:after {
+	content: "opt";
+	font-size: 60%;
+	color: #aaa;
+	font-style: italic;
+	font-weight: lighter;
+}
+
+nav {
+	position: fixed;
+	top: 1em;
+	left: 1em;
+    width: 13em;
+    border-right: 1px solid #ccc;
+    padding-right: 9px;
+}
+
+nav ul {
+    font-family: 'Lucida Grande', 'Lucida Sans Unicode', arial, sans-serif;
+    font-size: 100%;
+    line-height: 17px;
+    padding:0;
+    margin:0;
+    list-style-type:none;
+}
+
+nav h2 a, nav h2 a:visited {
+    color: #A35A00;
+    text-decoration: none;
+}
+
+nav h3 {
+    margin-top: 1em;
+}
+
+nav li {
+    margin-top: 6px;
+}
+
+nav a {
+    color: #5C5954;
+}
+
+nav a:visited {
+    color: #5C5954;
+}
+
+nav a:active {
+    color: #5C5954;
+}
+
+footer {
+    padding: 6px;
+    margin-top: 12px;
+    font-style: italic;
+    font-size: 90%;
+}
+
+h1
+{
+	font-size: 2em;
+	font-weight: bold;
+	margin: 6px 0 9px 0;
+}
+
+h2
+{
+	font-size: 1.7em;
+	font-weight: bold;
+	margin: 6px 0 3px 0;
+}
+
+h3
+{
+	font-size: 1.5em;
+	line-height: 1.7em;
+	font-weight: bold;
+	margin: 1.7em 0 3px 0;
+}
+
+h4
+{
+	font-size: 1.3em;
+	line-height: 1.5em;
+	font-weight: bold;
+	margin: 0.3em 0 3px 0;
+	color: #A35A00;
+}
+
+h5, .container-overview .subsection-title
+{
+	font-size: 1.2em;
+	font-weight: bold;
+	margin: 8px 0 3px -16px;
+}
+
+h6
+{
+	font-size: 1em;
+	margin: 6px 0 3px 0;
+	font-style: italic;
+}
+
+.ancestors { color: #999; }
+.ancestors a
+{
+    color: #999 !important;
+    text-decoration: none;
+}
+
+.important
+{
+	font-weight: bold;
+	color: #950B02;
+}
+
+.yes-def {
+    text-indent: -1000px;
+}
+
+.type-signature {
+    color: #aaa;
+}
+
+.name, .signature {
+	font-family: Consolas, "Lucida Console", Monaco, monospace;
+}
+
+.details { margin-top: 14px; }
+.details dt { width:100px;}
+.details dd { margin-left: 50px; }
+.details ul { margin: 0; }
+.details ul { list-style-type: none; }
+.details li { margin-left: 30px; padding-top: 6px; }
+
+.description {
+	margin-bottom: 1em;
+	margin-left: -16px;
+	margin-top: 1em;
+}
+
+.code-caption
+{
+	font-style: italic;
+	font-family: Palatino, 'Palatino Linotype', serif;
+	font-size: 107%;
+	margin: 0;
+}
+
+.prettyprint
+{
+	border: 1px solid #ddd;
+	width: 80%;
+    overflow: auto;
+}
+
+.prettyprint.source {
+    width: inherit;
+}
+
+.prettyprint code
+{
+	font-family: Consolas, 'Lucida Console', Monaco, monospace;
+	font-size: 100%;
+	line-height: 18px;
+	display: block;
+	padding: 4px 12px;
+	margin: 0;
+	background-color: #fff;
+	color: #000;
+	border-left: 3px #ddd solid;
+}
+
+.params, .props
+{
+	border-spacing: 0;
+	border: 0;
+	border-collapse: collapse;
+}
+
+.params .name, .props .name, .name code {
+	color: #A35A00;
+	font-family: Consolas, 'Lucida Console', Monaco, monospace;
+	font-size: 100%;
+}
+
+.params td, .params th, .props td, .props th
+{
+	border: 1px solid #ddd;
+	margin: 0px;
+	text-align: left;
+	vertical-align: top;
+	padding: 4px 6px;
+	display: table-cell;
+}
+
+.params thead tr, .props thead tr
+{
+	background-color: #ddd;
+	font-weight: bold;
+}
+
+.params .params thead tr, .props .props thead tr
+{
+	background-color: #fff;
+	font-weight: bold;
+}
+
+.params th, .props th { border-right: 1px solid #aaa; }
+.params thead .last, .props thead .last { border-right: 1px solid #ddd; }
+
+.disabled {
+    color: #454545;
+}
+
+dl {
+	margin-top: 0.1em
+}
+
+dt {
+	margin-top: 0.1em;
+}
+
+dd.method {
+	margin-bottom: 2.3em;
+}
+
+dd.method h5 {
+	margin-top: 0.7em;
+	margin-bottom: 0.4em;
+}
+
+table {
+	width: 100%
+}
+
+table .name, 
+table .type {
+	width: 17%;
+}
+
+table .type {
+	width: 30%;
+}
